@@ -31,7 +31,7 @@ from PyQt5 import QtCore, QtGui
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QHeaderView, QAbstractItemView
 from PyQt5.Qt import QTableWidgetItem
-from constant import FONT_SIZE, FIRST_TAB, FONT_WEIGHT, DIT_LIST
+from constant import FONT_SIZE, FIRST_TAB, FONT_WEIGHT, DIT_LIST, INT_LIMIT, DIT_DATABASE
 from email_tool import EmailTools
 
 
@@ -115,7 +115,13 @@ class EmailUi(QWidget):
         self.log_text.setReadOnly(True)  # 只读
         self.log_text.setGeometry(QtCore.QRect(0, 810, 690, 185))
 
-        self.page = FIRST_TAB
+        self.page = ''
+
+        self.tool_tip = ''
+
+        self.table = {}
+
+        self.dit_table_button = {}
 
         self._setup_ui()
 
@@ -140,6 +146,34 @@ class EmailUi(QWidget):
             self.item = QListWidgetItem(keys, self.left_widget)  # 左侧选项的添加
             self.item.setSizeHint(QSize(30, 60))
             self.item.setTextAlignment(Qt.AlignCenter)  # 居中显示
+            # 渲染表格数据
+            table = QTableWidget()
+            table.setColumnCount(len(values))
+            table.setRowCount(INT_LIMIT)
+            table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)  # 铺满
+            table.horizontalHeader().setSectionResizeMode(0, QHeaderView.Interactive)  # 第一列可调整
+            table.setColumnWidth(0, 40)
+            table.setHorizontalHeaderLabels(values)
+            table.setEditTriggers(QAbstractItemView.NoEditTriggers)  # 禁止修改
+            table.setAlternatingRowColors(True)  # 交替行颜色
+            # 表格 tip 显示
+            table.installEventFilter(self)
+            table.setMouseTracking(True)
+            table.itemEntered.connect(self.enter_item_slot)
+            self.table[keys] = table
+            self.right_widget.addWidget(table)
+
+    def enter_item_slot(self, item):
+        # 获取鼠标指向
+        self.tool_tip = item.text()
+
+    def eventFilter(self, object, event):
+        try:
+            if event.type() == QEvent.ToolTip and self.tool_tip is not None:
+                self.setToolTip(self.tool_tip)
+            return QWidget.eventFilter(self, object, event)
+        except Exception as e:
+            logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
 
     def page_turning(self):
         pass
@@ -154,5 +188,41 @@ class EmailUi(QWidget):
             if self.page != str_items:
                 self.page = str_items  # 记住当前在哪个页面
                 self.obj_tool.show_message('', '', f'切换到 {str_items}页面')
+                # 填充表格
+                dit_info = self.obj_tool.get_info(DIT_DATABASE[self.page])
+                self.show_table(dit_info.get('lst_ret', []), str_items, count_pag=dit_info.get('count', ''))
         except Exception as e:
             logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
+
+    def show_table(self, lst_data: list, str_table: str, curr_pag: int = 1, count_pag: int = 1):
+        """表格填充数据"""
+        try:
+            # 清空表格数据
+            table = self.table[str_table]
+            table.clearContents()  # 清空现有数据
+            self.dit_table_button[str_table] = []  # 清空页面 按钮对象
+            for index_, dit_info in enumerate(lst_data):
+                int_len = len(dit_info)
+                # 设置数据
+                for index_j, value in enumerate(dit_info.values()):
+                    if str_table == FIRST_TAB and index_j == 3:
+                        value = self.obj_tool.email_dict.get(str(value), {}).get('name_cn')
+                    item = QTableWidgetItem(str(value or ''))
+                    item.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+                    table.setItem(index_, index_j, item)  # 转换后可插入表格
+                button = QPushButton()
+                # 设置 objname 值为 该行数据库唯一索引
+                button.setObjectName(str(dit_info['id']))
+                button.setText(QtCore.QCoreApplication.translate("Telegram-Tool", '删除'))
+                button.clicked.connect(self.del_info)
+                self.dit_table_button.setdefault(str_table, []).append(button)
+                table.setCellWidget(index_, int_len + 1, button)
+            # 更新页数
+            self.page_text.setText(f'{curr_pag}/{count_pag}')
+            self.page_up.setDisabled(not curr_pag > 1)
+            self.page_down.setDisabled(not curr_pag < count_pag)
+        except Exception as e:
+            logger.debug(f"{e.__traceback__.tb_lineno}:--:{e}")
+
+    def del_info(self):
+        pass

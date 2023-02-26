@@ -24,8 +24,8 @@ class MyTelegram:
         pass
 
     def __call__(self):
-        base_path = os.path.dirname(__name__)
-        logger.add(os.path.join(base_path, "log.log"), rotation="500MB", encoding="utf-8", enqueue=True, retention="10 days")
+        from constant import BASE_PATH
+        logger.add(os.path.join(BASE_PATH, "log.log"), rotation="500MB", encoding="utf-8", enqueue=True, retention="10 days")
 
 
 if __name__ == '__main__':

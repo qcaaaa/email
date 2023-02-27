@@ -37,6 +37,13 @@ class EmailTools:
         return dit_info
 
     @staticmethod
+    def del_info(table: str, int_id: int) -> int:
+        """删除数据库信息"""
+        with MySql() as obj_sql:
+            int_ret = obj_sql.del_sql(table, int_id)
+        return int_ret
+
+    @staticmethod
     def load_file():
         dit_info = {}
         try:

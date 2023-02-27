@@ -115,7 +115,7 @@ class EmailUi(QWidget):
         self.log_text.setReadOnly(True)  # 只读
         self.log_text.setGeometry(QtCore.QRect(0, 810, 690, 185))
 
-        self.page = ''
+        self.page = FIRST_TAB
 
         self.tool_tip = ''
 
@@ -152,7 +152,7 @@ class EmailUi(QWidget):
             table.setRowCount(INT_LIMIT)
             table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)  # 铺满
             table.horizontalHeader().setSectionResizeMode(0, QHeaderView.Interactive)  # 第一列可调整
-            table.setColumnWidth(0, 40)
+            table.setColumnWidth(0, 60)
             table.setHorizontalHeaderLabels(values)
             table.setEditTriggers(QAbstractItemView.NoEditTriggers)  # 禁止修改
             table.setAlternatingRowColors(True)  # 交替行颜色
@@ -216,13 +216,29 @@ class EmailUi(QWidget):
                 button.setText(QtCore.QCoreApplication.translate("Telegram-Tool", '删除'))
                 button.clicked.connect(self.del_info)
                 self.dit_table_button.setdefault(str_table, []).append(button)
-                table.setCellWidget(index_, int_len + 1, button)
+                table.setCellWidget(index_, int_len, button)
             # 更新页数
             self.page_text.setText(f'{curr_pag}/{count_pag}')
-            self.page_up.setDisabled(not curr_pag > 1)
-            self.page_down.setDisabled(not curr_pag < count_pag)
+            if curr_pag > 1:
+                self.page_up.setEnabled(True)
+            else:
+                self.page_up.setDisabled(True)
+            if curr_pag < count_pag:
+                self.page_down.setEnabled(True)
+            else:
+                self.page_down.setDisabled(True)
         except Exception as e:
             logger.debug(f"{e.__traceback__.tb_lineno}:--:{e}")
 
     def del_info(self):
-        pass
+        int_ret = 0
+        sender = self.sender()
+        try:
+            sender.setDisabled(True)
+            db_id = int(sender.objectName())
+            int_ret = self.obj_tool.del_info(DIT_DATABASE[self.page], db_id)
+        except Exception as e:
+            logger.debug(f"{e.__traceback__.tb_lineno}:--:{e}")
+        finally:
+            sender.setEnabled(True)
+            self.obj_tool.show_message('删除', f'删除成功' if int_ret else '删除失败')

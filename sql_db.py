@@ -81,3 +81,14 @@ class MySql:
         except Exception as e:
             logger.debug(f"{e.__traceback__.tb_lineno}:--{e}:{str_sql}")
         return {'lst_ret': lst_ret, 'count': int_mun, 'int_count': int_count}
+
+    def del_sql(self, table: str, int_id: int) -> int:
+        int_ret = 0
+        str_sql = ''
+        try:
+            str_sql = f"delete from {table} where id={int_id}"
+            int_ret = self.__exec_sql('del', str_sql)
+        except Exception as e:
+            logger.debug(f"{e.__traceback__.tb_lineno}:--{e}:{str_sql}")
+        return int_ret
+

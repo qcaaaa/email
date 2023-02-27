@@ -77,7 +77,8 @@ class MySql:
                 self.__exec_sql('select', str_sql)
                 int_count = self.curr.fetchone().get('num', 0)
                 lst_divmod = divmod(int_count, INT_LIMIT)
-                int_mun = lst_divmod[0] + 1 if lst_divmod[-1] > 0 else 0
+                int_mun = lst_divmod[0]
+                int_mun = lst_divmod[0] + (1 if lst_divmod[-1] > 0 else 0)
         except Exception as e:
             logger.debug(f"{e.__traceback__.tb_lineno}:--{e}:{str_sql}")
         return {'lst_ret': lst_ret, 'count': int_mun, 'int_count': int_count}

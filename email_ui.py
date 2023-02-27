@@ -92,7 +92,7 @@ class EmailUi(QWidget):
         self.flush_button.setGeometry(QtCore.QRect(520, 20, 80, 30))
         self.flush_button.setText(QtCore.QCoreApplication.translate("Email-Tool", "刷新"))
         self.flush_button.setStyleSheet(button_style)
-        # self.send_button.clicked.connect(self.obj_tool.button_login)
+        self.send_button.clicked.connect(self.flush_table)
         # ################# 刷新控件 结束.......########################################
 
         # ################# 分页 开始....########################################
@@ -202,6 +202,8 @@ class EmailUi(QWidget):
             table.itemEntered.connect(self.enter_item_slot)
             self.table[keys] = table
             self.right_widget.addWidget(table)
+        # 首页自动刷新
+        self.flush_table(False)
 
     def enter_item_slot(self, item):
         # 获取鼠标指向
@@ -216,10 +218,39 @@ class EmailUi(QWidget):
             logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
 
     def page_turning(self):
-        pass
+        """翻页操作"""
+        sender = self.sender()
+        int_pag = 0
+        # 获取当前页数
+        curr_pag, count_pag = self.page_text.text().split('/')
+        if sender.text() == '上一页' and curr_pag.isdigit() and count_pag.isdigit():
+            int_pag = int(curr_pag) - 1
+        elif sender.text() == '下一页' and curr_pag.isdigit() and count_pag.isdigit():
+            int_pag = int(curr_pag) + 1
+        elif sender.text() == '跳转' and curr_pag.isdigit() and count_pag.isdigit():
+            to_page = self.page_text_2.text()
+            if to_page.isdigit() and 1 <= int(to_page) <= int(count_pag):
+                int_pag = int(to_page)
+                self.page_text_2.setText('')
+        if int_pag > 0:
+            dit_info = self.obj_tool.get_info(DIT_DATABASE[self.page], int_start=int_pag)
+            self.show_table(dit_info.get('lst_ret', []), self.page, curr_pag=int_pag, count_pag=dit_info.get('count', 0))
+        self.obj_tool.show_message('', '', f'当前处于 {self.page}页面 第{int_pag}页')
 
-    def text_changed(self):
-        pass
+    def text_changed(self, text):
+        """跳转输入框 监听事件"""
+        try:
+            int_page = int(text)
+            curr_pag, count_pag = self.page_text.text().split('/')
+            if int_page == int(curr_pag):
+                self.page_skip.setDisabled(True)
+            elif 1 <= int_page <= int(count_pag):
+                self.page_skip.setEnabled(True)
+            else:
+                self.page_skip.setDisabled(True)
+        except Exception as e:
+            logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
+            self.page_skip.setDisabled(True)
 
     def display(self, item):
         """左侧主菜单点击事件"""
@@ -287,3 +318,11 @@ class EmailUi(QWidget):
         finally:
             sender.setEnabled(True)
             self.obj_tool.show_message('删除', f'删除成功' if int_ret else '删除失败')
+            if int_ret == 1:
+                self.flush_table(False)
+
+    def flush_table(self, is_show: bool = True):
+        dit_info = self.obj_tool.get_info(DIT_DATABASE[self.page])
+        self.show_table(dit_info.get('lst_ret', []), self.page, count_pag=dit_info.get('count', ''))
+        if is_show:
+            self.obj_tool.show_message('刷新', '刷新当前页面成功')

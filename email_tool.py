@@ -135,6 +135,8 @@ class EmailTools:
                 if dit_data:
                     int_ret = self.add_info(DIT_DATABASE[str_page], dit_data)
                     self.show_message('成功' if int_ret == 1 else '失败', '添加成功' if int_ret == 1 else '添加失败')
+                    if int_ret == 1:
+                        self.obj_ui.flush_table(False)
         except Exception as e:
             logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
             self.show_message('错误', '添加失败')

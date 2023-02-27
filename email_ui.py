@@ -68,7 +68,7 @@ class EmailUi(QWidget):
         self.check_button.setGeometry(QtCore.QRect(220, 20, 80, 30))
         self.check_button.setText(QtCore.QCoreApplication.translate("Email-Tool", "邮箱账号检测"))
         self.check_button.setStyleSheet(button_style)
-        # self.check_button.clicked.connect(self.obj_tool.button_login)
+        self.check_button.clicked.connect(self.obj_tool.check_email)
         # ################# 邮箱账号检查控件 结束.......########################################
 
         # ################# 上传附件控件 开始.......########################################

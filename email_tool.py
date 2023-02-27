@@ -13,11 +13,14 @@
 @Desc :
 """
 import os
+import threading
+from time import sleep
 from json import load
 from loguru import logger
 from datetime import datetime
 from PyQt5.QtGui import QTextCursor
-from PyQt5.QtWidgets import QDialog, QFormLayout, QLineEdit, QDialogButtonBox, QMessageBox, QPlainTextEdit, QComboBox, QTextEdit
+from PyQt5.QtWidgets import QDialog, QFormLayout, QLineEdit, QDialogButtonBox, QMessageBox, QPlainTextEdit, QComboBox, \
+    QTextEdit,  QFileDialog
 
 from sql_db import MySql
 from constant import INT_LIMIT, BASE_PATH, DIT_DATABASE
@@ -80,10 +83,10 @@ class EmailTools:
             logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
 
     def add_table(self):
-        """弹窗
+        """增加页面
         """
-        # 当前页面
         try:
+            # 当前页面
             str_page = self.obj_ui.page
             dialog = QDialog(self.obj_ui)  # 自定义一个dialog
             formLayout = QFormLayout(dialog)  # 配置layout
@@ -140,3 +143,21 @@ class EmailTools:
         except Exception as e:
             logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
             self.show_message('错误', '添加失败')
+
+    def check_email(self):
+        file_name, _ = QFileDialog.getOpenFileName(self.obj_ui, '选取文件', os.getcwd(), 'Text File(*.txt)')
+        if os.path.isfile(file_name):
+            try:
+                with open(file_name, 'r', encoding='utf-8') as f:
+                    lst_email = [i for i in f.read().split('\n') if i.strip()]
+                if lst_email:
+                    self.show_message('提示', '上传邮箱账号文件成功,后台正在校验中....', '上传邮箱账号文件成功,后台正在校验中....')
+                    from email_check import check_email
+                    threading.Thread(target=check_email, args=(lst_email, self), daemon=True).start()
+                else:
+                    self.show_message('错误提示', '邮箱账号文件格式错误', '邮箱账号文件格式错误')
+            except Exception as e:
+                self.show_message('', '', f"{e.__traceback__.tb_lineno}:{e}")
+        else:
+            self.show_message('错误提示', '邮箱账号文件不存在', '邮箱账号文件不存在')
+

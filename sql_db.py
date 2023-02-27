@@ -92,3 +92,14 @@ class MySql:
             logger.debug(f"{e.__traceback__.tb_lineno}:--{e}:{str_sql}")
         return int_ret
 
+    def add_sql(self, table: str, dit_info: dict) -> int:
+        int_ret = 0
+        str_sql = ''
+        try:
+            lst_field = ','.join([f"'{i}'" for i in dit_info.keys()])
+            lst_values = ','.join(f"'{i}'" for i in dit_info.values())
+            str_sql = f'insert into {table}({lst_field}) values ({lst_values})'
+            int_ret = self.__exec_sql('add', str_sql)
+        except Exception as e:
+            logger.debug(f"{e.__traceback__.tb_lineno}:--{e}:{str_sql}")
+        return int_ret

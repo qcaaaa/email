@@ -55,10 +55,50 @@ class EmailUi(QWidget):
         with open('./css/QPushButtonQSS.qss', 'r', encoding='utf-8') as f:
             button_style = f.read()
 
+        # ################# 增加控件 开始.......########################################
+        self.add_button = QPushButton(self)
+        self.add_button.setGeometry(QtCore.QRect(120, 20, 80, 30))
+        self.add_button.setText(QtCore.QCoreApplication.translate("Email-Tool", "增加"))
+        self.add_button.setStyleSheet(button_style)
+        self.add_button.clicked.connect(self.obj_tool.add_table)
+        # ################# 增加控件 结束.......########################################
+
+        # ################# 邮箱账号检查控件 开始.......########################################
+        self.check_button = QPushButton(self)
+        self.check_button.setGeometry(QtCore.QRect(220, 20, 80, 30))
+        self.check_button.setText(QtCore.QCoreApplication.translate("Email-Tool", "邮箱账号检测"))
+        self.check_button.setStyleSheet(button_style)
+        # self.check_button.clicked.connect(self.obj_tool.button_login)
+        # ################# 邮箱账号检查控件 结束.......########################################
+
+        # ################# 上传附件控件 开始.......########################################
+        self.upload_button = QPushButton(self)
+        self.upload_button.setGeometry(QtCore.QRect(320, 20, 80, 30))
+        self.upload_button.setText(QtCore.QCoreApplication.translate("Email-Tool", "上传附件"))
+        self.upload_button.setStyleSheet(button_style)
+        # self.upload_button.clicked.connect(self.obj_tool.button_login)
+        # ################# 上传附件控件 结束.......########################################
+
+        # ################# 上传附件控件 开始.......########################################
+        self.send_button = QPushButton(self)
+        self.send_button.setGeometry(QtCore.QRect(420, 20, 80, 30))
+        self.send_button.setText(QtCore.QCoreApplication.translate("Email-Tool", "发送邮件"))
+        self.send_button.setStyleSheet(button_style)
+        # self.send_button.clicked.connect(self.obj_tool.button_login)
+        # ################# 上传附件控件 结束.......########################################
+
+        # ################# 刷新控件 开始.......########################################
+        self.flush_button = QPushButton(self)
+        self.flush_button.setGeometry(QtCore.QRect(520, 20, 80, 30))
+        self.flush_button.setText(QtCore.QCoreApplication.translate("Email-Tool", "刷新"))
+        self.flush_button.setStyleSheet(button_style)
+        # self.send_button.clicked.connect(self.obj_tool.button_login)
+        # ################# 刷新控件 结束.......########################################
+
         # ################# 分页 开始....########################################
         self.page_up = QPushButton(self)
         self.page_up.setGeometry(QtCore.QRect(525, 760, 80, 30))
-        self.page_up.setText(QtCore.QCoreApplication.translate("Telegram-Tool", "上一页"))
+        self.page_up.setText(QtCore.QCoreApplication.translate("Email-Tool", "上一页"))
         self.page_up.setDisabled(True)
         self.page_up.setStyleSheet(button_style)
         self.page_up.clicked.connect(self.page_turning)
@@ -106,14 +146,14 @@ class EmailUi(QWidget):
 
         # 下侧 日志框
         self.log_label = QLabel(self)
-        self.log_label.setGeometry(QtCore.QRect(0, 1400, 100, 30))
+        self.log_label.setGeometry(QtCore.QRect(10, 770, 100, 30))
         self.log_label.setAlignment(Qt.AlignLeft)
         self.log_label.setText(QtCore.QCoreApplication.translate("Email-Tool", "日志输出:"))
         self.log_label.setStyleSheet('color:red;font:bold 15px;')
 
         self.log_text = QTextEdit(self)
         self.log_text.setReadOnly(True)  # 只读
-        self.log_text.setGeometry(QtCore.QRect(0, 810, 690, 185))
+        self.log_text.setGeometry(QtCore.QRect(10, 810, 1380, 185))
 
         self.page = FIRST_TAB
 
@@ -193,6 +233,11 @@ class EmailUi(QWidget):
                 self.show_table(dit_info.get('lst_ret', []), str_items, count_pag=dit_info.get('count', ''))
         except Exception as e:
             logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
+        finally:
+            if self.page != '邮件附件':
+                self.add_button.setEnabled(True)
+            else:
+                self.add_button.setDisabled(True)
 
     def show_table(self, lst_data: list, str_table: str, curr_pag: int = 1, count_pag: int = 1):
         """表格填充数据"""

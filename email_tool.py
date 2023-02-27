@@ -14,8 +14,8 @@
 """
 import os
 import threading
-from time import sleep
 from json import load
+from aly_s3 import AlyS3
 from loguru import logger
 from datetime import datetime
 from PyQt5.QtGui import QTextCursor
@@ -139,12 +139,13 @@ class EmailTools:
                     int_ret = self.add_info(DIT_DATABASE[str_page], dit_data)
                     self.show_message('成功' if int_ret == 1 else '失败', '添加成功' if int_ret == 1 else '添加失败')
                     if int_ret == 1:
-                        self.obj_ui.flush_table(False)
+                        self.obj_ui.flush_table(True)
         except Exception as e:
             logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
             self.show_message('错误', '添加失败')
 
     def check_email(self):
+        """邮箱检测"""
         file_name, _ = QFileDialog.getOpenFileName(self.obj_ui, '选取文件', os.getcwd(), 'Text File(*.txt)')
         if os.path.isfile(file_name):
             try:
@@ -160,4 +161,34 @@ class EmailTools:
                 self.show_message('', '', f"{e.__traceback__.tb_lineno}:{e}")
         else:
             self.show_message('错误提示', '邮箱账号文件不存在', '邮箱账号文件不存在')
+
+    def upload_aly(self):
+        """上传文件至阿里云"""
+        title = 'Text File(*.pdf);;JPG File(*.jpg);;PNG File(*.png)'
+        lst_file, _ = QFileDialog.getOpenFileNames(self.obj_ui, '选取文件', os.getcwd(), title)
+        int_num = 0
+        if lst_file:
+            with open('./config.json', 'rb') as f:
+                dit_config = load(f)
+                obj_s3 = AlyS3(dit_config['AccessKey_ID'], dit_config['AccessKey_Secret'], dit_config['bucket'],
+                               dit_config['url'])
+                self.show_message('', '', 'Aly OSS 连接成功')
+                if obj_s3:
+                    for str_path in lst_file:
+                        try:
+                            if os.path.isfile(str_path) and obj_s3.push_file(str_path) == 1:
+                                int_num += 1
+                                url = f"https://{dit_config['bucket']}.{dit_config['url'][8:]}/{os.path.split(str_path)[-1]}"
+                                int_ret = self.add_info('info', {'url': url})
+                                self.show_message('', '', f'附件{str_path} 保存{"成功" if int_ret == 1 else "失败"}')
+                        except Exception as e:
+                            self.show_message('', '', f"{e.__traceback__.tb_lineno}:{e}")
+                    else:
+                        self.show_message('提示', f'本次上传文件至阿里云OSS成功{int_num}个文件', f'本次上传文件至阿里云OSS成功{int_num}个文件')
+                        if self.obj_ui.page == '邮件附件':
+                            self.obj_ui.flush_table(True)
+                else:
+                    self.show_message('错误提示', '上阿里云OSS连接失败,请检查配置', '上阿里云OSS连接失败,请检查配置')
+        else:
+            self.show_message('错误提示', '未选择文件', '未选择文件')
 

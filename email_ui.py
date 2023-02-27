@@ -13,7 +13,7 @@
 @Desc :
 """
 from loguru import logger
-from PyQt5.QtWidgets import QDialogButtonBox, QTextEdit
+from PyQt5.QtWidgets import QTextEdit
 from PyQt5.QtWidgets import QListWidget, QStackedWidget
 from PyQt5.QtWidgets import QListWidgetItem
 from PyQt5.QtWidgets import QWidget
@@ -21,10 +21,7 @@ from PyQt5.QtWidgets import QHBoxLayout
 from PyQt5.QtWidgets import QTableWidget
 from PyQt5.QtWidgets import QPushButton
 from PyQt5.QtWidgets import QLineEdit
-from PyQt5.QtWidgets import QDialog, QFormLayout
-from PyQt5.QtWidgets import QCheckBox
 from PyQt5.QtWidgets import QLabel
-from PyQt5.QtWidgets import QComboBox
 from PyQt5.QtWidgets import QDesktopWidget
 from PyQt5.QtCore import QSize, Qt, QEvent
 from PyQt5 import QtCore, QtGui
@@ -76,7 +73,7 @@ class EmailUi(QWidget):
         self.upload_button.setGeometry(QtCore.QRect(320, 20, 80, 30))
         self.upload_button.setText(QtCore.QCoreApplication.translate("Email-Tool", "上传附件"))
         self.upload_button.setStyleSheet(button_style)
-        # self.upload_button.clicked.connect(self.obj_tool.button_login)
+        self.upload_button.clicked.connect(self.obj_tool.upload_aly)
         # ################# 上传附件控件 结束.......########################################
 
         # ################# 上传附件控件 开始.......########################################
@@ -92,7 +89,7 @@ class EmailUi(QWidget):
         self.flush_button.setGeometry(QtCore.QRect(520, 20, 80, 30))
         self.flush_button.setText(QtCore.QCoreApplication.translate("Email-Tool", "刷新"))
         self.flush_button.setStyleSheet(button_style)
-        self.send_button.clicked.connect(self.flush_table)
+        self.flush_button.clicked.connect(self.flush_table)
         # ################# 刷新控件 结束.......########################################
 
         # ################# 分页 开始....########################################
@@ -203,7 +200,7 @@ class EmailUi(QWidget):
             self.table[keys] = table
             self.right_widget.addWidget(table)
         # 首页自动刷新
-        self.flush_table(False)
+        self.flush_table(True)
 
     def enter_item_slot(self, item):
         # 获取鼠标指向
@@ -319,10 +316,10 @@ class EmailUi(QWidget):
             sender.setEnabled(True)
             self.obj_tool.show_message('删除', f'删除成功' if int_ret else '删除失败')
             if int_ret == 1:
-                self.flush_table(False)
+                self.flush_table(True)
 
-    def flush_table(self, is_show: bool = True):
+    def flush_table(self, is_show: bool = False):
         dit_info = self.obj_tool.get_info(DIT_DATABASE[self.page])
         self.show_table(dit_info.get('lst_ret', []), self.page, count_pag=dit_info.get('count', ''))
-        if is_show:
+        if not is_show:
             self.obj_tool.show_message('刷新', '刷新当前页面成功')

@@ -81,7 +81,7 @@ class EmailUi(QWidget):
         self.send_button.setGeometry(QtCore.QRect(420, 20, 80, 30))
         self.send_button.setText(QtCore.QCoreApplication.translate("Email-Tool", "发送邮件"))
         self.send_button.setStyleSheet(button_style)
-        # self.send_button.clicked.connect(self.obj_tool.button_login)
+        self.send_button.clicked.connect(self.obj_tool.select_account)
         # ################# 上传附件控件 结束.......########################################
 
         # ################# 刷新控件 开始.......########################################

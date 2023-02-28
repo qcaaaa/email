@@ -69,10 +69,13 @@ class MySql:
         str_sql = ''
         int_count = 0
         try:
-            str_sql = f"select * from {table} limit {int_limit} offset {(int_start - 1) * int_limit}"
+            if int_start != -1:
+                str_sql = f"select * from {table} limit {int_limit} offset {(int_start - 1) * int_limit}"
+            else:
+                str_sql = f"select * from {table}"
             self.__exec_sql('select', str_sql)
             lst_ret = self.curr.fetchall()
-            if lst_ret:
+            if lst_ret and int_start != -1:
                 str_sql = f"select count(*) as num from {table}"
                 self.__exec_sql('select', str_sql)
                 int_count = self.curr.fetchone().get('num', 0)

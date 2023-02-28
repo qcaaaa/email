@@ -19,8 +19,8 @@ from aly_s3 import AlyS3
 from loguru import logger
 from datetime import datetime
 from PyQt5.QtGui import QTextCursor
-from PyQt5.QtWidgets import QDialog, QFormLayout, QLineEdit, QDialogButtonBox, QMessageBox, QPlainTextEdit, QComboBox, \
-    QTextEdit,  QFileDialog
+from PyQt5.QtWidgets import QDialog, QFormLayout, QLineEdit, QDialogButtonBox, QMessageBox, QComboBox, \
+    QTextEdit, QFileDialog, QCheckBox, QGridLayout, QPushButton
 
 from sql_db import MySql
 from constant import INT_LIMIT, BASE_PATH, DIT_DATABASE
@@ -31,6 +31,18 @@ class EmailTools:
     def __init__(self, obj_ui):
         self.obj_ui = obj_ui
         self.email_dict = self.load_file()
+        self.str_page = ''  # 当前在那个选择页
+        self.lst_user = []  # 选择的邮件账号
+        self.lst_txt = []  # 选择的邮件模板
+        self.lst_file = []  # 选择的附件
+        self.lst_end = []  # 选择的结尾
+        self.dit_v = {
+            'user': {'key': 'name', 'len': 10, 'lst': self.lst_user, 'cn': '账号'},
+            'template': {'key': 'title', 'len': 5, 'lst': self.lst_txt, 'cn': '标题/内容'},
+            'info': {'key': 'url', 'len': 3, 'lst': self.lst_file, 'cn': '附件'},
+            'end': {'key': 'name', 'len': 10, 'lst': self.lst_end, 'cn': '结尾'}
+        }
+        self.dialog = None  # 下一步之前的页面 用于下一步后 关闭上一个页面
 
     @staticmethod
     def __sub_html(str_html: str) -> str:
@@ -134,7 +146,8 @@ class EmailTools:
                 elif str_page == '邮件模板':
                     dit_data = {'title': str_title.text().strip(), 'content': self.__sub_html(str_txt.toHtml())}
                 elif str_page == '邮件结尾':
-                    dit_data = {'content': self.__sub_html(temp_txt.toHtml()), 'url': url_path.text().strip(), 'name': temp_name.text()}
+                    dit_data = {'content': self.__sub_html(temp_txt.toHtml()), 'url': url_path.text().strip(),
+                                'name': temp_name.text()}
                 if dit_data:
                     int_ret = self.add_info(DIT_DATABASE[str_page], dit_data)
                     self.show_message('成功' if int_ret == 1 else '失败', '添加成功' if int_ret == 1 else '添加失败')
@@ -192,3 +205,88 @@ class EmailTools:
         else:
             self.show_message('错误提示', '未选择文件', '未选择文件')
 
+    def __on_checkbox_changed(self, state):
+        checkbox = self.obj_ui.sender()
+        str_user = checkbox.text()
+        dit_info = self.dit_v[self.str_page]
+        if checkbox.isChecked():
+            self.show_message('', '', f'{dit_info["cn"]}:{str_user}已选择')
+            dit_info['lst'].append(str_user)
+        else:
+            self.show_message('', '', f'{dit_info["cn"]}:{str_user}取消选择')
+            dit_info['lst'].remove(str_user)
+
+    def __show_dialog(self, table: str, func):
+        dialog = None
+        try:
+            str_key, str_len, str_title = self.dit_v[table]['key'], self.dit_v[table]['len'], self.dit_v[table]['cn']
+            dialog = QDialog(self.obj_ui)
+            dialog.setWindowTitle(f'选择{str_title}')
+            dialog.resize(400, 200)
+            # 数据源
+            lst_user = [dit_user[str_key] for dit_user in self.get_info(table).get('lst_ret', [])]
+            # 创建多选按钮
+            lst_checkboxes = []
+            for i, item in enumerate(lst_user):
+                checkbox = QCheckBox(str(item))
+                checkbox.stateChanged.connect(self.__on_checkbox_changed)
+                lst_checkboxes.append(checkbox)
+            # 创建布局
+            layout = QGridLayout()
+            for i, checkbox in enumerate(lst_checkboxes):
+                row = i // str_len
+                col = i % str_len
+                layout.addWidget(checkbox, row, col)
+            dialog.setLayout(layout)
+            button = QPushButton('下一步')
+            button.clicked.connect(func)
+            layout.addWidget(button, len(lst_checkboxes), str_len)
+            self.str_page = table
+            dialog.show()
+        except Exception as err:
+            logger.error(f"{err.__traceback__.tb_lineno}:--:{err}--{table}")
+        return dialog
+
+    def select_account(self):
+        """选择账号"""
+        try:
+            self.dialog = self.__show_dialog(DIT_DATABASE['账号配置'], self.select_templates)
+        except Exception as err:
+            logger.error(f"{err.__traceback__.tb_lineno}:--:{err}")
+
+    def select_templates(self):
+        """选择邮件内容"""
+        try:
+            # 先关闭上一个的
+            if self.dialog:
+                self.dialog.close()
+            self.dialog = self.__show_dialog(DIT_DATABASE['邮件模板'], self.select_file)
+        except Exception as err:
+            logger.error(f"{err.__traceback__.tb_lineno}:--:{err}")
+
+    def select_file(self):
+        """选择邮件附件"""
+        try:
+            # 先关闭上一个的
+            if self.dialog:
+                self.dialog.close()
+            self.dialog = self.__show_dialog(DIT_DATABASE['邮件附件'], self.select_end)
+        except Exception as err:
+            logger.error(f"{err.__traceback__.tb_lineno}:--:{err}")
+
+    def select_end(self):
+        """选择邮件附件"""
+        try:
+            # 先关闭上一个的
+            if self.dialog:
+                self.dialog.close()
+            self.dialog = self.__show_dialog(DIT_DATABASE['邮件结尾'], self.send_email)
+        except Exception as err:
+            logger.error(f"{err.__traceback__.tb_lineno}:--:{err}")
+
+    def send_email(self):
+        # 先关闭上一个的
+        if self.dialog:
+            self.dialog.close()
+            # 这是最后一个 要置空
+            self.dialog = None

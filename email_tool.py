@@ -94,6 +94,10 @@ class EmailTools:
         except Exception as e:
             logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
 
+    def import_user(self):
+        """导入客户"""
+        pass
+
     def add_table(self):
         """增加页面
         """

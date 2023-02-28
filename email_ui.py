@@ -54,15 +54,43 @@ class EmailUi(QWidget):
 
         # ################# 增加控件 开始.......########################################
         self.add_button = QPushButton(self)
-        self.add_button.setGeometry(QtCore.QRect(120, 20, 80, 30))
+        self.add_button.setGeometry(QtCore.QRect(120, 20, 100, 30))
         self.add_button.setText(QtCore.QCoreApplication.translate("Email-Tool", "增加"))
         self.add_button.setStyleSheet(button_style)
         self.add_button.clicked.connect(self.obj_tool.add_table)
         # ################# 增加控件 结束.......########################################
 
+        # ################# 导入联系人控件 开始.......########################################
+        self.import_button = QPushButton(self)
+        self.import_button.setGeometry(QtCore.QRect(240, 20, 100, 30))
+        self.import_button.setText(QtCore.QCoreApplication.translate("Email-Tool", "导入客户"))
+        self.import_button.setStyleSheet(button_style)
+        self.import_button.clicked.connect(self.obj_tool.import_user)
+        # ################# 导入联系人控件 结束.......########################################
+
+        # ################# 发送间隔控件 开始.......########################################
+        self.sleep_label = QLabel(self)
+        self.sleep_label.setGeometry(QtCore.QRect(360, 20, 80, 30))
+        self.sleep_label.setText(QtCore.QCoreApplication.translate("Email-Tool", "发送间隔(s):"))
+        self.sleep_edit = QLineEdit(self)
+        self.sleep_edit.setGeometry(QtCore.QRect(460, 20, 80, 30))
+        # 设置默认值
+        self.sleep_edit.setPlaceholderText('20')
+        # 设置只能输入数字
+        self.sleep_edit.setValidator(QtGui.QIntValidator())
+        # ################# 发送间隔控件 结束.......########################################
+
+        # ################# 上传附件控件 开始.......########################################
+        self.send_button = QPushButton(self)
+        self.send_button.setGeometry(QtCore.QRect(560, 20, 100, 30))
+        self.send_button.setText(QtCore.QCoreApplication.translate("Email-Tool", "发送邮件"))
+        self.send_button.setStyleSheet(button_style)
+        self.send_button.clicked.connect(self.obj_tool.select_account)
+        # ################# 上传附件控件 结束.......########################################
+
         # ################# 邮箱账号检查控件 开始.......########################################
         self.check_button = QPushButton(self)
-        self.check_button.setGeometry(QtCore.QRect(220, 20, 80, 30))
+        self.check_button.setGeometry(QtCore.QRect(1060, 20, 100, 30))
         self.check_button.setText(QtCore.QCoreApplication.translate("Email-Tool", "邮箱账号检测"))
         self.check_button.setStyleSheet(button_style)
         self.check_button.clicked.connect(self.obj_tool.check_email)
@@ -70,39 +98,19 @@ class EmailUi(QWidget):
 
         # ################# 上传附件控件 开始.......########################################
         self.upload_button = QPushButton(self)
-        self.upload_button.setGeometry(QtCore.QRect(320, 20, 80, 30))
+        self.upload_button.setGeometry(QtCore.QRect(1180, 20, 100, 30))
         self.upload_button.setText(QtCore.QCoreApplication.translate("Email-Tool", "上传附件"))
         self.upload_button.setStyleSheet(button_style)
         self.upload_button.clicked.connect(self.obj_tool.upload_aly)
         # ################# 上传附件控件 结束.......########################################
 
-        # ################# 上传附件控件 开始.......########################################
-        self.send_button = QPushButton(self)
-        self.send_button.setGeometry(QtCore.QRect(420, 20, 80, 30))
-        self.send_button.setText(QtCore.QCoreApplication.translate("Email-Tool", "发送邮件"))
-        self.send_button.setStyleSheet(button_style)
-        self.send_button.clicked.connect(self.obj_tool.select_account)
-        # ################# 上传附件控件 结束.......########################################
-
         # ################# 刷新控件 开始.......########################################
         self.flush_button = QPushButton(self)
-        self.flush_button.setGeometry(QtCore.QRect(520, 20, 80, 30))
+        self.flush_button.setGeometry(QtCore.QRect(1300, 20, 100, 30))
         self.flush_button.setText(QtCore.QCoreApplication.translate("Email-Tool", "刷新"))
         self.flush_button.setStyleSheet(button_style)
         self.flush_button.clicked.connect(self.flush_table)
         # ################# 刷新控件 结束.......########################################
-
-        # ################# 发送间隔控件 开始.......########################################
-        self.sleep_label = QLabel(self)
-        self.sleep_label.setGeometry(QtCore.QRect(620, 20, 80, 30))
-        self.sleep_label.setText(QtCore.QCoreApplication.translate("Email-Tool", "发送间隔(s):"))
-        self.sleep_edit = QLineEdit(self)
-        self.sleep_edit.setGeometry(QtCore.QRect(720, 20, 80, 30))
-        # 设置默认值
-        self.sleep_edit.setPlaceholderText('20')
-        # 设置只能输入数字
-        self.sleep_edit.setValidator(QtGui.QIntValidator())
-        # ################# 发送间隔控件 结束.......########################################
 
         # ################# 分页 开始....########################################
         self.page_up = QPushButton(self)

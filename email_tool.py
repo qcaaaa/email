@@ -146,16 +146,24 @@ class EmailTools:
                         str_type = '2'
                     else:
                         str_type = '3'
-                    lst_data = [user_input.text().strip(), pwd_input.text().strip(), str_type]
+                    str_1, str_2, str_3 = user_input.text().strip(), pwd_input.text().strip(), str_type
+                    if all([str_1, str_2, str_3]):
+                        lst_data = [str_1, str_2, str_3]
                 elif str_page == '邮件模板':
-                    lst_data = [str_title.text().strip(), self.__sub_html(str_txt.toHtml())]
+                    str_1, str_2 = str_title.text().strip(), self.__sub_html(str_txt.toHtml())
+                    if any([str_1, str_2]):
+                        lst_data = [str_1, str_2]
                 elif str_page == '邮件结尾':
-                    lst_data = [temp_name.text(), self.__sub_html(temp_txt.toHtml()), url_path.text().strip()]
+                    str_1, str_2, str_3 = temp_name.text(), self.__sub_html(temp_txt.toHtml()), url_path.text().strip()
+                    if any([str_1, str_2, str_3]):
+                        lst_data = [str_1, str_2, str_3]
                 if lst_data:
                     int_ret = self.add_info(DIT_DATABASE[str_page], lst_data)
                     self.show_message('成功' if int_ret == 1 else '失败', '添加成功' if int_ret == 1 else '添加失败')
                     if int_ret == 1:
                         self.obj_ui.flush_table(True)
+                else:
+                    self.show_message('错误', '未正确填写')
         except Exception as e:
             logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
             self.show_message('错误', '添加失败')

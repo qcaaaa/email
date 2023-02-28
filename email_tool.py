@@ -431,24 +431,15 @@ class EmailTools:
 
             for dit_key in lst_task:
                 dit_user = dit_key['user']
-                print(dit_user)
-                obj_email = MIMEMultipart('related')
-                obj_email['From'] = dit_user['name']
                 obj_smtp = self.__login(dit_user['name'], dit_user['pwd'], dit_user['str_type'])
                 # key 是公司名称  value 是邮箱
                 for dit_send in dit_key['send']:
-                    print(dit_send)
                     try:
                         #  按索引取值
                         tuple_text = lst_text[int_num] if int_num < int_title else lst_text[int_num - int_title]
-                        # 设置标题
-                        obj_email["Subject"] = Header(tuple_text[0], "utf-8")
-                        # 日期
-                        obj_email['Date'] = formatdate(localtime=True)
-                        # 接收人
-                        obj_email['To'] = ', '.join([dit_send['email']])
                         # 公司名称 + 正文 + 网页
-                        str_txt = f'Dear {dit_send["firm"]}<br><br>' + tuple_text[1] + '<br>' + str_html
+                        firm = dit_send["firm"]
+                        str_txt = f'Dear {firm}<br><br>' + tuple_text[1] + '<br>' + str_html
                         # 结尾
                         if lst_end:
                             dit_end = choice(lst_end)
@@ -463,6 +454,14 @@ class EmailTools:
                         if info_html:
                             str_txt += info_html
                         # 转HTML
+                        obj_email = MIMEMultipart('related')
+                        # 设置标题
+                        obj_email["Subject"] = Header(tuple_text[0], "utf-8")
+                        # 日期
+                        obj_email['Date'] = formatdate(localtime=True)
+                        # 接收人
+                        obj_email['To'] = ', '.join([dit_send['email']])
+                        obj_email['From'] = dit_user['name']
                         str_html_ = MIMEText(str_txt, 'html', 'utf-8')
                         obj_email.attach(str_html_)
                         obj_smtp.sendmail(dit_user['name'], [dit_send['email']], obj_email.as_string())

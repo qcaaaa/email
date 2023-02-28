@@ -34,4 +34,4 @@ if __name__ == '__main__':
     app = QApplication(sys.argv)
     main_wnd = EmailUi()
     main_wnd.show()
-    app.exec()
+    sys.exit(app.exec_())

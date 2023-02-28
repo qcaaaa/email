@@ -92,6 +92,18 @@ class EmailUi(QWidget):
         self.flush_button.clicked.connect(self.flush_table)
         # ################# 刷新控件 结束.......########################################
 
+        # ################# 发送间隔控件 开始.......########################################
+        self.sleep_label = QLabel(self)
+        self.sleep_label.setGeometry(QtCore.QRect(620, 20, 80, 30))
+        self.sleep_label.setText(QtCore.QCoreApplication.translate("Email-Tool", "发送间隔(s):"))
+        self.sleep_edit = QLineEdit(self)
+        self.sleep_edit.setGeometry(QtCore.QRect(720, 20, 80, 30))
+        # 设置默认值
+        self.sleep_edit.setPlaceholderText('20')
+        # 设置只能输入数字
+        self.sleep_edit.setValidator(QtGui.QIntValidator())
+        # ################# 发送间隔控件 结束.......########################################
+
         # ################# 分页 开始....########################################
         self.page_up = QPushButton(self)
         self.page_up.setGeometry(QtCore.QRect(525, 760, 80, 30))

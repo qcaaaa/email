@@ -68,10 +68,10 @@ class EmailTools:
         return int_ret
 
     @staticmethod
-    def add_info(table: str, dit_data: dict):
+    def add_info(table: str, lst_data: list):
         """增加数据库信息"""
         with MySql() as obj_sql:
-            int_ret = obj_sql.add_sql(table, dit_data)
+            int_ret = obj_sql.add_sql(table, lst_data)
         return int_ret
 
     @staticmethod
@@ -134,7 +134,7 @@ class EmailTools:
             button.clicked.connect(dialog.accept)
             dialog.show()
             if dialog.exec() == QDialog.Accepted:
-                dit_data = {}
+                lst_data = []
                 if str_page == '账号配置':
                     if serve_box.currentText() == '阿里企业邮箱':
                         str_type = '1'
@@ -142,14 +142,13 @@ class EmailTools:
                         str_type = '2'
                     else:
                         str_type = '3'
-                    dit_data = {'name': user_input.text().strip(), 'pwd': pwd_input.text().strip(), 'str_type': str_type}
+                    lst_data = [user_input.text().strip(), pwd_input.text().strip(), str_type]
                 elif str_page == '邮件模板':
-                    dit_data = {'title': str_title.text().strip(), 'content': self.__sub_html(str_txt.toHtml())}
+                    lst_data = [str_title.text().strip(), self.__sub_html(str_txt.toHtml())]
                 elif str_page == '邮件结尾':
-                    dit_data = {'content': self.__sub_html(temp_txt.toHtml()), 'url': url_path.text().strip(),
-                                'name': temp_name.text()}
-                if dit_data:
-                    int_ret = self.add_info(DIT_DATABASE[str_page], dit_data)
+                    lst_data = [temp_name.text(), self.__sub_html(temp_txt.toHtml()), url_path.text().strip()]
+                if lst_data:
+                    int_ret = self.add_info(DIT_DATABASE[str_page], lst_data)
                     self.show_message('成功' if int_ret == 1 else '失败', '添加成功' if int_ret == 1 else '添加失败')
                     if int_ret == 1:
                         self.obj_ui.flush_table(True)
@@ -192,7 +191,7 @@ class EmailTools:
                             if os.path.isfile(str_path) and obj_s3.push_file(str_path) == 1:
                                 int_num += 1
                                 url = f"https://{dit_config['bucket']}.{dit_config['url'][8:]}/{os.path.split(str_path)[-1]}"
-                                int_ret = self.add_info('info', {'url': url})
+                                int_ret = self.add_info('info', [url])
                                 self.show_message('', '', f'附件{str_path} 保存{"成功" if int_ret == 1 else "失败"}')
                         except Exception as e:
                             self.show_message('', '', f"{e.__traceback__.tb_lineno}:{e}")

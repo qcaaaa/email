@@ -49,11 +49,14 @@ class MySql:
         except Exception as e:
             logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
 
-    def __exec_sql(self, str_type: str, str_sql: str) -> int:
+    def __exec_sql(self, str_type: str, str_sql: str, lst_data: list = None) -> int:
         int_ret = 0
         LOOK.acquire()
         try:
-            self.curr.execute(str_sql)
+            if lst_data:
+                self.curr.execute(str_sql, lst_data)
+            else:
+                self.curr.execute(str_sql)
             if str_type != 'select':
                 self.conn.commit()
                 int_ret = 1
@@ -96,14 +99,19 @@ class MySql:
             logger.debug(f"{e.__traceback__.tb_lineno}:--{e}:{str_sql}")
         return int_ret
 
-    def add_sql(self, table: str, dit_info: dict) -> int:
+    def add_sql(self, table: str, lst_info: list) -> int:
         int_ret = 0
         str_sql = ''
         try:
-            lst_field = ','.join([f"'{i}'" for i in dit_info.keys()])
-            lst_values = ','.join(f"'{i}'" for i in dit_info.values())
-            str_sql = f'insert into {table}({lst_field}) values ({lst_values})'
-            int_ret = self.__exec_sql('add', str_sql)
+            if table == 'user':
+                str_sql = f"insert into {table} (name, pwd, str_type) values (?, ?, ?)"
+            elif table == 'template':
+                str_sql = f"insert into {table} (title, content) values (?, ?)"
+            elif table == 'info':
+                str_sql = f"insert into {table} (url) values (?)"
+            elif table == 'end':
+                str_sql = f"insert into {table} (name, content, url) values (?, ?, ?)"
+            int_ret = self.__exec_sql('add', str_sql, lst_info)
         except Exception as e:
             logger.debug(f"{e.__traceback__.tb_lineno}:--{e}:{str_sql}")
         return int_ret

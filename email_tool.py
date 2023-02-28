@@ -12,18 +12,27 @@
 
 @Desc :
 """
+
 import os
+import time
+import smtplib
 import threading
 from json import load
 from aly_s3 import AlyS3
+from sql_db import MySql
 from loguru import logger
+from random import choice
+from functools import partial
 from datetime import datetime
+from itertools import product
+from email.header import Header
+from email.utils import formatdate
 from PyQt5.QtGui import QTextCursor
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from constant import INT_LIMIT, BASE_PATH, DIT_DATABASE
 from PyQt5.QtWidgets import QDialog, QFormLayout, QLineEdit, QDialogButtonBox, QMessageBox, QComboBox, \
     QTextEdit, QFileDialog, QCheckBox, QGridLayout, QPushButton
-
-from sql_db import MySql
-from constant import INT_LIMIT, BASE_PATH, DIT_DATABASE
 
 
 class EmailTools:
@@ -31,20 +40,17 @@ class EmailTools:
     def __init__(self, obj_ui):
         self.obj_ui = obj_ui
         self.email_dict = self.load_file()
-        self.to_dict = {}
+        self.to_list = []
         self.str_page = ''  # 当前在那个选择页
-        self.lst_user = []  # 选择的邮件账号
-        self.lst_txt = []  # 选择的邮件模板
-        self.lst_file = []  # 选择的附件
-        self.lst_end = []  # 选择的结尾
         self.dit_v = {
-            'user': {'key': 'name', 'len': 10, 'lst': self.lst_user, 'cn': '账号'},
-            'template': {'key': 'title', 'len': 5, 'lst': self.lst_txt, 'cn': '标题/内容'},
-            'info': {'key': 'url', 'len': 3, 'lst': self.lst_file, 'cn': '附件'},
-            'end': {'key': 'name', 'len': 10, 'lst': self.lst_end, 'cn': '结尾'}
+            'user': {'key': 'name', 'len': 10, 'lst': [], 'cn': '账号'},
+            'template': {'key': 'title', 'len': 5, 'lst': [], 'cn': '标题/内容'},
+            'info': {'key': 'url', 'len': 3, 'lst': [], 'cn': '附件'},
+            'end': {'key': 'name', 'len': 10, 'lst': [], 'cn': '结尾'}
         }
         self.dialog = None  # 下一步之前的页面 用于下一步后 关闭上一个页面
         self.button = None  # 每个页面的下一步按钮
+        self.send_mun = 3  # 一个账号一次发50封
 
     @staticmethod
     def __sub_html(str_html: str) -> str:
@@ -54,6 +60,17 @@ class EmailTools:
         except Exception as err:
             logger.error(f'截取html失败: {err.__traceback__.tb_lineno}: {err}')
         return str_html
+
+    def __login(self, str_user: str, str_pwd: str, str_type: str):
+        try:
+            dit_config = self.load_file()
+            str_server, int_port = dit_config[str_type]['server'], dit_config[str_type]['port']
+            obj_smtp = smtplib.SMTP(str_server, port=int_port, local_hostname='localhost')
+            obj_smtp.login(str_user, str_pwd)
+        except Exception as err:
+            self.show_message('', '', f"{err.__traceback__.tb_lineno}: {err}")
+            obj_smtp = None
+        return obj_smtp
 
     @staticmethod
     def get_info(table: str, where: str = '', int_start: int = 1, int_limit: int = INT_LIMIT):
@@ -77,10 +94,10 @@ class EmailTools:
         return int_ret
 
     @staticmethod
-    def load_file():
+    def load_file(str_file: str = 'email.json'):
         dit_info = {}
         try:
-            with open(os.path.join(BASE_PATH, 'email.json'), 'r', encoding='utf-8') as f:
+            with open(os.path.join(BASE_PATH, str_file), 'r', encoding='utf-8') as f:
                 dit_info = load(f)
         except Exception as err_msg:
             logger.error(f"{err_msg.__traceback__.tb_lineno}:--:{err_msg}")
@@ -105,17 +122,17 @@ class EmailTools:
                     for str_line in f.readlines():
                         lst_line = [i for i in str_line.strip().rsplit(maxsplit=1) if i.strip()]
                         if len(lst_line) == 2 and '@' in lst_line[1]:
-                            self.to_dict.setdefault(lst_line[0], []).append(lst_line[1])
-                if not self.to_dict:
+                            self.to_list.append({'firm': lst_line[0], 'email': lst_line[1]})
+                if not self.to_list:
                     self.show_message('错误提示', '收件人文件格式错误', '收件人文件格式错误')
                 else:
-                    self.show_message('提示', '上传收件人文件成功', f'上传收件人文件成功, 此次导入收件人: {len(self.to_dict)}个')
+                    self.show_message('提示', '上传收件人文件成功', f'上传收件人文件成功, 此次导入收件人: {len(self.to_list)}个')
             else:
                 self.show_message('错误提示', '收件人文件不存在', '收件人文件不存在')
         except Exception as e:
             logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
         finally:
-            if self.to_dict:
+            if self.to_list:
                 self.obj_ui.send_button.setEnabled(True)
             else:
                 self.obj_ui.send_button.setDisabled(True)
@@ -165,9 +182,9 @@ class EmailTools:
                     if serve_box.currentText() == '阿里企业邮箱':
                         str_type = '1'
                     elif serve_box.currentText() == '网易邮箱':
-                        str_type = '2'
-                    else:
                         str_type = '3'
+                    else:
+                        str_type = '2'
                     str_1, str_2, str_3 = user_input.text().strip(), pwd_input.text().strip(), str_type
                     if all([str_1, str_2, str_3]):
                         lst_data = [str_1, str_2, str_3]
@@ -214,31 +231,30 @@ class EmailTools:
         lst_file, _ = QFileDialog.getOpenFileNames(self.obj_ui, '选取文件', os.getcwd(), title)
         int_num = 0
         if lst_file:
-            with open('./config.json', 'rb') as f:
-                dit_config = load(f)
-                obj_s3 = AlyS3(dit_config['AccessKey_ID'], dit_config['AccessKey_Secret'], dit_config['bucket'],
-                               dit_config['url'])
-                self.show_message('', '', 'Aly OSS 连接成功')
-                if obj_s3:
-                    for str_path in lst_file:
-                        try:
-                            if os.path.isfile(str_path) and obj_s3.push_file(str_path) == 1:
-                                int_num += 1
-                                url = f"https://{dit_config['bucket']}.{dit_config['url'][8:]}/{os.path.split(str_path)[-1]}"
-                                int_ret = self.add_info('info', [url])
-                                self.show_message('', '', f'附件{str_path} 保存{"成功" if int_ret == 1 else "失败"}')
-                        except Exception as e:
-                            self.show_message('', '', f"{e.__traceback__.tb_lineno}:{e}")
-                    else:
-                        self.show_message('提示', f'本次上传文件至阿里云OSS成功{int_num}个文件', f'本次上传文件至阿里云OSS成功{int_num}个文件')
-                        if self.obj_ui.page == '邮件附件':
-                            self.obj_ui.flush_table(True)
+            dit_config = self.load_file('config.json')
+            obj_s3 = AlyS3(dit_config['AccessKey_ID'], dit_config['AccessKey_Secret'], dit_config['bucket'],
+                           dit_config['url'])
+            self.show_message('', '', 'Aly OSS 连接成功')
+            if obj_s3:
+                for str_path in lst_file:
+                    try:
+                        if os.path.isfile(str_path) and obj_s3.push_file(str_path) == 1:
+                            int_num += 1
+                            url = f"https://{dit_config['bucket']}.{dit_config['url'][8:]}/{os.path.split(str_path)[-1]}"
+                            int_ret = self.add_info('info', [url])
+                            self.show_message('', '', f'附件{str_path} 保存{"成功" if int_ret == 1 else "失败"}')
+                    except Exception as e:
+                        self.show_message('', '', f"{e.__traceback__.tb_lineno}:{e}")
                 else:
-                    self.show_message('错误提示', '上阿里云OSS连接失败,请检查配置', '上阿里云OSS连接失败,请检查配置')
+                    self.show_message('提示', f'本次上传文件至阿里云OSS成功{int_num}个文件', f'本次上传文件至阿里云OSS成功{int_num}个文件')
+                    if self.obj_ui.page == '邮件附件':
+                        self.obj_ui.flush_table(True)
+            else:
+                self.show_message('错误提示', '上阿里云OSS连接失败,请检查配置', '上阿里云OSS连接失败,请检查配置')
         else:
             self.show_message('错误提示', '未选择文件', '未选择文件')
 
-    def __on_checkbox_changed(self, state):
+    def __on_checkbox_changed(self, dit_value: dict, state):
         lst_c = []
         try:
             checkbox = self.obj_ui.sender()
@@ -247,18 +263,19 @@ class EmailTools:
             lst_c = dit_info['lst']
             if checkbox.isChecked():
                 self.show_message('', '', f'{dit_info["cn"]}:{str_user}已选择')
-                lst_c.append(str_user)
+                lst_c.append(dit_value)
             else:
                 self.show_message('', '', f'{dit_info["cn"]}:{str_user}取消选择')
-                lst_c.remove(str_user)
+                lst_c.remove(dit_value)
         except Exception as e:
             logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
         finally:
-            # 当前页面的下一步按钮禁用/启用
-            if lst_c and self.button:
-                self.button.setEnabled(True)
-            elif not lst_c and self.button:
-                self.button.setDisabled(True)
+            # 账号,模板 页面的下一步按钮禁用/启用
+            if self.str_page in ['user', 'template']:
+                if lst_c and self.button:
+                    self.button.setEnabled(True)
+                elif not lst_c and self.button:
+                    self.button.setDisabled(True)
 
     def __show_dialog(self, table: str, func):
         dialog = None
@@ -268,12 +285,13 @@ class EmailTools:
             dialog.setWindowTitle(f'选择{str_title}')
             dialog.resize(400, 200)
             # 数据源
-            lst_user = [dit_user[str_key] for dit_user in self.get_info(table).get('lst_ret', [])]
+            lst_user = self.get_info(table).get('lst_ret', [])
             # 创建多选按钮
             lst_checkboxes = []
             for i, item in enumerate(lst_user):
-                checkbox = QCheckBox(str(item))
-                checkbox.stateChanged.connect(self.__on_checkbox_changed)
+                checkbox = QCheckBox(str(item[str_key]))
+                # checkbox.stateChanged.connect(self.__on_checkbox_changed)
+                checkbox.clicked.connect(partial(self.__on_checkbox_changed, item))
                 lst_checkboxes.append(checkbox)
             # 创建布局
             layout = QGridLayout()
@@ -283,8 +301,9 @@ class EmailTools:
                 layout.addWidget(checkbox, row, col)
             dialog.setLayout(layout)
             self.button = QPushButton('下一步')
-            # 按钮最开始禁用
-            self.button.setDisabled(True)
+            # 账号,模板 按钮最开始禁用
+            if table in ['user', 'template']:
+                self.button.setDisabled(True)
             self.button.clicked.connect(func)
             layout.addWidget(self.button, len(lst_checkboxes), str_len)
             self.str_page = table
@@ -296,7 +315,10 @@ class EmailTools:
     def select_account(self):
         """选择账号"""
         try:
-            if self.to_dict:
+            if self.to_list:
+                # 每次第一个页面先还原一下数据
+                for value in self.dit_v.values():
+                    value['lst'] = []
                 self.dialog = self.__show_dialog(DIT_DATABASE['账号配置'], self.select_templates)
             else:
                 self.show_message('提示', '先导入收件人')
@@ -338,9 +360,122 @@ class EmailTools:
             # 先关闭上一个的
             if self.dialog:
                 self.dialog.close()
+            lst_user = self.dit_v.get('user', {}).get('lst', [])
+            lst_text = self.dit_v.get('template', {}).get('lst', [])
+            # 起码保证 客户, 账号, 模板有
+            if any([self.to_list, lst_user, lst_text]):
+                # 先把邮件标题和内容拆开 获取组合数
+                lst_text = list(
+                    product([dit_text['title'] for dit_text in lst_text], [dit_text['content'] for dit_text in lst_text]))
+                lst_info = [dit_info['url'] for dit_info in self.dit_v.get('info', {}).get('lst', [])]
+                lst_end = self.dit_v.get('end', {}).get('lst', [])
+                self.show_message('提示', '正在后台发送中,请稍等......', '正在后台发送中,请稍等......')
+                threading.Thread(target=self.__send_mail, args=(lst_user, lst_text, lst_info, lst_end), daemon=True).start()
+            else:
+                self.show_message('错误', '缺少数据,无法发送邮件.请重试')
         except Exception as e:
             logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
         finally:
             # 这是最后一个 要置空
             self.dialog = None
 
+    def __send_mail(self, lst_user: list, lst_text: list, lst_info: list, lst_end: list):
+        """发送邮件"""
+        # 发送成功的数量
+        int_num = 0
+        # 收件人数量
+        int_len = len(self.to_list)
+        # 标题组合存在的数量
+        int_title = len(lst_text)
+        # 账号数量
+        int_user = len(lst_user)
+        try:
+            # 分配任务
+            lst_task = []
+            k = 0
+            for i in range(0, int_len, self.send_mun):
+                if k >= int_user:
+                    k = 0
+                lst_task.append({
+                    'send': self.to_list[i: i + self.send_mun],
+                    'user': lst_user[k]
+                })
+                k += 1
+
+            # 是否携带网页
+            contain_html = self.obj_ui.contain_html.currentText()
+            # 间隔时间
+            int_sleep = int(self.obj_ui.sleep_edit.text() or 20)
+            self.show_message('', '', f"当前发送策略: {contain_html}, 间隔时间: {int_sleep}s")
+
+            if contain_html == '带网页':
+                with open('templates.html', 'r', encoding='utf-8') as f:
+                    str_html = f.read()
+            else:
+                str_html = ''
+
+            # 附件
+            if lst_info:
+                # 附件图标
+                info_html = '<br><br> <hr><p>attachment：</p><img style="width: 20px; height: 20px;" ' \
+                            'src="http://img.mp.itc.cn/upload/20170406/690f8eb8b38144028ee4bf0f04233901.png">'
+                # 附件内容
+                for str_url in lst_info:
+                    str_name = str_url.rsplit("/", 1)[-1]  # type: str
+                    if str_name.endswith('.pdf'):
+                        info_html += f'<a href="{str_url}" target="_blank" download="{str_name}">{str_name}</a><br>'
+                    else:
+                        info_html += f'<p><img src="{str_url}"></span></p><br>'
+            else:
+                info_html = ''
+
+            for dit_key in lst_task:
+                dit_user = dit_key['user']
+                print(dit_user)
+                obj_email = MIMEMultipart('related')
+                obj_email['From'] = dit_user['name']
+                obj_smtp = self.__login(dit_user['name'], dit_user['pwd'], dit_user['str_type'])
+                # key 是公司名称  value 是邮箱
+                for dit_send in dit_key['send']:
+                    print(dit_send)
+                    try:
+                        #  按索引取值
+                        tuple_text = lst_text[int_num] if int_num < int_title else lst_text[int_num - int_title]
+                        # 设置标题
+                        obj_email["Subject"] = Header(tuple_text[0], "utf-8")
+                        # 日期
+                        obj_email['Date'] = formatdate(localtime=True)
+                        # 接收人
+                        obj_email['To'] = ', '.join([dit_send['email']])
+                        # 公司名称 + 正文 + 网页
+                        str_txt = f'Dear {dit_send["firm"]}<br><br>' + tuple_text[1] + '<br>' + str_html
+                        # 结尾
+                        if lst_end:
+                            dit_end = choice(lst_end)
+                            end_html, end_url = dit_end.get('content', ''), dit_end.get('url', '')
+                            # 加结尾
+                            if end_html:
+                                str_txt += '<br><br><br>' + end_html
+                            # 加结尾图片
+                            if end_url:
+                                str_txt += f'<p><img src="{end_url}"></span></p>'
+                        # 加附件
+                        if info_html:
+                            str_txt += info_html
+                        # 转HTML
+                        str_html_ = MIMEText(str_txt, 'html', 'utf-8')
+                        obj_email.attach(str_html_)
+                        obj_smtp.sendmail(dit_user['name'], [dit_send['email']], obj_email.as_string())
+                        int_num += 1
+                        self.show_message('', '', f"{dit_user['name']} --> {dit_send['email']} 成功")
+                        time.sleep(int_sleep)
+                    except Exception as err:
+                        logger.error(f"{err.__traceback__.tb_lineno}:--:{err}")
+        except Exception as e:
+            logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
+        finally:
+            self.show_message('', f'', f'本轮发送结束. 一共需要发送: {int_len}封邮件, 发送成功: {int_num}封邮件')
+            # 还原数据
+            self.to_list.clear()
+            for value in self.dit_v.values():
+                value['lst'] = []

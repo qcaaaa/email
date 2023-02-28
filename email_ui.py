@@ -23,6 +23,7 @@ from PyQt5.QtWidgets import QPushButton
 from PyQt5.QtWidgets import QLineEdit
 from PyQt5.QtWidgets import QLabel
 from PyQt5.QtWidgets import QDesktopWidget
+from PyQt5.QtWidgets import QComboBox
 from PyQt5.QtCore import QSize, Qt, QEvent
 from PyQt5 import QtCore, QtGui
 from PyQt5.QtGui import QIcon
@@ -68,27 +69,36 @@ class EmailUi(QWidget):
         self.import_button.clicked.connect(self.obj_tool.import_user)
         # ################# 导入联系人控件 结束.......########################################
 
-        # ################# 发送间隔控件 开始.......########################################
-        self.sleep_label = QLabel(self)
-        self.sleep_label.setGeometry(QtCore.QRect(360, 20, 80, 30))
-        self.sleep_label.setText(QtCore.QCoreApplication.translate("Email-Tool", "发送间隔(s):"))
-        self.sleep_edit = QLineEdit(self)
-        self.sleep_edit.setGeometry(QtCore.QRect(460, 20, 80, 30))
-        # 设置默认值
-        self.sleep_edit.setPlaceholderText('20')
-        # 设置只能输入数字
-        self.sleep_edit.setValidator(QtGui.QIntValidator())
-        # ################# 发送间隔控件 结束.......########################################
-
         # ################# 上传附件控件 开始.......########################################
         self.send_button = QPushButton(self)
-        self.send_button.setGeometry(QtCore.QRect(560, 20, 100, 30))
+        self.send_button.setGeometry(QtCore.QRect(360, 20, 100, 30))
         self.send_button.setText(QtCore.QCoreApplication.translate("Email-Tool", "发送邮件"))
         self.send_button.setStyleSheet(button_style)
         # 最开始禁用
         self.send_button.setDisabled(True)
         self.send_button.clicked.connect(self.obj_tool.select_account)
         # ################# 上传附件控件 结束.......########################################
+
+        # ################# 发送间隔控件 开始.......########################################
+        self.sleep_label = QLabel(self)
+        self.sleep_label.setGeometry(QtCore.QRect(480, 20, 80, 30))
+        self.sleep_label.setText(QtCore.QCoreApplication.translate("Email-Tool", "发送间隔(s):"))
+        self.sleep_edit = QLineEdit(self)
+        self.sleep_edit.setGeometry(QtCore.QRect(580, 20, 80, 30))
+        # 设置默认值
+        self.sleep_edit.setPlaceholderText('20')
+        # 设置只能输入数字
+        self.sleep_edit.setValidator(QtGui.QIntValidator())
+        # ################# 发送间隔控件 结束.......########################################
+
+        # ################# 携带网页控件 开始.......########################################
+        self.contain_label = QLabel(self)
+        self.contain_label.setGeometry(QtCore.QRect(680, 20, 50, 30))
+        self.contain_label.setText(QtCore.QCoreApplication.translate("Email-Tool", "携带网页"))
+        self.contain_html = QComboBox(self)
+        self.contain_html.setGeometry(QtCore.QRect(750, 20, 100, 30))
+        self.contain_html.addItems(['不带网页', '带网页'])
+        # ################# 发送间隔控件 结束.......########################################
 
         # ################# 邮箱账号检查控件 开始.......########################################
         self.check_button = QPushButton(self)

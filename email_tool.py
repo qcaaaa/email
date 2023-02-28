@@ -31,6 +31,7 @@ class EmailTools:
     def __init__(self, obj_ui):
         self.obj_ui = obj_ui
         self.email_dict = self.load_file()
+        self.to_dict = {}
         self.str_page = ''  # 当前在那个选择页
         self.lst_user = []  # 选择的邮件账号
         self.lst_txt = []  # 选择的邮件模板
@@ -43,6 +44,7 @@ class EmailTools:
             'end': {'key': 'name', 'len': 10, 'lst': self.lst_end, 'cn': '结尾'}
         }
         self.dialog = None  # 下一步之前的页面 用于下一步后 关闭上一个页面
+        self.button = None  # 每个页面的下一步按钮
 
     @staticmethod
     def __sub_html(str_html: str) -> str:
@@ -96,7 +98,27 @@ class EmailTools:
 
     def import_user(self):
         """导入客户"""
-        pass
+        try:
+            file_name, _ = QFileDialog.getOpenFileName(self.obj_ui, '选取文件', os.getcwd(), 'Text File(*.txt)')
+            if os.path.isfile(file_name):
+                with open(file_name, 'r', encoding='utf-8') as f:
+                    for str_line in f.readlines():
+                        lst_line = [i for i in str_line.strip().rsplit(maxsplit=1) if i.strip()]
+                        if len(lst_line) == 2 and '@' in lst_line[1]:
+                            self.to_dict.setdefault(lst_line[0], []).append(lst_line[1])
+                if not self.to_dict:
+                    self.show_message('错误提示', '收件人文件格式错误', '收件人文件格式错误')
+                else:
+                    self.show_message('提示', '上传收件人文件成功', f'上传收件人文件成功, 此次导入收件人: {len(self.to_dict)}个')
+            else:
+                self.show_message('错误提示', '收件人文件不存在', '收件人文件不存在')
+        except Exception as e:
+            logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
+        finally:
+            if self.to_dict:
+                self.obj_ui.send_button.setEnabled(True)
+            else:
+                self.obj_ui.send_button.setDisabled(True)
 
     def add_table(self):
         """增加页面
@@ -217,15 +239,26 @@ class EmailTools:
             self.show_message('错误提示', '未选择文件', '未选择文件')
 
     def __on_checkbox_changed(self, state):
-        checkbox = self.obj_ui.sender()
-        str_user = checkbox.text()
-        dit_info = self.dit_v[self.str_page]
-        if checkbox.isChecked():
-            self.show_message('', '', f'{dit_info["cn"]}:{str_user}已选择')
-            dit_info['lst'].append(str_user)
-        else:
-            self.show_message('', '', f'{dit_info["cn"]}:{str_user}取消选择')
-            dit_info['lst'].remove(str_user)
+        lst_c = []
+        try:
+            checkbox = self.obj_ui.sender()
+            str_user = checkbox.text()
+            dit_info = self.dit_v[self.str_page]
+            lst_c = dit_info['lst']
+            if checkbox.isChecked():
+                self.show_message('', '', f'{dit_info["cn"]}:{str_user}已选择')
+                lst_c.append(str_user)
+            else:
+                self.show_message('', '', f'{dit_info["cn"]}:{str_user}取消选择')
+                lst_c.remove(str_user)
+        except Exception as e:
+            logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
+        finally:
+            # 当前页面的下一步按钮禁用/启用
+            if lst_c and self.button:
+                self.button.setEnabled(True)
+            elif not lst_c and self.button:
+                self.button.setDisabled(True)
 
     def __show_dialog(self, table: str, func):
         dialog = None
@@ -249,9 +282,11 @@ class EmailTools:
                 col = i % str_len
                 layout.addWidget(checkbox, row, col)
             dialog.setLayout(layout)
-            button = QPushButton('下一步')
-            button.clicked.connect(func)
-            layout.addWidget(button, len(lst_checkboxes), str_len)
+            self.button = QPushButton('下一步')
+            # 按钮最开始禁用
+            self.button.setDisabled(True)
+            self.button.clicked.connect(func)
+            layout.addWidget(self.button, len(lst_checkboxes), str_len)
             self.str_page = table
             dialog.show()
         except Exception as err:
@@ -261,7 +296,10 @@ class EmailTools:
     def select_account(self):
         """选择账号"""
         try:
-            self.dialog = self.__show_dialog(DIT_DATABASE['账号配置'], self.select_templates)
+            if self.to_dict:
+                self.dialog = self.__show_dialog(DIT_DATABASE['账号配置'], self.select_templates)
+            else:
+                self.show_message('提示', '先导入收件人')
         except Exception as err:
             logger.error(f"{err.__traceback__.tb_lineno}:--:{err}")
 
@@ -296,8 +334,13 @@ class EmailTools:
             logger.error(f"{err.__traceback__.tb_lineno}:--:{err}")
 
     def send_email(self):
-        # 先关闭上一个的
-        if self.dialog:
-            self.dialog.close()
+        try:
+            # 先关闭上一个的
+            if self.dialog:
+                self.dialog.close()
+        except Exception as e:
+            logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
+        finally:
             # 这是最后一个 要置空
             self.dialog = None
+

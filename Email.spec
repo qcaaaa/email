@@ -8,9 +8,7 @@ a = Analysis(
     ['main.py'],
     pathex=[],
     binaries=[],
-    datas=[("./css/", "./css"), ('./config.json', '.'), ('./templates.html', '.'), ('./email.json', '.'),
-        ("./images", "./images"), ("./data.db", "."), ("./email_check/", "./email_check/")
-    ],
+    datas=[("./config", "./config"), ("./sql/data.db", "./sql/"), ("./static", "./static")],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
@@ -39,7 +37,7 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon="./images/logo.ico"
+    icon="./static/images/logo.ico"
 )
 coll = COLLECT(
     exe,

@@ -50,7 +50,7 @@ class EmailTools:
         }
         self.dialog = None  # 下一步之前的页面 用于下一步后 关闭上一个页面
         self.button = None  # 每个页面的下一步按钮
-        self.send_mun = 3  # 一个账号一次发50封
+        self.send_mun = 50  # 一个账号一次发50封
 
     @staticmethod
     def __sub_html(str_html: str) -> str:
@@ -389,6 +389,7 @@ class EmailTools:
         int_title = len(lst_text)
         # 账号数量
         int_user = len(lst_user)
+        self.send_mun = int(self.obj_ui.interval_edit.text() or self.send_mun)
         try:
             # 分配任务
             lst_task = []
@@ -406,7 +407,7 @@ class EmailTools:
             contain_html = self.obj_ui.contain_html.currentText()
             # 间隔时间
             int_sleep = int(self.obj_ui.sleep_edit.text() or 20)
-            self.show_message('', '', f"当前发送策略: {contain_html}, 间隔时间: {int_sleep}s")
+            self.show_message('', '', f"当前发送策略: {contain_html}, 间隔时间: {int_sleep}s, 轮询数量: {self.send_mun}")
 
             if contain_html == '带网页':
                 with open(os.path.join(BASE_PATH, 'template', 'templates.html'), 'r', encoding='utf-8') as f:
@@ -470,6 +471,9 @@ class EmailTools:
                         time.sleep(int_sleep)
                     except Exception as err:
                         logger.error(f"{err.__traceback__.tb_lineno}:--:{err}")
+                else:
+                    if obj_smtp:
+                        obj_smtp.close()
         except Exception as e:
             logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
         finally:

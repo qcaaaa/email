@@ -86,7 +86,7 @@ class EmailUi(QWidget):
         self.sleep_label.setGeometry(QtCore.QRect(480, 20, 80, 30))
         self.sleep_label.setText(QtCore.QCoreApplication.translate("Email-Tool", "发送间隔(s):"))
         self.sleep_edit = QLineEdit(self)
-        self.sleep_edit.setGeometry(QtCore.QRect(580, 20, 80, 30))
+        self.sleep_edit.setGeometry(QtCore.QRect(565, 20, 80, 30))
         # 设置默认值
         self.sleep_edit.setPlaceholderText('20')
         # 设置只能输入数字
@@ -95,11 +95,23 @@ class EmailUi(QWidget):
 
         # ################# 携带网页控件 开始.......########################################
         self.contain_label = QLabel(self)
-        self.contain_label.setGeometry(QtCore.QRect(680, 20, 50, 30))
+        self.contain_label.setGeometry(QtCore.QRect(665, 20, 50, 30))
         self.contain_label.setText(QtCore.QCoreApplication.translate("Email-Tool", "携带网页"))
         self.contain_html = QComboBox(self)
-        self.contain_html.setGeometry(QtCore.QRect(750, 20, 100, 30))
+        self.contain_html.setGeometry(QtCore.QRect(720, 20, 100, 30))
         self.contain_html.addItems(['不带网页', '带网页'])
+        # ################# 发送间隔控件 结束.......########################################
+
+        # ################# 携带网页控件 开始.......########################################
+        self.interval_label = QLabel(self)
+        self.interval_label.setGeometry(QtCore.QRect(830, 20, 50, 30))
+        self.interval_label.setText(QtCore.QCoreApplication.translate("Email-Tool", "最大发送"))
+        self.interval_edit = QLineEdit(self)
+        self.interval_edit.setGeometry(QtCore.QRect(885, 20, 80, 30))
+        # 设置默认值
+        self.interval_edit.setPlaceholderText('50')
+        # 设置只能输入数字
+        self.interval_edit.setValidator(QtGui.QIntValidator())
         # ################# 发送间隔控件 结束.......########################################
 
         # ################# 邮箱账号检查控件 开始.......########################################

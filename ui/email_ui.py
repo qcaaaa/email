@@ -133,7 +133,7 @@ class EmailUi(QWidget):
         # ################# 刷新控件 开始.......########################################
         self.flush_button = QPushButton(self)
         self.flush_button.setGeometry(QtCore.QRect(1300, 20, 100, 30))
-        self.flush_button.setText(QtCore.QCoreApplication.translate("Email-Tool", "刷新"))
+        self.flush_button.setIcon(QIcon(os.path.join(STATIC_PATH, 'images', 'flush.png')))
         self.flush_button.setStyleSheet(button_style)
         self.flush_button.clicked.connect(self.flush_table)
         # ################# 刷新控件 结束.......########################################
@@ -228,13 +228,14 @@ class EmailUi(QWidget):
             self.item = QListWidgetItem(keys, self.left_widget)  # 左侧选项的添加
             self.item.setSizeHint(QSize(30, 60))
             self.item.setTextAlignment(Qt.AlignCenter)  # 居中显示
+            int_len = len(values)
             # 渲染表格数据
             table = QTableWidget()
-            table.setColumnCount(len(values))
+            table.setColumnCount(int_len)
             table.setRowCount(INT_LIMIT)
             table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)  # 铺满
-            table.horizontalHeader().setSectionResizeMode(0, QHeaderView.Interactive)  # 第一列可调整
-            table.setColumnWidth(0, 60)
+            table.horizontalHeader().setSectionResizeMode(int_len - 1, QHeaderView.Interactive)  # 最后一列可调整
+            table.setColumnWidth(0, 100)
             table.setHorizontalHeaderLabels(values)
             table.setEditTriggers(QAbstractItemView.NoEditTriggers)  # 禁止修改
             table.setAlternatingRowColors(True)  # 交替行颜色
@@ -326,7 +327,7 @@ class EmailUi(QWidget):
                 button = QPushButton()
                 # 设置 objname 值为 该行数据库唯一索引
                 button.setObjectName(str(dit_info['id']))
-                button.setText(QtCore.QCoreApplication.translate("Telegram-Tool", '删除'))
+                button.setIcon(QIcon(os.path.join(STATIC_PATH, 'images', 'del.png')))
                 button.clicked.connect(self.del_info)
                 self.dit_table_button.setdefault(str_table, []).append(button)
                 table.setCellWidget(index_, int_len, button)

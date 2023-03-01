@@ -409,7 +409,7 @@ class EmailTools:
             self.show_message('', '', f"当前发送策略: {contain_html}, 间隔时间: {int_sleep}s")
 
             if contain_html == '带网页':
-                with open('../static/template/templates.html', 'r', encoding='utf-8') as f:
+                with open(os.path.join(BASE_PATH, 'template', 'templates.html'), 'r', encoding='utf-8') as f:
                     str_html = f.read()
             else:
                 str_html = ''

@@ -30,7 +30,7 @@ from email.utils import formatdate
 from PyQt5.QtGui import QTextCursor
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from constant import INT_LIMIT, BASE_PATH, DIT_DATABASE
+from constant import INT_LIMIT, BASE_PATH, DIT_DATABASE, CONFIG_PATH
 from PyQt5.QtWidgets import QDialog, QFormLayout, QLineEdit, QDialogButtonBox, QMessageBox, QComboBox, \
     QTextEdit, QFileDialog, QCheckBox, QGridLayout, QPushButton
 
@@ -97,7 +97,7 @@ class EmailTools:
     def load_file(str_file: str = 'email.json'):
         dit_info = {}
         try:
-            with open(os.path.join(BASE_PATH, str_file), 'r', encoding='utf-8') as f:
+            with open(os.path.join(CONFIG_PATH, str_file), 'r', encoding='utf-8') as f:
                 dit_info = load(f)
         except Exception as err_msg:
             logger.error(f"{err_msg.__traceback__.tb_lineno}:--:{err_msg}")
@@ -231,7 +231,7 @@ class EmailTools:
         lst_file, _ = QFileDialog.getOpenFileNames(self.obj_ui, '选取文件', os.getcwd(), title)
         int_num = 0
         if lst_file:
-            dit_config = self.load_file('../config/config.json')
+            dit_config = self.load_file('config.json')
             obj_s3 = AlyS3(dit_config['AccessKey_ID'], dit_config['AccessKey_Secret'], dit_config['bucket'],
                            dit_config['url'])
             self.show_message('', '', 'Aly OSS 连接成功')

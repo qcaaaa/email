@@ -12,11 +12,13 @@
 
 @Desc :
 """
+
+import os
 import sqlite3
 from loguru import logger
 from threading import Lock
 
-from constant import INT_LIMIT
+from constant import INT_LIMIT, DB_PATH
 
 conn = sqlite3.connect('data.sql')
 
@@ -25,8 +27,8 @@ LOOK = Lock()
 
 class MySql:
 
-    def __init__(self, str_file: str = './data.db'):
-        self.conn = sqlite3.connect(str_file)
+    def __init__(self):
+        self.conn = sqlite3.connect(os.path.join(DB_PATH, 'data.db'))
         self.conn.row_factory = self.__dict_factory
         self.curr = self.conn.cursor()
 

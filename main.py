@@ -21,16 +21,20 @@ from ui.email_ui import EmailUi
 
 class MyTelegram:
     def __init__(self):
-        pass
+        from constant import LOG_PATH, EMAIL_CHECK_PATH
 
-    def __call__(self):
-        from constant import BASE_PATH
-        logger.add(os.path.join(BASE_PATH, "log.log"), rotation="500MB", encoding="utf-8", enqueue=True, retention="10 days")
+        for str_path in [LOG_PATH, EMAIL_CHECK_PATH]:
+            try:
+                if not os.path.isdir(str_path):
+                    os.mkdir(str_path, 777)
+            except:
+                pass
+
+        logger.add(os.path.join(LOG_PATH, "log.log"), rotation="500MB", encoding="utf-8", enqueue=True, retention="10 days")
 
 
 if __name__ == '__main__':
     obj_a = MyTelegram()
-    obj_a()
     app = QApplication(sys.argv)
     main_wnd = EmailUi()
     main_wnd.show()

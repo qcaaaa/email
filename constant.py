@@ -16,6 +16,16 @@ import os
 
 BASE_PATH = os.path.abspath(os.path.dirname(__file__))
 
+LOG_PATH = os.path.join(BASE_PATH, 'log')
+
+EMAIL_CHECK_PATH = os.path.join(BASE_PATH, 'email_check')
+
+STATIC_PATH = os.path.join(BASE_PATH, 'static')
+
+CONFIG_PATH = os.path.join(BASE_PATH, 'config')
+
+DB_PATH = os.path.join(BASE_PATH, 'sql')
+
 # 表格行数,数据库一次查询数量
 INT_LIMIT = 22
 

@@ -174,11 +174,9 @@ def check_email(lst_email: list, obj):
 
 
 def __write_excel(lst_info: list, obj):
-    str_path = os.path.join(os.path.abspath('..'), 'email_check')
-    str_file = os.path.join(str_path, f"check_{time.strftime('%Y%m%d%H%M%S', time.localtime(time.time()))}.xlsx")
+    from constant import EMAIL_CHECK_PATH
+    str_file = os.path.join(EMAIL_CHECK_PATH, f"check_{time.strftime('%Y%m%d%H%M%S', time.localtime(time.time()))}.xlsx")
     lst_title = ['邮箱地址', '验证日期', '第一步', '第二步', '第三步', '第四步', '第五步', '第六步', '结果', '有效性概率(%)']
-    if not os.path.isdir(str_path):
-        os.makedirs(str_path, exist_ok=True)
     try:
         wb = Workbook()
         # 默认工作簿

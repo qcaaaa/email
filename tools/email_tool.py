@@ -223,7 +223,7 @@ class EmailTools:
         if os.path.isfile(file_name):
             try:
                 with open(file_name, 'r', encoding='utf-8') as f:
-                    lst_email = [i for i in f.read().split('\n') if i.strip()]
+                    lst_email = list(set([i for i in f.read().split('\n') if i.strip()]))
                 if lst_email:
                     self.show_message('提示', '上传邮箱账号文件成功,后台正在校验中....', '上传邮箱账号文件成功,后台正在校验中....')
                     from tools.email_check import check_email

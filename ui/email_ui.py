@@ -306,11 +306,6 @@ class EmailUi(QWidget):
                 self.show_table(dit_info.get('lst_ret', []), str_items, count_pag=dit_info.get('count', ''))
         except Exception as e:
             logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
-        finally:
-            if self.page != '邮件附件':
-                self.add_button.setEnabled(True)
-            else:
-                self.add_button.setDisabled(True)
 
     def show_table(self, lst_data: list, str_table: str, curr_pag: int = 1, count_pag: int = 1):
         """表格填充数据"""

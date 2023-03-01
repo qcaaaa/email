@@ -331,16 +331,6 @@ class EmailUi(QWidget):
                 button = QPushButton()
                 # 设置 objname 值为 该行数据库唯一索引
                 button.setObjectName(str(dit_info['id']))
-                button.setStyleSheet("""
-                    background-color: #4CAF50;
-                    border-style: outset;
-                    border-width: 2px;
-                    border-radius: 10px;
-                    border-color: beige;
-                    font: bold 14px;
-                    padding: 6px;
-                    color: black
-                """)
                 button.setText(QtCore.QCoreApplication.translate("Telegram-Tool", '删除'))
                 button.clicked.connect(self.del_info)
                 self.dit_table_button.setdefault(str_table, []).append(button)

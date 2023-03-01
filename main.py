@@ -16,7 +16,7 @@ import sys
 import os
 from loguru import logger
 from PyQt5.QtWidgets import QApplication
-from email_ui import EmailUi
+from ui.email_ui import EmailUi
 
 
 class MyTelegram:

@@ -30,13 +30,13 @@ from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QHeaderView, QAbstractItemView
 from PyQt5.Qt import QTableWidgetItem
 from constant import FONT_SIZE, FIRST_TAB, FONT_WEIGHT, DIT_LIST, INT_LIMIT, DIT_DATABASE
-from email_tool import EmailTools
+from tools.email_tool import EmailTools
 
 
 class EmailUi(QWidget):
     def __init__(self):
         super(EmailUi, self).__init__()
-        self.setWindowIcon(QIcon('./images/logo.png'))
+        self.setWindowIcon(QIcon('../static/images/logo.png'))
         self.setObjectName('Email-Tool')
         self.resize(1400, 1000)
         self.setMaximumSize(1400, 1000)
@@ -50,7 +50,7 @@ class EmailUi(QWidget):
         self.setWindowTitle('Email-Tool')
         self.obj_tool = EmailTools(self)
 
-        with open('./css/QPushButtonQSS.qss', 'r', encoding='utf-8') as f:
+        with open('../static/css/QPushButtonQSS.qss', 'r', encoding='utf-8') as f:
             button_style = f.read()
 
         # ################# 增加控件 开始.......########################################
@@ -156,7 +156,7 @@ class EmailUi(QWidget):
         self.page_skip.clicked.connect(self.page_turning)
         # ################# 分页 结束....########################################
 
-        with open('./css/QListWidgetQSS.qss', 'r', encoding='utf-8') as f:  # 导入QListWidget的qss样式
+        with open('../static/css/QListWidgetQSS.qss', 'r', encoding='utf-8') as f:  # 导入QListWidget的qss样式
             list_style = f.read()
 
         self.main_layout = QHBoxLayout(self)  # 窗口的整体布局

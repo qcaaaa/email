@@ -18,8 +18,8 @@ import time
 import smtplib
 import threading
 from json import load
-from aly_s3 import AlyS3
-from sql_db import MySql
+from tools.aly_s3 import AlyS3
+from sql.sql_db import MySql
 from loguru import logger
 from random import choice
 from functools import partial
@@ -216,7 +216,7 @@ class EmailTools:
                     lst_email = [i for i in f.read().split('\n') if i.strip()]
                 if lst_email:
                     self.show_message('提示', '上传邮箱账号文件成功,后台正在校验中....', '上传邮箱账号文件成功,后台正在校验中....')
-                    from email_check import check_email
+                    from tools.email_check import check_email
                     threading.Thread(target=check_email, args=(lst_email, self), daemon=True).start()
                 else:
                     self.show_message('错误提示', '邮箱账号文件格式错误', '邮箱账号文件格式错误')
@@ -231,7 +231,7 @@ class EmailTools:
         lst_file, _ = QFileDialog.getOpenFileNames(self.obj_ui, '选取文件', os.getcwd(), title)
         int_num = 0
         if lst_file:
-            dit_config = self.load_file('config.json')
+            dit_config = self.load_file('../config/config.json')
             obj_s3 = AlyS3(dit_config['AccessKey_ID'], dit_config['AccessKey_Secret'], dit_config['bucket'],
                            dit_config['url'])
             self.show_message('', '', 'Aly OSS 连接成功')
@@ -409,7 +409,7 @@ class EmailTools:
             self.show_message('', '', f"当前发送策略: {contain_html}, 间隔时间: {int_sleep}s")
 
             if contain_html == '带网页':
-                with open('templates.html', 'r', encoding='utf-8') as f:
+                with open('../static/template/templates.html', 'r', encoding='utf-8') as f:
                     str_html = f.read()
             else:
                 str_html = ''

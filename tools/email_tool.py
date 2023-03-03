@@ -481,9 +481,6 @@ class EmailTools:
                         time.sleep(int_sleep)
                     except Exception as err:
                         logger.error(f"{err.__traceback__.tb_lineno}:--:{err}")
-                else:
-                    if obj_smtp:
-                        obj_smtp.close()
         except Exception as e:
             logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
         finally:

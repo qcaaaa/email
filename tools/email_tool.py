@@ -393,6 +393,7 @@ class EmailTools:
         """发送邮件"""
         # 发送成功的数量
         int_num = 0
+        int_count = 0
         # 收件人数量
         int_len = len(self.to_list)
         # 标题组合存在的数量
@@ -447,7 +448,7 @@ class EmailTools:
                 for dit_send in dit_key['send']:
                     try:
                         #  按索引取值
-                        tuple_text = lst_text[int_num] if int_num < int_title else lst_text[int_num - int_title]
+                        tuple_text = lst_text[int_count % int_title]
                         # 公司名称 + 正文 + 网页
                         firm = dit_send["firm"]
                         str_txt = f'Dear {firm}<br><br>' + tuple_text[1] + '<br>' + str_html
@@ -481,6 +482,8 @@ class EmailTools:
                         time.sleep(int_sleep)
                     except Exception as err:
                         logger.error(f"{err.__traceback__.tb_lineno}:--:{err}")
+                    finally:
+                        int_count += 1
         except Exception as e:
             logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
         finally:

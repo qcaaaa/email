@@ -21,16 +21,24 @@ from ui.email_ui import EmailUi
 
 class MyTelegram:
     def __init__(self):
-        from constant import LOG_PATH, EMAIL_CHECK_PATH
+        from constant import LOG_PATH, EMAIL_CHECK_PATH, EMAIL_SEARCH_PATH
 
-        for str_path in [LOG_PATH, EMAIL_CHECK_PATH]:
+        for str_path in [LOG_PATH, EMAIL_CHECK_PATH, EMAIL_SEARCH_PATH]:
             try:
                 if not os.path.isdir(str_path):
                     os.mkdir(str_path, 777)
             except:
                 pass
 
-        logger.add(os.path.join(LOG_PATH, "log.log"), rotation="500MB", encoding="utf-8", enqueue=True, retention="10 days")
+        log_path = os.path.join(LOG_PATH, "log.log")
+
+        if os.path.getsize(log_path) > 500 * 1024 * 1024:
+            try:
+                os.remove(log_path)
+            except:
+                pass
+
+        logger.add(log_path, rotation="500MB", encoding="utf-8", enqueue=True, retention="10 days")
 
 
 if __name__ == '__main__':

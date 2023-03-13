@@ -20,6 +20,8 @@ LOG_PATH = os.path.join(BASE_PATH, 'log')
 
 EMAIL_CHECK_PATH = os.path.join(BASE_PATH, 'email_check')
 
+EMAIL_SEARCH_PATH = os.path.join(BASE_PATH, 'email_google')
+
 STATIC_PATH = os.path.join(BASE_PATH, 'static')
 
 CONFIG_PATH = os.path.join(BASE_PATH, 'config')

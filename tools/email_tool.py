@@ -508,15 +508,23 @@ class EmailTools:
         formLayout = QFormLayout(dialog)  # 配置layout
         dialog.setWindowTitle('谷歌定位搜索')
         dialog.resize(300, 100)
-        user_input = QLineEdit(self.obj_ui)
-        user_input.setStyleSheet("height: 20px")
-        formLayout.addRow('定位城市:', user_input)
-        pwd_input = QLineEdit(self.obj_ui)
-        formLayout.addRow('关键字:', pwd_input)
-        pwd_input.setStyleSheet("height: 20px")
+        city_input = QLineEdit(self.obj_ui)
+        city_input.setStyleSheet("height: 20px")
+        formLayout.addRow('定位城市:', city_input)
+        key_input = QLineEdit(self.obj_ui)
+        formLayout.addRow('关键字:', key_input)
+        key_input.setStyleSheet("height: 20px")
         button = QDialogButtonBox(QDialogButtonBox.Ok)
         formLayout.addRow(button)
         button.clicked.connect(dialog.accept)
         dialog.show()
         if dialog.exec() == QDialog.Accepted:
-            pass
+            city = city_input.text().strip()
+            keyword = key_input.text().strip()
+            if city and keyword:
+                self.show_message('提示', f'后台开始抓取数据....', f'定位城市: {city}, 关键字: {keyword}, 后台开始抓取数据....')
+                from tools.email_goole import search
+                threading.Thread(target=search, args=(city, keyword, self), daemon=True).start()
+                self.obj_ui.google_button.setDisabled(True)
+            else:
+                self.show_message('错误', f'缺少数据,无法搜索')

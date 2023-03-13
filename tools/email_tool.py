@@ -415,12 +415,12 @@ class EmailTools:
                 k += 1
 
             # 是否携带网页
-            contain_html = self.obj_ui.contain_html.currentText()
+            contain_html = self.obj_ui.radio_button.isChecked()
             # 间隔时间
             int_sleep = int(self.obj_ui.sleep_edit.text() or 20)
-            self.show_message('', '', f"当前发送策略: {contain_html}, 间隔时间: {int_sleep}s, 轮询数量: {self.send_mun}")
+            self.show_message('', '', f"当前发送策略: {'携带网页' if contain_html else '不携带网页'}, 间隔时间: {int_sleep}s, 轮询数量: {self.send_mun}")
 
-            if contain_html == '带网页':
+            if contain_html:
                 with open(os.path.join(BASE_PATH, 'template', 'templates.html'), 'r', encoding='utf-8') as f:
                     str_html = f.read()
             else:

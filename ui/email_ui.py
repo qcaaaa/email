@@ -26,6 +26,7 @@ from PyQt5.QtWidgets import QLineEdit
 from PyQt5.QtWidgets import QLabel
 from PyQt5.QtWidgets import QDesktopWidget
 from PyQt5.QtWidgets import QComboBox
+from PyQt5.QtWidgets import QRadioButton
 from PyQt5.QtCore import QSize, Qt, QEvent
 from PyQt5 import QtCore, QtGui
 from PyQt5.QtGui import QIcon
@@ -84,7 +85,7 @@ class EmailUi(QWidget):
         # ################# 发送间隔控件 开始.......########################################
         self.sleep_label = QLabel(self)
         self.sleep_label.setGeometry(QtCore.QRect(480, 20, 80, 30))
-        self.sleep_label.setText(QtCore.QCoreApplication.translate("Email-Tool", "发送间隔(s):"))
+        self.sleep_label.setText(QtCore.QCoreApplication.translate("Email-Tool", "发送间隔(s)"))
         self.sleep_edit = QLineEdit(self)
         self.sleep_edit.setGeometry(QtCore.QRect(565, 20, 80, 30))
         # 设置默认值
@@ -94,20 +95,17 @@ class EmailUi(QWidget):
         # ################# 发送间隔控件 结束.......########################################
 
         # ################# 携带网页控件 开始.......########################################
-        self.contain_label = QLabel(self)
-        self.contain_label.setGeometry(QtCore.QRect(665, 20, 50, 30))
-        self.contain_label.setText(QtCore.QCoreApplication.translate("Email-Tool", "携带网页"))
-        self.contain_html = QComboBox(self)
-        self.contain_html.setGeometry(QtCore.QRect(720, 20, 100, 30))
-        self.contain_html.addItems(['不带网页', '带网页'])
+        self.radio_button = QRadioButton("带网页", self)
+        self.radio_button.setChecked(False)
+        self.radio_button.setGeometry(665, 20, 60, 30)
         # ################# 发送间隔控件 结束.......########################################
 
         # ################# 携带网页控件 开始.......########################################
         self.interval_label = QLabel(self)
-        self.interval_label.setGeometry(QtCore.QRect(830, 20, 50, 30))
+        self.interval_label.setGeometry(QtCore.QRect(745, 20, 50, 30))
         self.interval_label.setText(QtCore.QCoreApplication.translate("Email-Tool", "最大发送"))
         self.interval_edit = QLineEdit(self)
-        self.interval_edit.setGeometry(QtCore.QRect(885, 20, 80, 30))
+        self.interval_edit.setGeometry(QtCore.QRect(820, 20, 80, 30))
         # 设置默认值
         self.interval_edit.setPlaceholderText('50')
         # 设置只能输入数字

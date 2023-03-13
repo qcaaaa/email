@@ -149,16 +149,20 @@ class EmailTools:
                 dialog.setWindowTitle('增加邮箱账号')
                 dialog.resize(300, 100)
                 user_input = QLineEdit(self.obj_ui)
+                user_input.setStyleSheet("height: 20px")
                 formLayout.addRow('邮箱账号:', user_input)
                 pwd_input = QLineEdit(self.obj_ui)
+                pwd_input.setStyleSheet("height: 20px")
                 formLayout.addRow('邮箱密码:', pwd_input)
                 serve_box = QComboBox(self.obj_ui)
                 serve_box.addItems([dit_e['name_cn'] for dit_e in self.email_dict.values()])
+                serve_box.setStyleSheet("height: 20px")
                 formLayout.addRow('邮箱服务器:', serve_box)
             elif str_page == '邮件模板':
                 dialog.setWindowTitle('增加邮件标题/正文')
                 dialog.resize(600, 300)
                 str_title = QLineEdit(self.obj_ui)
+                str_title.setStyleSheet("height: 20px")
                 formLayout.addRow('邮件标题:', str_title)
                 str_txt = QTextEdit(self.obj_ui)
                 formLayout.addRow('邮件正文:', str_txt)
@@ -166,16 +170,19 @@ class EmailTools:
                 dialog.setWindowTitle('增加邮件附件')
                 dialog.resize(300, 100)
                 file_path = QLineEdit(self.obj_ui)
+                file_path.setStyleSheet("height: 20px")
                 formLayout.addRow('附件地址:', file_path)
                 formLayout.addRow(file_path)
             elif str_page == '邮件结尾':
                 dialog.setWindowTitle('增加邮件结尾')
                 dialog.resize(500, 300)
                 temp_name = QLineEdit(self.obj_ui)
+                temp_name.setStyleSheet("height: 20px")
                 formLayout.addRow('模板名称:', temp_name)
                 temp_txt = QTextEdit(self.obj_ui)
                 formLayout.addRow('结尾内容', temp_txt)
                 url_path = QLineEdit(self.obj_ui)
+                url_path.setStyleSheet("height: 20px")
                 formLayout.addRow('图片地址:', url_path)
                 formLayout.addRow(url_path)
             button = QDialogButtonBox(QDialogButtonBox.Ok)
@@ -492,3 +499,24 @@ class EmailTools:
             self.to_list.clear()
             for value in self.dit_v.values():
                 value['lst'] = []
+
+    def google_search(self):
+        """谷歌定位搜索
+        :return:
+        """
+        dialog = QDialog(self.obj_ui)  # 自定义一个dialog
+        formLayout = QFormLayout(dialog)  # 配置layout
+        dialog.setWindowTitle('谷歌定位搜索')
+        dialog.resize(300, 100)
+        user_input = QLineEdit(self.obj_ui)
+        user_input.setStyleSheet("height: 20px")
+        formLayout.addRow('定位城市:', user_input)
+        pwd_input = QLineEdit(self.obj_ui)
+        formLayout.addRow('关键字:', pwd_input)
+        pwd_input.setStyleSheet("height: 20px")
+        button = QDialogButtonBox(QDialogButtonBox.Ok)
+        formLayout.addRow(button)
+        button.clicked.connect(dialog.accept)
+        dialog.show()
+        if dialog.exec() == QDialog.Accepted:
+            pass

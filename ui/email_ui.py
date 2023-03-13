@@ -25,14 +25,13 @@ from PyQt5.QtWidgets import QPushButton
 from PyQt5.QtWidgets import QLineEdit
 from PyQt5.QtWidgets import QLabel
 from PyQt5.QtWidgets import QDesktopWidget
-from PyQt5.QtWidgets import QComboBox
 from PyQt5.QtWidgets import QRadioButton
 from PyQt5.QtCore import QSize, Qt, QEvent
 from PyQt5 import QtCore, QtGui
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import QHeaderView, QAbstractItemView
 from PyQt5.Qt import QTableWidgetItem
-from constant import FONT_SIZE, FIRST_TAB, FONT_WEIGHT, DIT_LIST, INT_LIMIT, DIT_DATABASE, STATIC_PATH
+from constant import FIRST_TAB, FONT_WEIGHT, DIT_LIST, INT_LIMIT, DIT_DATABASE, STATIC_PATH
 from tools.email_tool import EmailTools
 
 
@@ -111,6 +110,14 @@ class EmailUi(QWidget):
         # 设置只能输入数字
         self.interval_edit.setValidator(QtGui.QIntValidator())
         # ################# 发送间隔控件 结束.......########################################
+
+        # ################# 谷歌搜索控件 开始.......########################################
+        self.google_button = QPushButton(self)
+        self.google_button.setGeometry(QtCore.QRect(940, 20, 100, 30))
+        self.google_button.setText(QtCore.QCoreApplication.translate("Email-Tool", "谷歌搜索"))
+        self.google_button.setStyleSheet(button_style)
+        self.google_button.clicked.connect(self.obj_tool.google_search)
+        # ################# 谷歌搜索控件 结束.......########################################
 
         # ################# 邮箱账号检查控件 开始.......########################################
         self.check_button = QPushButton(self)

@@ -15,6 +15,7 @@
 
 import os
 import time
+import pyautogui
 from openpyxl import Workbook
 from loguru import logger
 from selenium import webdriver
@@ -23,14 +24,21 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.chrome.options import Options
 from constant import DRIVER_PATH
+
+int_timeout = 60
 
 
 def search(city, keyword, self_ui):
     driver = None
     try:
+        # 创建ChromeOptions实例
+        options = Options()
+        # 只加载 html
+        options.page_load_strategy = "eager"
         # 创建 Chrome 实例
-        driver = webdriver.Chrome(service=Service(DRIVER_PATH))
+        driver = webdriver.Chrome(service=Service(DRIVER_PATH), options=options)
         # 全屏
         driver.maximize_window()
         # 打开谷歌地图
@@ -38,38 +46,62 @@ def search(city, keyword, self_ui):
         self_ui.show_message('', '', f'成功打开谷歌地图')
         # 在搜索栏输入关键字
         # 等待页面加载完成
-        search_box = WebDriverWait(driver, 10).until(
+        search_box = WebDriverWait(driver, int_timeout).until(
             EC.presence_of_element_located((By.ID, "searchboxinput"))
         )
         search_box.send_keys(city)
         search_box.send_keys(Keys.RETURN)
         self_ui.show_message('', '', f'成功定位至 {city}')
-        time.sleep(5)
         # 点击附近按钮
-        button = WebDriverWait(driver, 10).until(
+        button = WebDriverWait(driver, int_timeout).until(
             EC.presence_of_element_located((By.XPATH, "//div[contains(text(), '附近')]"))
         )
         button.click()
         # 在搜索栏输入关键字
-        search_box = WebDriverWait(driver, 10).until(
+        search_box = WebDriverWait(driver, int_timeout).until(
             EC.presence_of_element_located((By.ID, 'searchboxinput'))
         )
         search_box.send_keys(keyword)
         search_box.send_keys(Keys.RETURN)
         self_ui.show_message('', '', f'开始搜索关键字: {keyword}')
+
+        __load(driver)
+
         # 获取所有搜索的 超链接
-        a_tags = WebDriverWait(driver, 10).until(
+        a_tags = WebDriverWait(driver, int_timeout).until(
             EC.presence_of_all_elements_located((By.CLASS_NAME, 'hfpxzc'))
         )
         self_ui.show_message('', '', f'开始解析数据')
         __check_url(a_tags, driver, self_ui, city, keyword)
     except Exception as err:
-        logger.error(f'定位城市失败: {err.__traceback__.tb_lineno}: {err}')
+        logger.error(f'定位失败: {err.__traceback__.tb_lineno}: {err}')
     finally:
         # 关闭浏览器
         if driver:
             driver.quit()
         self_ui.obj_ui.google_button.setEnabled(True)
+    return
+
+
+def __load(driver):
+    try:
+
+        tuple_size = pyautogui.size()
+        pyautogui.moveTo(50, tuple_size[1] // 2)
+
+        s_time = time.time()
+
+        while time.time() - s_time <= 10 * 60:
+            try:
+                WebDriverWait(driver, 0.3).until(
+                    EC.presence_of_element_located((By.CLASS_NAME, "HlvSq"))
+                )
+            except:
+                pyautogui.scroll(-(tuple_size[0] // 2))
+            else:
+                break
+    except Exception as err:
+        logger.error(f'{err.__traceback__.tb_lineno}: {err}')
     return
 
 
@@ -155,7 +187,6 @@ def __check_url(lst_tags, driver, ui, city, keyword):
             driver.close()
             # 切换回原来的窗口
             driver.switch_to.window(driver.window_handles[0])
-            ui.show_message('', '', f'-' * 20)
             lst_firm.append(dit_info)
     else:
         ui.show_message('', '', f'搜索完毕, 共搜索出 {len(lst_firm)} 组信息, 开始写入')

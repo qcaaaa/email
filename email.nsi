@@ -31,7 +31,7 @@
 ; Instfiles page
 !insertmacro MUI_PAGE_INSTFILES
 ; Finish page
-!define MUI_FINISHPAGE_RUN "$INSTDIR\driver\chromedriver.exe"
+!define MUI_FINISHPAGE_RUN "$INSTDIR\Email.exe"
 !insertmacro MUI_PAGE_FINISH
 
 ; Uninstaller pages

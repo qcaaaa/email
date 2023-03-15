@@ -28,7 +28,7 @@ CONFIG_PATH = os.path.join(BASE_PATH, 'config')
 
 DB_PATH = os.path.join(BASE_PATH, 'sql')
 
-DRIVER_PATH = os.path.join(BASE_PATH, 'driver', 'chromedriver.exe')
+DRIVER_PATH = os.path.join(BASE_PATH, 'driver', 'chromedriver')
 
 # 表格行数,数据库一次查询数量
 INT_LIMIT = 22

@@ -88,7 +88,8 @@ def search(city, keyword, self_ui):
                 logger.error(f'定位失败: {err.__traceback__.tb_lineno}: {err}')
         else:
             self_ui.show_message('', '', f'全部搜索完毕, 共搜索出 {len(lst_data)} 组信息, 开始准备写入')
-            __write_excel(lst_data, self_ui)
+            if lst_data:
+                __write_excel(lst_data, self_ui)
     finally:
         # 关闭浏览器
         if driver:

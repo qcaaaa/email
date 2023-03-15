@@ -32,7 +32,7 @@ class MyTelegram:
 
         log_path = os.path.join(LOG_PATH, "log.log")
 
-        if os.path.getsize(log_path) > 500 * 1024 * 1024:
+        if os.path.isfile(log_path) and os.path.getsize(log_path) > 500 * 1024 * 1024:
             try:
                 os.remove(log_path)
             except:

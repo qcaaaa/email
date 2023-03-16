@@ -32,26 +32,26 @@ int_timeout = 60
 
 
 def search(city, keyword, self_ui):
-    driver = None
     lst_data = []
-    try:
-        # 创建ChromeOptions实例
-        options = Options()
-        # 只加载 html
-        options.page_load_strategy = "eager"
-        # 创建 Chrome 实例
-        driver = webdriver.Chrome(service=Service(DRIVER_PATH), options=options)
-        # 全屏
-        driver.maximize_window()
-        # 打开谷歌地图
-        driver.get('https://www.google.com/maps')
-    except Exception as err_:
-        logger.error(f'打开谷歌地图失败: {err_.__traceback__.tb_lineno}: {err_}')
-    else:
-        self_ui.show_message('', '', f'成功打开谷歌地图')
-        lst_search = list(product(city.split(','), keyword.split(',')))
-        self_ui.show_message('', '', f'本轮一共 {len(lst_search)} 种搜索组合')
-        for tuple_search in lst_search:
+    lst_search = list(product(city.split('\n'), keyword.split('\n')))
+    self_ui.show_message('', '', f'本轮一共 {len(lst_search)} 种搜索组合')
+    for tuple_search in lst_search:
+        driver = None
+        try:
+            # 创建ChromeOptions实例
+            options = Options()
+            # 只加载 html
+            options.page_load_strategy = "eager"
+            # 创建 Chrome 实例
+            driver = webdriver.Chrome(service=Service(DRIVER_PATH), options=options)
+            # 全屏
+            driver.maximize_window()
+            # 打开谷歌地图
+            driver.get('https://www.google.com/maps')
+        except Exception as err_:
+            logger.error(f'打开谷歌地图失败: {err_.__traceback__.tb_lineno}: {err_}')
+        else:
+            self_ui.show_message('', '', f'成功打开谷歌地图')
             str_city, str_key = tuple_search
             try:
                 # 在搜索栏输入关键字
@@ -76,6 +76,7 @@ def search(city, keyword, self_ui):
                 search_box.send_keys(Keys.RETURN)
                 self_ui.show_message('', '', f'开始搜索关键字: {str_key}')
 
+                # 滑动 获取全部搜索结果
                 __load(driver)
 
                 # 获取所有搜索的 超链接
@@ -86,14 +87,15 @@ def search(city, keyword, self_ui):
                 lst_data.extend(__check_url(a_tags, driver, self_ui, str_city, str_key))
             except Exception as err:
                 logger.error(f'定位失败: {err.__traceback__.tb_lineno}: {err}')
-        else:
-            self_ui.show_message('', '', f'全部搜索完毕, 共搜索出 {len(lst_data)} 组信息, 开始准备写入')
-            if lst_data:
-                __write_excel(lst_data, self_ui)
-    finally:
-        # 关闭浏览器
-        if driver:
-            driver.quit()
+        finally:
+            # 关闭浏览器
+            if driver:
+                driver.quit()
+    else:
+        self_ui.show_message('', '', f'全部搜索完毕, 共搜索出 {len(lst_data)} 组信息')
+        if lst_data:
+            self_ui.show_message("", "", f"开始准备写入")
+            __write_excel(lst_data, self_ui)
         self_ui.obj_ui.google_button.setEnabled(True)
     return
 
@@ -120,8 +122,21 @@ def __load(driver):
     return
 
 
+def __get(driver, ui, sty_type, str_path, str_key) -> str:
+    str_info = ''
+    try:
+        element = WebDriverWait(driver, 2).until(
+            EC.presence_of_element_located((sty_type, str_path))
+        )
+        str_info = element.get_attribute(str_key)
+    except Exception as err1:
+        logger.error(f'{err1.__traceback__.tb_lineno}: {err1}')
+    return str_info
+
+
 def __check_url(lst_tags, driver, ui, city, keyword):
     lst_firm = []
+    index_win = driver.window_handles[0]
     for a_tag in lst_tags:
         second_snap_value = address1 = address2 = url = phone = ''
         try:
@@ -131,63 +146,33 @@ def __check_url(lst_tags, driver, ui, city, keyword):
             driver.execute_script(f"window.open('{str_url}', '_blank')")
             # 切换到新窗口
             new_window = driver.window_handles[-1]
-            driver.switch_to.window(new_window)
+            if new_window != index_win:
+                driver.switch_to.window(new_window)
+            else:
+                ui.show_message('', '', f'未打开新窗口')
 
-            # 获取公司名字
-            try:
-                h1 = driver.find_element(By.TAG_NAME, 'h1')
-                snap_list = h1.find_elements(By.CSS_SELECTOR, 'span')
-                second_snap_value = snap_list[1].text
-                ui.show_message('', '', f'公司名称: {second_snap_value}')
-            except:
-                pass
+            address1 = __get(driver, ui, By.XPATH, "// *[ @ data-item-id='address']", "aria-label").replace('地址:', '').strip()
+            ui.show_message('', '', f'公司地址1: {address1}')
 
-            # 获取地址1
-            try:
-                element = WebDriverWait(driver, 2).until(
-                    EC.presence_of_element_located((By.XPATH, "// *[ @ data-item-id='address']"))
-                )
-                address1 = element.get_attribute("aria-label").replace('地址:', '').strip()
-                ui.show_message('', '', f'公司地址1: {address1}')
-            except:
-                pass
+            address2 = __get(driver, ui, By.XPATH, "// *[ @ data-item-id='laddress']", "aria-label").replace('地址:', '').strip()
+            ui.show_message('', '', f'公司地址2: {address2}')
 
-            # 获取地址2
-            try:
-                element = WebDriverWait(driver, 2).until(
-                    EC.presence_of_element_located((By.XPATH, "// *[ @ data-item-id='laddress']"))
-                )
-                address2 = element.get_attribute("aria-label").replace('地址:', '').strip()
-                ui.show_message('', '', f'公司地址2: {address2}')
-            except:
-                pass
+            url = __get(driver, ui, By.XPATH, "// *[ @ data-tooltip='打开网站']", "href").strip()
+            ui.show_message('', '', f'公司网站: {url}')
 
-            # 获取网站
-            try:
-                element = WebDriverWait(driver, 2).until(
-                    EC.presence_of_element_located((By.XPATH, "// *[ @ data-tooltip='打开网站']"))
-                )
-                url = element.get_attribute("href").strip()
-                ui.show_message('', '', f'公司网站: {url}')
-            except:
-                pass
+            phone = __get(driver, ui, By.XPATH, "// *[ @ data-tooltip='复制电话号码']", "aria-label").replace('电话:', '').strip()
+            ui.show_message('', '', f'公司电话: {phone}')
 
-            # 获取联系方式
-            try:
-                element = WebDriverWait(driver, 2).until(
-                    EC.presence_of_element_located((By.XPATH, "// *[ @ data-tooltip='复制电话号码']"))
-                )
-                phone = element.get_attribute("aria-label").replace('电话:', '').strip()
-                ui.show_message('', '', f'公司电话: {phone}')
-            except:
-                pass
+            second_snap_value = __get(driver, ui, By.ID, "searchboxinput", "value")
+            ui.show_message('', '', f'公司名称: {second_snap_value}')
+            # 关闭新窗口
+            if driver.current_window_handle != index_win:
+                driver.close()
         except Exception as err:
             logger.error(f'解析失败: {err.__traceback__.tb_lineno}: {err}')
         finally:
-            # 关闭新窗口
-            driver.close()
-            # 切换回原来的窗口
-            driver.switch_to.window(driver.window_handles[0])
+            if driver:
+                driver.switch_to.window(index_win)
             if any([second_snap_value, address1, address2, url, phone]):
                 lst_firm.append({
                     'name': second_snap_value,

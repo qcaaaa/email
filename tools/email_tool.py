@@ -506,7 +506,7 @@ class EmailTools:
         """
         dialog = QDialog(self.obj_ui)  # 自定义一个dialog
         formLayout = QFormLayout(dialog)  # 配置layout
-        dialog.setWindowTitle('谷歌定位搜索(多个用英文逗号分隔)')
+        dialog.setWindowTitle('谷歌定位搜索(一行一个)')
         dialog.resize(500, 100)
         city_input = QLineEdit(self.obj_ui)
         city_input.setStyleSheet("height: 30px")

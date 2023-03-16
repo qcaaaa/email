@@ -77,14 +77,14 @@ def search(city, keyword, self_ui):
                 self_ui.show_message('', '', f'开始搜索关键字: {str_key}')
 
                 # 滑动 获取全部搜索结果
-                __load(driver)
+                if __load(driver):
 
-                # 获取所有搜索的 超链接
-                a_tags = WebDriverWait(driver, int_timeout).until(
-                    EC.presence_of_all_elements_located((By.CLASS_NAME, 'hfpxzc'))
-                )
-                self_ui.show_message('', '', f'开始解析数据')
-                lst_data.extend(__check_url(a_tags, driver, self_ui, str_city, str_key))
+                    # 获取所有搜索的 超链接
+                    a_tags = WebDriverWait(driver, int_timeout).until(
+                        EC.presence_of_all_elements_located((By.CLASS_NAME, 'hfpxzc'))
+                    )
+                    self_ui.show_message('', '', f'开始解析数据')
+                    lst_data.extend(__check_url(a_tags, driver, self_ui, str_city, str_key))
             except Exception as err:
                 logger.error(f'定位失败: {err.__traceback__.tb_lineno}: {err}')
         finally:
@@ -119,7 +119,8 @@ def __load(driver):
                 break
     except Exception as err:
         logger.error(f'{err.__traceback__.tb_lineno}: {err}')
-    return
+        return False
+    return True
 
 
 def __get(driver, ui, sty_type, str_path, str_key) -> str:

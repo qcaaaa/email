@@ -77,7 +77,7 @@ def search(city, keyword, self_ui):
                 self_ui.show_message('', '', f'开始搜索关键字: {str_key}')
 
                 # 滑动 获取全部搜索结果
-                if __load(driver):
+                if __load(driver, self_ui, str_key):
 
                     # 获取所有搜索的 超链接
                     a_tags = WebDriverWait(driver, int_timeout).until(
@@ -100,22 +100,33 @@ def search(city, keyword, self_ui):
     return
 
 
-def __load(driver):
+def __load(driver, ui, str_key):
+    element = None
     try:
-
         tuple_size = pyautogui.size()
-        pyautogui.moveTo(50, tuple_size[1] // 2)
+        try:
+            element = WebDriverWait(driver, 2).until(
+                EC.presence_of_element_located((By.XPATH, f'// *[ @ aria-label="与“{str_key}”相符的搜索结果"]'))
+            )
+        except:
+            ui.show_message('', '', f'无法通过页面定位, 开始控制鼠标移动, 请勿移动鼠标...')
+            pyautogui.moveTo(70, tuple_size[1] // 2)
 
         s_time = time.time()
 
         while time.time() - s_time <= 10 * 60:
             try:
-                WebDriverWait(driver, 0.3).until(
+                WebDriverWait(driver, 5).until(
                     EC.presence_of_element_located((By.CLASS_NAME, "HlvSq"))
                 )
             except:
-                pyautogui.scroll(-(tuple_size[0] // 2))
+                if not element:
+                    pyautogui.scroll(-(tuple_size[0] // 2))
+                else:
+                    driver.execute_script('arguments[0].style.overflow = "auto";arguments[0].scrollTop = 100000', element)
+                ui.show_message('', '', f'搜索更多结果中....')
             else:
+                ui.show_message('', '', f'所有结果搜索完毕')
                 break
     except Exception as err:
         logger.error(f'{err.__traceback__.tb_lineno}: {err}')

@@ -4,6 +4,7 @@
 !define PRODUCT_NAME "Email"
 !define PRODUCT_VERSION "1.4"
 !define PRODUCT_PUBLISHER "Qc"
+!define PRODUCT_WEB_SITE "http://www.mycompany.com"
 !define PRODUCT_DIR_REGKEY "Software\Microsoft\Windows\CurrentVersion\App Paths\Email.exe"
 !define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
 !define PRODUCT_UNINST_ROOT_KEY "HKLM"
@@ -2917,6 +2918,8 @@ Section "MainSection" SEC01
 SectionEnd
 
 Section -AdditionalIcons
+  WriteIniStr "$INSTDIR\${PRODUCT_NAME}.url" "InternetShortcut" "URL" "${PRODUCT_WEB_SITE}"
+  CreateShortCut "$SMPROGRAMS\Email\Website.lnk" "$INSTDIR\${PRODUCT_NAME}.url"
   CreateShortCut "$SMPROGRAMS\Email\Uninstall.lnk" "$INSTDIR\uninst.exe"
 SectionEnd
 
@@ -2927,6 +2930,7 @@ Section -Post
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "UninstallString" "$INSTDIR\uninst.exe"
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "DisplayIcon" "$INSTDIR\Email.exe"
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "DisplayVersion" "${PRODUCT_VERSION}"
+  WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "URLInfoAbout" "${PRODUCT_WEB_SITE}"
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "Publisher" "${PRODUCT_PUBLISHER}"
 SectionEnd
 
@@ -2943,6 +2947,7 @@ Function un.onInit
 FunctionEnd
 
 Section Uninstall
+  Delete "$INSTDIR\${PRODUCT_NAME}.url"
   Delete "$INSTDIR\uninst.exe"
   Delete "$INSTDIR\_uuid.pyd"
   Delete "$INSTDIR\_tkinter.pyd"
@@ -5584,6 +5589,7 @@ Section Uninstall
   Delete "$INSTDIR\aliyunsdkcore\data\endpoints.json"
 
   Delete "$SMPROGRAMS\Email\Uninstall.lnk"
+  Delete "$SMPROGRAMS\Email\Website.lnk"
   Delete "$DESKTOP\Email.lnk"
   Delete "$SMPROGRAMS\Email\Email.lnk"
 

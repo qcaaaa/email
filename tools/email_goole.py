@@ -38,9 +38,9 @@ def search(city, keyword, self_ui):
     for tuple_search in lst_search:
         driver = None
         try:
-            # 创建ChromeOptions实例
+            # # 创建ChromeOptions实例
             options = Options()
-            # 只加载 html
+            # # 只加载 html
             options.page_load_strategy = "eager"
             # 创建 Chrome 实例
             driver = webdriver.Chrome(service=Service(DRIVER_PATH), options=options)
@@ -105,7 +105,7 @@ def __load(driver, ui, str_key):
     try:
         tuple_size = pyautogui.size()
         try:
-            element = WebDriverWait(driver, 2).until(
+            element = WebDriverWait(driver, 10).until(
                 EC.presence_of_element_located((By.XPATH, f'// *[ @ aria-label="与“{str_key}”相符的搜索结果"]'))
             )
         except:
@@ -153,6 +153,10 @@ def __check_url(lst_tags, driver, ui, city, keyword):
         second_snap_value = address1 = address2 = url = phone = ''
         try:
             ui.show_message('', '', f'-' * 20)
+
+            second_snap_value = a_tag.get_attribute('aria-label')
+            ui.show_message('', '', f'公司名称: {second_snap_value}')
+
             str_url = a_tag.get_attribute('href')
             # 根据链接 开启新窗口
             driver.execute_script(f"window.open('{str_url}', '_blank')")
@@ -175,8 +179,6 @@ def __check_url(lst_tags, driver, ui, city, keyword):
             phone = __get(driver, ui, By.XPATH, "// *[ @ data-tooltip='复制电话号码']", "aria-label").replace('电话:', '').strip()
             ui.show_message('', '', f'公司电话: {phone}')
 
-            second_snap_value = __get(driver, ui, By.ID, "searchboxinput", "value")
-            ui.show_message('', '', f'公司名称: {second_snap_value}')
             # 关闭新窗口
             if driver.current_window_handle != index_win:
                 driver.close()

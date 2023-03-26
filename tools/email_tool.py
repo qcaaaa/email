@@ -32,7 +32,7 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from constant import INT_LIMIT, BASE_PATH, DIT_DATABASE, CONFIG_PATH
 from PyQt5.QtWidgets import QDialog, QFormLayout, QLineEdit, QDialogButtonBox, QMessageBox, QComboBox, \
-    QTextEdit, QFileDialog, QCheckBox, QGridLayout, QPushButton
+    QTextEdit, QFileDialog, QCheckBox, QGridLayout, QPushButton, QLabel
 
 
 class EmailTools:
@@ -51,6 +51,8 @@ class EmailTools:
         self.dialog = None  # 下一步之前的页面 用于下一步后 关闭上一个页面
         self.button = None  # 每个页面的下一步按钮
         self.send_mun = 50  # 一个账号一次发50封
+        self.temp_lag = None
+        self.info_lag = None
 
     @staticmethod
     def __sub_html(str_html: str) -> str:
@@ -316,26 +318,24 @@ class EmailTools:
             dialog.resize(400, 200)
             # 数据源
             lst_user = self.get_info(table).get('lst_ret', [])
+            
             # 创建多选按钮
-            lst_checkboxes = []
+            layout = QGridLayout()
+            int_count = 0
             for i, item in enumerate(lst_user):
                 checkbox = QCheckBox(str(item[str_key]))
-                # checkbox.stateChanged.connect(self.__on_checkbox_changed)
                 checkbox.clicked.connect(partial(self.__on_checkbox_changed, item))
-                lst_checkboxes.append(checkbox)
-            # 创建布局
-            layout = QGridLayout()
-            for i, checkbox in enumerate(lst_checkboxes):
                 row = i // str_len
                 col = i % str_len
                 layout.addWidget(checkbox, row, col)
+                int_count += 1
             dialog.setLayout(layout)
             self.button = QPushButton('下一步')
             # 账号,模板 按钮最开始禁用
             if table in ['user', 'template']:
                 self.button.setDisabled(True)
             self.button.clicked.connect(func)
-            layout.addWidget(self.button, len(lst_checkboxes), str_len)
+            layout.addWidget(self.button, int_count, str_len)
             self.str_page = table
             dialog.show()
         except Exception as err:

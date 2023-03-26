@@ -127,7 +127,7 @@ class MySql:
             elif str_type == 'info':
                 str_sql = "select distinct language from info"
             self.__exec_sql('select', str_sql)
-            print(self.curr.fetchall())
+            lst_ret = [dit_info['language'] for dit_info in self.curr.fetchall() if 'language' in dit_info]
         except Exception as e:
             logger.debug(f"{e.__traceback__.tb_lineno}:--{e}:{str_sql}")
         return lst_ret

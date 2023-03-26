@@ -137,6 +137,12 @@ class EmailTools:
             else:
                 self.obj_ui.send_button.setDisabled(True)
 
+    @staticmethod
+    def __get_language(str_type: str):
+        with MySql() as obj_sql:
+            lst_info = obj_sql.get_language(str_type)
+        return lst_info
+
     def add_table(self):
         """增加页面
         """
@@ -167,6 +173,7 @@ class EmailTools:
                 str_txt = QTextEdit(self.obj_ui)
                 formLayout.addRow('邮件正文:', str_txt)
                 str_box = QComboBox(self.obj_ui)
+                str_box.addItems(self.__get_language('template'))
                 str_box.setEditable(True)
                 formLayout.addRow('模板语种:', str_box)
             elif str_page == '邮件附件':
@@ -176,6 +183,7 @@ class EmailTools:
                 file_path.setStyleSheet("height: 20px")
                 formLayout.addRow('附件地址:', file_path)
                 str_box = QComboBox(self.obj_ui)
+                str_box.addItems(self.__get_language('info'))
                 str_box.setEditable(True)
                 formLayout.addRow('附件语种:', str_box)
             elif str_page == '邮件结尾':

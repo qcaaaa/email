@@ -26,13 +26,16 @@ from PyQt5.QtWidgets import QLineEdit
 from PyQt5.QtWidgets import QLabel
 from PyQt5.QtWidgets import QDesktopWidget
 from PyQt5.QtWidgets import QRadioButton
+from PyQt5.QtWidgets import QMenuBar, QMenu
 from PyQt5.QtCore import QSize, Qt, QEvent
 from PyQt5 import QtCore, QtGui
 from PyQt5.QtGui import QIcon
+from PyQt5.QtWidgets import QAction
 from PyQt5.QtWidgets import QHeaderView, QAbstractItemView
 from PyQt5.Qt import QTableWidgetItem
 from constant import FIRST_TAB, FONT_WEIGHT, DIT_LIST, INT_LIMIT, DIT_DATABASE, STATIC_PATH
 from tools.email_tool import EmailTools
+from functools import partial
 
 
 class EmailUi(QWidget):
@@ -51,6 +54,20 @@ class EmailUi(QWidget):
         self.move(int(newLeft), int(newTop) if int(newTop) > 60 else 0)
         self.setWindowTitle('Email-Tool')
         self.obj_tool = EmailTools(self)
+
+        # ################# 菜单栏 开始.......########################################
+        menubar = QMenuBar(self)
+        setting_menu = QMenu('设置', self)
+        menubar.addMenu(setting_menu)
+        temp_language = QAction('模板语种选择', self)
+        temp_language.setShortcut('Ctrl+n')
+        temp_language.triggered.connect(partial(self.setting_language, 'template'))
+        setting_menu.addAction(temp_language)
+        info_language = QAction('附件语种选择', self)
+        info_language.setShortcut('Ctrl+s')
+        info_language.triggered.connect(partial(self.setting_language, 'info'))
+        setting_menu.addAction(info_language)
+        # ################# 菜单栏 结尾.......########################################
 
         with open(os.path.join(STATIC_PATH, 'css', 'QPushButtonQSS.qss'), 'r', encoding='utf-8') as f:
             button_style = f.read()
@@ -71,7 +88,7 @@ class EmailUi(QWidget):
         self.import_button.clicked.connect(self.obj_tool.import_user)
         # ################# 导入联系人控件 结束.......########################################
 
-        # ################# 上传附件控件 开始.......########################################
+        # ################# 发送邮件控件 开始.......########################################
         self.send_button = QPushButton(self)
         self.send_button.setGeometry(QtCore.QRect(360, 20, 100, 30))
         self.send_button.setText(QtCore.QCoreApplication.translate("Email-Tool", "发送邮件"))
@@ -79,7 +96,7 @@ class EmailUi(QWidget):
         # 最开始禁用
         self.send_button.setDisabled(True)
         self.send_button.clicked.connect(self.obj_tool.select_account)
-        # ################# 上传附件控件 结束.......########################################
+        # ################# 发送邮件控件 结束.......########################################
 
         # ################# 发送间隔控件 开始.......########################################
         self.sleep_label = QLabel(self)
@@ -93,13 +110,13 @@ class EmailUi(QWidget):
         self.sleep_edit.setValidator(QtGui.QIntValidator())
         # ################# 发送间隔控件 结束.......########################################
 
-        # ################# 携带网页控件 开始.......########################################
+        # ################# 发送方式控件 开始.......########################################
         self.radio_button = QRadioButton("带网页", self)
         self.radio_button.setChecked(False)
         self.radio_button.setGeometry(665, 20, 60, 30)
-        # ################# 发送间隔控件 结束.......########################################
+        # ################# 发送方式控件 结束.......########################################
 
-        # ################# 携带网页控件 开始.......########################################
+        # ################# 发送间隔控件 开始.......########################################
         self.interval_label = QLabel(self)
         self.interval_label.setGeometry(QtCore.QRect(745, 20, 50, 30))
         self.interval_label.setText(QtCore.QCoreApplication.translate("Email-Tool", "最大发送"))
@@ -369,3 +386,6 @@ class EmailUi(QWidget):
         self.show_table(dit_info.get('lst_ret', []), self.page, count_pag=dit_info.get('count', ''))
         if not is_show:
             self.obj_tool.show_message('刷新', '刷新当前页面成功')
+
+    def setting_language(self, str_type: str):
+        pass

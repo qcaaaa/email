@@ -108,12 +108,26 @@ class MySql:
             if table == 'user':
                 str_sql = f"insert into {table} (name, pwd, str_type) values (?, ?, ?)"
             elif table == 'template':
-                str_sql = f"insert into {table} (title, content) values (?, ?)"
+                str_sql = f"insert into {table} (title, content, language) values (?, ?, ?)"
             elif table == 'info':
-                str_sql = f"insert into {table} (url) values (?)"
+                str_sql = f"insert into {table} (url, language) values (?, ?)"
             elif table == 'end':
                 str_sql = f"insert into {table} (name, content, url) values (?, ?, ?)"
             int_ret = self.__exec_sql('add', str_sql, lst_info)
         except Exception as e:
             logger.debug(f"{e.__traceback__.tb_lineno}:--{e}:{str_sql}")
         return int_ret
+
+    def get_language(self, str_type: str) -> list:
+        lst_ret = []
+        str_sql = ''
+        try:
+            if str_type == 'template':
+                str_sql = "select distinct language from template"
+            elif str_type == 'info':
+                str_sql = "select distinct language from info"
+            self.__exec_sql('select', str_sql)
+            print(self.curr.fetchall())
+        except Exception as e:
+            logger.debug(f"{e.__traceback__.tb_lineno}:--{e}:{str_sql}")
+        return lst_ret

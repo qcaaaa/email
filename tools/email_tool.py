@@ -166,13 +166,18 @@ class EmailTools:
                 formLayout.addRow('邮件标题:', str_title)
                 str_txt = QTextEdit(self.obj_ui)
                 formLayout.addRow('邮件正文:', str_txt)
+                str_box = QComboBox(self.obj_ui)
+                str_box.setEditable(True)
+                formLayout.addRow('模板语种:', str_box)
             elif str_page == '邮件附件':
                 dialog.setWindowTitle('增加邮件附件')
                 dialog.resize(300, 100)
                 file_path = QLineEdit(self.obj_ui)
                 file_path.setStyleSheet("height: 20px")
                 formLayout.addRow('附件地址:', file_path)
-                formLayout.addRow(file_path)
+                str_box = QComboBox(self.obj_ui)
+                str_box.setEditable(True)
+                formLayout.addRow('附件语种:', str_box)
             elif str_page == '邮件结尾':
                 dialog.setWindowTitle('增加邮件结尾')
                 dialog.resize(500, 300)
@@ -202,17 +207,17 @@ class EmailTools:
                     if all([str_1, str_2, str_3]):
                         lst_data = [str_1, str_2, str_3]
                 elif str_page == '邮件模板':
-                    str_1, str_2 = str_title.text().strip(), self.__sub_html(str_txt.toHtml())
-                    if any([str_1, str_2]):
-                        lst_data = [str_1, str_2]
+                    str_1, str_2, str_3 = str_title.text().strip(), self.__sub_html(str_txt.toHtml()), str_box.currentText().strip()
+                    if any([str_1, str_2, str_3]):
+                        lst_data = [str_1, str_2, str_3]
                 elif str_page == '邮件结尾':
                     str_1, str_2, str_3 = temp_name.text(), self.__sub_html(temp_txt.toHtml()), url_path.text().strip()
                     if any([str_1, str_2, str_3]):
                         lst_data = [str_1, str_2, str_3]
                 elif str_page == '邮件附件':
-                    str_1 = file_path.text().strip()
-                    if str_1:
-                        lst_data = [str_1]
+                    str_1, str_2 = file_path.text().strip(), str_box.currentText().strip()
+                    if all([str_1, str_2]):
+                        lst_data = [str_1, str_2]
                 if lst_data:
                     int_ret = self.add_info(DIT_DATABASE[str_page], lst_data)
                     self.show_message('成功' if int_ret == 1 else '失败', '添加成功' if int_ret == 1 else '添加失败')

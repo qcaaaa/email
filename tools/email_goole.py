@@ -38,12 +38,13 @@ def search(city, keyword, self_ui):
     for tuple_search in lst_search:
         driver = None
         try:
-            # # 创建ChromeOptions实例
-            options = Options()
-            # # 只加载 html
-            options.page_load_strategy = "eager"
+            # # # 创建ChromeOptions实例
+            # options = Options()
+            # # # 只加载 html
+            # options.page_load_strategy = "eager"
             # 创建 Chrome 实例
-            driver = webdriver.Chrome(service=Service(DRIVER_PATH), options=options)
+            # driver = webdriver.Chrome(service=Service(DRIVER_PATH), options=options)
+            driver = webdriver.Chrome(service=Service(DRIVER_PATH))
             # 全屏
             driver.maximize_window()
             # 打开谷歌地图
@@ -63,11 +64,13 @@ def search(city, keyword, self_ui):
                 search_box.send_keys(str_city)
                 search_box.send_keys(Keys.RETURN)
                 self_ui.show_message('', '', f'成功定位至 {str_city}')
+                time.sleep(5)
                 # 点击附近按钮
                 button = WebDriverWait(driver, int_timeout).until(
                     EC.presence_of_element_located((By.XPATH, "//div[contains(text(), '附近')]"))
                 )
                 button.click()
+                time.sleep(5)
                 # 在搜索栏输入关键字
                 search_box = WebDriverWait(driver, int_timeout).until(
                     EC.presence_of_element_located((By.ID, 'searchboxinput'))
@@ -75,6 +78,7 @@ def search(city, keyword, self_ui):
                 search_box.send_keys(str_key)
                 search_box.send_keys(Keys.RETURN)
                 self_ui.show_message('', '', f'开始搜索关键字: {str_key}')
+                time.sleep(5)
 
                 # 滑动 获取全部搜索结果
                 if __load(driver, self_ui, str_key):

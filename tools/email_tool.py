@@ -322,18 +322,22 @@ class EmailTools:
             layout = QGridLayout()
             if table in ['info_lang', 'template_lang']:
                 int_count = 1
-                lst_lang = self.__get_language('info' if table == 'info_lang' else 'template')
+                lst_lang = ['全部'] + self.__get_language('info' if table == 'info_lang' else 'template')
                 self.lang = QComboBox(self.obj_ui)
+                self.lang.setStyleSheet("height: 30px")
                 self.lang.addItems(lst_lang)
                 layout.addWidget(self.lang, 0, 0)
             else:
                 int_count = 0
                 # 数据源
                 lst_user = self.get_info(table).get('lst_ret', [])
-                if table in ['info', 'template'] and self.lang.currentText():
-                    lst_user = [dit_info for dit_info in lst_user if dit_info['language'] == self.lang.currentText()]
+                if table in ['info', 'template'] and self.lang:
+                    str_lang = self.lang.currentText()
+                    if str_lang and str_lang != '全部':
+                        lst_user = [dit_info for dit_info in lst_user if dit_info['language'] == str_lang]
                 for i, item in enumerate(lst_user):
                     checkbox = QCheckBox(str(item[str_key]))
+                    checkbox.setStyleSheet("height: 30px")
                     checkbox.clicked.connect(partial(self.__on_checkbox_changed, item))
                     row = i // str_len
                     col = i % str_len
@@ -344,9 +348,6 @@ class EmailTools:
             # 账号,模板 按钮最开始禁用
             if table in ['user', 'template']:
                 self.button.setDisabled(True)
-            # 语种有值才能下一步
-            if table in ['info_lang', 'template_lang']:
-                self.button.setEnabled(True if self.lang.currentText() else False)
             self.button.clicked.connect(func)
             layout.addWidget(self.button, int_count, str_len)
             self.str_page = table

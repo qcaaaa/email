@@ -120,6 +120,7 @@ def __load(driver, ui, str_key):
 
         while time.time() - s_time <= 10 * 60:
             try:
+                # 没有更多结果
                 WebDriverWait(driver, 5).until(
                     EC.presence_of_element_located((By.CLASS_NAME, "HlvSq"))
                 )
@@ -129,6 +130,15 @@ def __load(driver, ui, str_key):
                 else:
                     driver.execute_script('arguments[0].style.overflow = "auto";arguments[0].scrollTop = 100000', element)
                 ui.show_message('', '', f'搜索更多结果中....')
+                # 三分钟 没有滑动 跳过
+                if time.time() - s_time >= 3 * 60:
+                    try:
+                        WebDriverWait(driver, 3).until(
+                            EC.presence_of_element_located((By.XPATH, f'// *[ @ aria-label="返回页首"'))
+                        )
+                    except:
+                        ui.show_message('', '', f'连续3分钟未滑动页面,结束搜索...')
+                        break
             else:
                 ui.show_message('', '', f'所有结果搜索完毕')
                 break
@@ -145,8 +155,8 @@ def __get(driver, ui, sty_type, str_path, str_key) -> str:
             EC.presence_of_element_located((sty_type, str_path))
         )
         str_info = element.get_attribute(str_key)
-    except Exception as err1:
-        logger.error(f'{err1.__traceback__.tb_lineno}: {err1}')
+    except:
+        pass
     return str_info
 
 
@@ -171,27 +181,30 @@ def __check_url(lst_tags, driver, ui, city, keyword):
             else:
                 ui.show_message('', '', f'未打开新窗口')
 
+            url = __get(driver, ui, By.XPATH, "// *[ @ data-tooltip='打开网站']", "href").strip()
+            ui.show_message('', '', f'公司网站: {url}')
+
+            if not url:
+                ui.show_message('', '', f'未采集到公司网站, 跳过')
+                continue
+
             address1 = __get(driver, ui, By.XPATH, "// *[ @ data-item-id='address']", "aria-label").replace('地址:', '').strip()
             ui.show_message('', '', f'公司地址1: {address1}')
 
             address2 = __get(driver, ui, By.XPATH, "// *[ @ data-item-id='laddress']", "aria-label").replace('地址:', '').strip()
             ui.show_message('', '', f'公司地址2: {address2}')
 
-            url = __get(driver, ui, By.XPATH, "// *[ @ data-tooltip='打开网站']", "href").strip()
-            ui.show_message('', '', f'公司网站: {url}')
-
             phone = __get(driver, ui, By.XPATH, "// *[ @ data-tooltip='复制电话号码']", "aria-label").replace('电话:', '').strip()
             ui.show_message('', '', f'公司电话: {phone}')
-
-            # 关闭新窗口
-            if driver.current_window_handle != index_win:
-                driver.close()
         except Exception as err:
             logger.error(f'解析失败: {err.__traceback__.tb_lineno}: {err}')
         finally:
             if driver:
+                # 关闭新窗口
+                if driver.current_window_handle != index_win:
+                    driver.close()
                 driver.switch_to.window(index_win)
-            if any([second_snap_value, address1, address2, url, phone]):
+            if url and any([second_snap_value, address1, address2, phone]):
                 lst_firm.append({
                     'name': second_snap_value,
                     'address1': address1,

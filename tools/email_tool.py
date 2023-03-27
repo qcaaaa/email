@@ -219,7 +219,7 @@ class EmailTools:
                         lst_data = [str_1, str_2, str_3]
                 elif str_page == '邮件模板':
                     str_1, str_2, str_3 = str_title.text().strip(), self.__sub_html(str_txt.toHtml()), str_box.currentText().strip()
-                    if any([str_1, str_2, str_3]):
+                    if all([str_1, str_2, str_3]):
                         lst_data = [str_1, str_2, str_3]
                 elif str_page == '邮件结尾':
                     str_1, str_2, str_3 = temp_name.text(), self.__sub_html(temp_txt.toHtml()), url_path.text().strip()

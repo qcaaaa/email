@@ -2,7 +2,7 @@
 
 ; HM NIS Edit Wizard helper defines
 !define PRODUCT_NAME "Email"
-!define PRODUCT_VERSION "1.5"
+!define PRODUCT_VERSION "1.6"
 !define PRODUCT_PUBLISHER "Qc"
 !define PRODUCT_DIR_REGKEY "Software\Microsoft\Windows\CurrentVersion\App Paths\Email.exe"
 !define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
@@ -1902,6 +1902,8 @@ Section "MainSection" SEC01
   File "dist\Email.exe\static\images\logo.ico"
   File "dist\Email.exe\static\images\logo.png"
   SetOutPath "$INSTDIR\static\template"
+  File "dist\Email.exe\static\template\login.html"
+  File "dist\Email.exe\static\template\register.html"
   File "dist\Email.exe\static\template\templates.html"
   SetOutPath "$INSTDIR\tcl"
   File "dist\Email.exe\tcl\auto.tcl"
@@ -3893,6 +3895,8 @@ Section Uninstall
   Delete "$INSTDIR\tcl\clock.tcl"
   Delete "$INSTDIR\tcl\auto.tcl"
   Delete "$INSTDIR\static\template\templates.html"
+  Delete "$INSTDIR\static\template\register.html"
+  Delete "$INSTDIR\static\template\login.html"
   Delete "$INSTDIR\static\images\logo.png"
   Delete "$INSTDIR\static\images\logo.ico"
   Delete "$INSTDIR\static\images\flush.png"

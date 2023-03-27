@@ -46,13 +46,14 @@ class EmailTools:
             'user': {'key': 'name', 'len': 10, 'lst': [], 'cn': '账号'},
             'template': {'key': 'title', 'len': 5, 'lst': [], 'cn': '标题/内容'},
             'info': {'key': 'url', 'len': 3, 'lst': [], 'cn': '附件'},
-            'end': {'key': 'name', 'len': 10, 'lst': [], 'cn': '结尾'}
+            'end': {'key': 'name', 'len': 10, 'lst': [], 'cn': '结尾'},
+            'info_lang': {'key': 'language', 'len': 3, 'lst': [], 'cn': '附件语种'},
+            'template_lang': {'key': 'language', 'len': 3, 'lst': [], 'cn': '模板语种'},
         }
         self.dialog = None  # 下一步之前的页面 用于下一步后 关闭上一个页面
         self.button = None  # 每个页面的下一步按钮
         self.send_mun = 50  # 一个账号一次发50封
-        self.temp_lag = None
-        self.info_lag = None
+        self.lang = None
 
     @staticmethod
     def __sub_html(str_html: str) -> str:
@@ -315,25 +316,37 @@ class EmailTools:
             str_key, str_len, str_title = self.dit_v[table]['key'], self.dit_v[table]['len'], self.dit_v[table]['cn']
             dialog = QDialog(self.obj_ui)
             dialog.setWindowTitle(f'选择{str_title}')
-            dialog.resize(400, 200)
-            # 数据源
-            lst_user = self.get_info(table).get('lst_ret', [])
-            
+            dialog.resize(800, 600)
+
             # 创建多选按钮
             layout = QGridLayout()
-            int_count = 0
-            for i, item in enumerate(lst_user):
-                checkbox = QCheckBox(str(item[str_key]))
-                checkbox.clicked.connect(partial(self.__on_checkbox_changed, item))
-                row = i // str_len
-                col = i % str_len
-                layout.addWidget(checkbox, row, col)
-                int_count += 1
+            if table in ['info_lang', 'template_lang']:
+                int_count = 1
+                lst_lang = self.__get_language('info' if table == 'info_lang' else 'template')
+                self.lang = QComboBox(self.obj_ui)
+                self.lang.addItems(lst_lang)
+                layout.addWidget(self.lang, 0, 0)
+            else:
+                int_count = 0
+                # 数据源
+                lst_user = self.get_info(table).get('lst_ret', [])
+                if table in ['info', 'template'] and self.lang.currentText():
+                    lst_user = [dit_info for dit_info in lst_user if dit_info['language'] == self.lang.currentText()]
+                for i, item in enumerate(lst_user):
+                    checkbox = QCheckBox(str(item[str_key]))
+                    checkbox.clicked.connect(partial(self.__on_checkbox_changed, item))
+                    row = i // str_len
+                    col = i % str_len
+                    layout.addWidget(checkbox, row, col)
+                    int_count += 1
             dialog.setLayout(layout)
             self.button = QPushButton('下一步')
             # 账号,模板 按钮最开始禁用
             if table in ['user', 'template']:
                 self.button.setDisabled(True)
+            # 语种有值才能下一步
+            if table in ['info_lang', 'template_lang']:
+                self.button.setEnabled(True if self.lang.currentText() else False)
             self.button.clicked.connect(func)
             layout.addWidget(self.button, int_count, str_len)
             self.str_page = table
@@ -349,9 +362,20 @@ class EmailTools:
                 # 每次第一个页面先还原一下数据
                 for value in self.dit_v.values():
                     value['lst'] = []
-                self.dialog = self.__show_dialog(DIT_DATABASE['账号配置'], self.select_templates)
+                self.dialog = self.__show_dialog(DIT_DATABASE['账号配置'], self.select_template_language)
             else:
                 self.show_message('提示', '先导入收件人')
+        except Exception as err:
+            logger.error(f"{err.__traceback__.tb_lineno}:--:{err}")
+
+    def select_template_language(self):
+        """选择模板语种
+        :return:
+        """
+        try:
+            if self.dialog:
+                self.dialog.close()
+            self.dialog = self.__show_dialog('template_lang', self.select_templates)
         except Exception as err:
             logger.error(f"{err.__traceback__.tb_lineno}:--:{err}")
 
@@ -361,7 +385,18 @@ class EmailTools:
             # 先关闭上一个的
             if self.dialog:
                 self.dialog.close()
-            self.dialog = self.__show_dialog(DIT_DATABASE['邮件模板'], self.select_file)
+            self.dialog = self.__show_dialog(DIT_DATABASE['邮件模板'], self.select_info_language)
+        except Exception as err:
+            logger.error(f"{err.__traceback__.tb_lineno}:--:{err}")
+
+    def select_info_language(self):
+        """选择附件语种
+        :return:
+        """
+        try:
+            if self.dialog:
+                self.dialog.close()
+            self.dialog = self.__show_dialog('info_lang', self.select_file)
         except Exception as err:
             logger.error(f"{err.__traceback__.tb_lineno}:--:{err}")
 
@@ -376,7 +411,7 @@ class EmailTools:
             logger.error(f"{err.__traceback__.tb_lineno}:--:{err}")
 
     def select_end(self):
-        """选择邮件附件"""
+        """选择邮件结尾"""
         try:
             # 先关闭上一个的
             if self.dialog:
@@ -408,6 +443,7 @@ class EmailTools:
         finally:
             # 这是最后一个 要置空
             self.dialog = None
+            self.lang = None
 
     def __send_mail(self, lst_user: list, lst_text: list, lst_info: list, lst_end: list):
         """发送邮件"""

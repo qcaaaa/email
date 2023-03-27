@@ -55,20 +55,6 @@ class EmailUi(QWidget):
         self.setWindowTitle('Email-Tool')
         self.obj_tool = EmailTools(self)
 
-        # ################# 菜单栏 开始.......########################################
-        menubar = QMenuBar(self)
-        setting_menu = QMenu('设置', self)
-        menubar.addMenu(setting_menu)
-        temp_language = QAction('模板语种选择', self)
-        temp_language.setShortcut('Ctrl+n')
-        temp_language.triggered.connect(partial(self.setting_language, 'template'))
-        setting_menu.addAction(temp_language)
-        info_language = QAction('附件语种选择', self)
-        info_language.setShortcut('Ctrl+s')
-        info_language.triggered.connect(partial(self.setting_language, 'info'))
-        setting_menu.addAction(info_language)
-        # ################# 菜单栏 结尾.......########################################
-
         with open(os.path.join(STATIC_PATH, 'css', 'QPushButtonQSS.qss'), 'r', encoding='utf-8') as f:
             button_style = f.read()
 
@@ -387,5 +373,3 @@ class EmailUi(QWidget):
         if not is_show:
             self.obj_tool.show_message('刷新', '刷新当前页面成功')
 
-    def setting_language(self, str_type: str):
-        pass

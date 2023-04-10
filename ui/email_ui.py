@@ -55,7 +55,7 @@ class EmailUi(QWidget):
         newTop = (screen.height() - size.height()) / 2
         self.move(int(newLeft), int(newTop) if int(newTop) > 60 else 0)
         self.setWindowTitle('Email-Tool')
-        self.obj_tool = EmailTools(self)
+        self.email_tool = EmailTools(self)
         self.check_tool = CheckTool(self)
         self.google_tool = GoogleTool(self)
 
@@ -67,7 +67,7 @@ class EmailUi(QWidget):
         self.add_button.setGeometry(QtCore.QRect(120, 20, 100, 30))
         self.add_button.setText(QtCore.QCoreApplication.translate("Email-Tool", "增加"))
         self.add_button.setStyleSheet(button_style)
-        self.add_button.clicked.connect(self.obj_tool.add_table)
+        self.add_button.clicked.connect(self.email_tool.add_table)
         # ################# 增加控件 结束.......########################################
 
         # ################# 导入联系人控件 开始.......########################################
@@ -75,7 +75,7 @@ class EmailUi(QWidget):
         self.import_button.setGeometry(QtCore.QRect(240, 20, 100, 30))
         self.import_button.setText(QtCore.QCoreApplication.translate("Email-Tool", "导入客户"))
         self.import_button.setStyleSheet(button_style)
-        self.import_button.clicked.connect(self.obj_tool.import_user)
+        self.import_button.clicked.connect(self.email_tool.import_user)
         # ################# 导入联系人控件 结束.......########################################
 
         # ################# 发送邮件控件 开始.......########################################
@@ -85,7 +85,7 @@ class EmailUi(QWidget):
         self.send_button.setStyleSheet(button_style)
         # 最开始禁用
         self.send_button.setDisabled(True)
-        self.send_button.clicked.connect(self.obj_tool.select_account)
+        self.send_button.clicked.connect(self.email_tool.select_account)
         # ################# 发送邮件控件 结束.......########################################
 
         # ################# 发送间隔控件 开始.......########################################
@@ -139,7 +139,7 @@ class EmailUi(QWidget):
         self.upload_button.setGeometry(QtCore.QRect(1180, 20, 100, 30))
         self.upload_button.setText(QtCore.QCoreApplication.translate("Email-Tool", "上传附件"))
         self.upload_button.setStyleSheet(button_style)
-        self.upload_button.clicked.connect(self.obj_tool.upload_aly)
+        self.upload_button.clicked.connect(self.email_tool.upload_aly)
         # ################# 上传附件控件 结束.......########################################
 
         # ################# 刷新控件 开始.......########################################
@@ -290,7 +290,7 @@ class EmailUi(QWidget):
                 int_pag = int(to_page)
                 self.page_text_2.setText('')
         if int_pag > 0:
-            dit_info = self.obj_tool.get_info(DIT_DATABASE[self.page], int_start=int_pag)
+            dit_info = self.email_tool.get_info(DIT_DATABASE[self.page], int_start=int_pag)
             self.show_table(dit_info.get('lst_ret', []), self.page, curr_pag=int_pag, count_pag=dit_info.get('count', 0))
         self.show_message('', '', f'当前处于 {self.page}页面 第{int_pag}页')
 
@@ -317,7 +317,7 @@ class EmailUi(QWidget):
                 self.page = str_items  # 记住当前在哪个页面
                 self.show_message('', '', f'切换到 {str_items}页面')
                 # 填充表格
-                dit_info = self.obj_tool.get_info(DIT_DATABASE[self.page])
+                dit_info = self.email_tool.get_info(DIT_DATABASE[self.page])
                 self.show_table(dit_info.get('lst_ret', []), str_items, count_pag=dit_info.get('count', ''))
         except Exception as e:
             logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
@@ -334,7 +334,7 @@ class EmailUi(QWidget):
                 # 设置数据
                 for index_j, value in enumerate(dit_info.values()):
                     if str_table == FIRST_TAB and index_j == 3:
-                        value = self.obj_tool.email_dict.get(str(value), {}).get('name_cn')
+                        value = self.email_tool.email_dict.get(str(value), {}).get('name_cn')
                     item = QTableWidgetItem(str(value or ''))
                     item.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
                     table.setItem(index_, index_j, item)  # 转换后可插入表格
@@ -364,7 +364,7 @@ class EmailUi(QWidget):
         try:
             sender.setDisabled(True)
             db_id = int(sender.objectName())
-            int_ret = self.obj_tool.del_info(DIT_DATABASE[self.page], db_id)
+            int_ret = self.email_tool.del_info(DIT_DATABASE[self.page], db_id)
         except Exception as e:
             logger.debug(f"{e.__traceback__.tb_lineno}:--:{e}")
         finally:
@@ -374,7 +374,7 @@ class EmailUi(QWidget):
                 self.flush_table(True)
 
     def flush_table(self, is_show: bool = False):
-        dit_info = self.obj_tool.get_info(DIT_DATABASE[self.page])
+        dit_info = self.email_tool.get_info(DIT_DATABASE[self.page])
         self.show_table(dit_info.get('lst_ret', []), self.page, count_pag=dit_info.get('count', ''))
         if not is_show:
             self.show_message('刷新', '刷新当前页面成功')

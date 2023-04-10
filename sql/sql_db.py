@@ -128,6 +128,8 @@ class MySql:
                 str_sql = "select distinct language from body"
             elif str_type == 'info':
                 str_sql = "select distinct language from info"
+            elif str_type == 'title':
+                str_sql = "select distinct language from title"
             self.__exec_sql('select', str_sql)
             lst_ret = [dit_info['language'] for dit_info in self.curr.fetchall() if 'language' in dit_info]
         except Exception as e:

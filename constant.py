@@ -72,3 +72,7 @@ DIT_EMAIL = {
     '网易邮箱': '3',
     '腾讯邮箱': '2'
 }
+
+# 有过滤的表
+FILTER_TABLE = ['info', 'body', 'title']
+FILTER_LANG = ['info_lang', 'body_lang', 'title_lang']

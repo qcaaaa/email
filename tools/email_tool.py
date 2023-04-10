@@ -29,7 +29,7 @@ from email.header import Header
 from email.utils import formatdate
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from constant import INT_LIMIT, BASE_PATH, DIT_DATABASE, CONFIG_PATH, DIT_EMAIL
+from constant import INT_LIMIT, BASE_PATH, DIT_DATABASE, CONFIG_PATH, DIT_EMAIL, FILTER_TABLE, FILTER_LANG
 from PyQt5.QtWidgets import QDialog, QFormLayout, QLineEdit, QDialogButtonBox, QComboBox, \
     QTextEdit, QFileDialog, QCheckBox, QGridLayout, QPushButton
 
@@ -43,11 +43,13 @@ class EmailTools:
         self.str_page = ''  # 当前在那个选择页
         self.dit_v = {
             'user': {'key': 'name', 'len': 10, 'lst': [], 'cn': '账号'},
-            'body': {'key': 'title', 'len': 5, 'lst': [], 'cn': '标题/内容'},
+            'body': {'key': 'str_body', 'len': 5, 'lst': [], 'cn': '内容'},
+            'title': {'key': 'str_title', 'len': 5, 'lst': [], 'cn': '标题'},
             'info': {'key': 'url', 'len': 3, 'lst': [], 'cn': '附件'},
             'end': {'key': 'name', 'len': 10, 'lst': [], 'cn': '结尾'},
             'info_lang': {'key': 'language', 'len': 3, 'lst': [], 'cn': '附件语种'},
-            'template_lang': {'key': 'language', 'len': 3, 'lst': [], 'cn': '模板语种'},
+            'body_lang': {'key': 'language', 'len': 3, 'lst': [], 'cn': '正文语种'},
+            'title_lang': {'key': 'language', 'len': 3, 'lst': [], 'cn': '标题语种'},
         }
         self.dialog = None  # 下一步之前的页面 用于下一步后 关闭上一个页面
         self.button = None  # 每个页面的下一步按钮
@@ -357,7 +359,7 @@ class EmailTools:
             logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
         finally:
             # 账号,模板 页面的下一步按钮禁用/启用
-            if self.str_page in ['user', 'body']:
+            if self.str_page in FILTER_TABLE:
                 if lst_c and self.button:
                     self.button.setEnabled(True)
                 elif not lst_c and self.button:
@@ -373,9 +375,10 @@ class EmailTools:
 
             # 创建多选按钮
             layout = QGridLayout()
-            if table in ['info_lang', 'template_lang']:
+            if table in FILTER_LANG:
                 int_count = 1
-                lst_lang = ['全部'] + self.__get_language('info' if table == 'info_lang' else 'body')
+                lst_lang = ['全部'] + self.__get_language('info' if table == 'info_lang' else ('body' if table == 'body_lang'
+                                                                                             else 'title'))
                 self.lang = QComboBox(self.obj_ui)
                 self.lang.setStyleSheet("height: 30px")
                 self.lang.addItems(lst_lang)
@@ -384,7 +387,7 @@ class EmailTools:
                 int_count = 0
                 # 数据源
                 lst_user = self.get_info(table, int_start=-1).get('lst_ret', [])
-                if table in ['info', 'body'] and self.lang:
+                if table in FILTER_TABLE and self.lang:
                     str_lang = self.lang.currentText()
                     if str_lang and str_lang != '全部':
                         lst_user = [dit_info for dit_info in lst_user if dit_info['language'] == str_lang]
@@ -399,7 +402,7 @@ class EmailTools:
             dialog.setLayout(layout)
             self.button = QPushButton('下一步')
             # 账号,模板 按钮最开始禁用
-            if table in ['user', 'body']:
+            if table in FILTER_TABLE:
                 self.button.setDisabled(True)
             self.button.clicked.connect(func)
             layout.addWidget(self.button, int_count, str_len)
@@ -416,9 +419,32 @@ class EmailTools:
                 # 每次第一个页面先还原一下数据
                 for value in self.dit_v.values():
                     value['lst'] = []
-                self.dialog = self.__show_dialog(DIT_DATABASE['账号配置'], self.select_template_language)
+                self.dialog = self.__show_dialog(DIT_DATABASE['账号配置'], self.select_title_language)
             else:
                 self.obj_ui.show_message('提示', '先导入收件人')
+        except Exception as err:
+            logger.error(f"{err.__traceback__.tb_lineno}:--:{err}")
+
+    def select_title_language(self):
+        """选择标题语种
+        :return:
+        """
+        try:
+            if self.dialog:
+                self.dialog.close()
+            self.dialog = self.__show_dialog('title_lang', self.select_title)
+        except Exception as err:
+            logger.error(f"{err.__traceback__.tb_lineno}:--:{err}")
+
+    def select_title(self):
+        """选择标题
+        :return:
+        """
+        try:
+            # 先关闭上一个的
+            if self.dialog:
+                self.dialog.close()
+            self.dialog = self.__show_dialog(DIT_DATABASE['邮件标题'], self.select_template_language)
         except Exception as err:
             logger.error(f"{err.__traceback__.tb_lineno}:--:{err}")
 
@@ -429,7 +455,7 @@ class EmailTools:
         try:
             if self.dialog:
                 self.dialog.close()
-            self.dialog = self.__show_dialog('template_lang', self.select_templates)
+            self.dialog = self.__show_dialog('body_lang', self.select_templates)
         except Exception as err:
             logger.error(f"{err.__traceback__.tb_lineno}:--:{err}")
 
@@ -480,12 +506,13 @@ class EmailTools:
             if self.dialog:
                 self.dialog.close()
             lst_user = self.dit_v.get('user', {}).get('lst', [])
-            lst_text = self.dit_v.get('body', {}).get('lst', [])
+            lst_body = self.dit_v.get('body', {}).get('lst', [])
+            lst_title = self.dit_v.get('title', {}).get('lst', [])
             # 起码保证 客户, 账号, 模板有
-            if any([self.to_list, lst_user, lst_text]):
+            if any([self.to_list, lst_user, lst_body, lst_title]):
                 # 先把邮件标题和内容拆开 获取组合数
                 lst_text = list(
-                    product([dit_text['title'] for dit_text in lst_text], [dit_text['content'] for dit_text in lst_text]))
+                    product([dit_text['str_title'] for dit_text in lst_title], [dit_text['str_body'] for dit_text in lst_body]))
                 lst_info = [dit_info['url'] for dit_info in self.dit_v.get('info', {}).get('lst', [])]
                 lst_end = self.dit_v.get('end', {}).get('lst', [])
                 self.obj_ui.show_message('提示', '正在后台发送中,请稍等......', '正在后台发送中,请稍等......')

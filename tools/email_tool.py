@@ -510,7 +510,7 @@ class EmailTools:
             lst_title = self.dit_v.get('title', {}).get('lst', [])
             # 起码保证 客户, 账号, 模板有
             if any([self.to_list, lst_user, lst_body, lst_title]):
-                # 先把邮件标题和内容拆开 获取组合数
+                # 获取邮件标题和内容组合数
                 lst_text = list(
                     product([dit_text['str_title'] for dit_text in lst_title], [dit_text['str_body'] for dit_text in lst_body]))
                 lst_info = [dit_info['url'] for dit_info in self.dit_v.get('info', {}).get('lst', [])]

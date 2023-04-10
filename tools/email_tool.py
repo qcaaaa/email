@@ -42,7 +42,7 @@ class EmailTools:
         self.str_page = ''  # 当前在那个选择页
         self.dit_v = {
             'user': {'key': 'name', 'len': 10, 'lst': [], 'cn': '账号'},
-            'template': {'key': 'title', 'len': 5, 'lst': [], 'cn': '标题/内容'},
+            'body': {'key': 'title', 'len': 5, 'lst': [], 'cn': '标题/内容'},
             'info': {'key': 'url', 'len': 3, 'lst': [], 'cn': '附件'},
             'end': {'key': 'name', 'len': 10, 'lst': [], 'cn': '结尾'},
             'info_lang': {'key': 'language', 'len': 3, 'lst': [], 'cn': '附件语种'},
@@ -155,7 +155,7 @@ class EmailTools:
                 serve_box.addItems([dit_e['name_cn'] for dit_e in self.email_dict.values()])
                 serve_box.setStyleSheet("height: 20px")
                 formLayout.addRow('邮箱服务器:', serve_box)
-            elif str_page == '邮件模板':
+            elif str_page == '邮件正文':
                 dialog.setWindowTitle('增加邮件标题/正文')
                 dialog.resize(600, 300)
                 str_title = QLineEdit(self.obj_ui)
@@ -164,7 +164,7 @@ class EmailTools:
                 str_txt = QTextEdit(self.obj_ui)
                 formLayout.addRow('邮件正文:', str_txt)
                 str_box = QComboBox(self.obj_ui)
-                str_box.addItems(self.__get_language('template'))
+                str_box.addItems(self.__get_language('body'))
                 str_box.setEditable(True)
                 formLayout.addRow('模板语种:', str_box)
             elif str_page == '邮件附件':
@@ -205,7 +205,7 @@ class EmailTools:
                     str_1, str_2, str_3 = user_input.text().strip(), pwd_input.text().strip(), str_type
                     if all([str_1, str_2, str_3]):
                         lst_data = [str_1, str_2, str_3]
-                elif str_page == '邮件模板':
+                elif str_page == '邮件正文':
                     str_1, str_2, str_3 = str_title.text().strip(), self.__sub_html(str_txt.toHtml()), str_box.currentText().strip()
                     if all([str_1, str_2, str_3]):
                         lst_data = [str_1, str_2, str_3]
@@ -274,7 +274,7 @@ class EmailTools:
             logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
         finally:
             # 账号,模板 页面的下一步按钮禁用/启用
-            if self.str_page in ['user', 'template']:
+            if self.str_page in ['user', 'body']:
                 if lst_c and self.button:
                     self.button.setEnabled(True)
                 elif not lst_c and self.button:
@@ -292,7 +292,7 @@ class EmailTools:
             layout = QGridLayout()
             if table in ['info_lang', 'template_lang']:
                 int_count = 1
-                lst_lang = ['全部'] + self.__get_language('info' if table == 'info_lang' else 'template')
+                lst_lang = ['全部'] + self.__get_language('info' if table == 'info_lang' else 'body')
                 self.lang = QComboBox(self.obj_ui)
                 self.lang.setStyleSheet("height: 30px")
                 self.lang.addItems(lst_lang)
@@ -301,7 +301,7 @@ class EmailTools:
                 int_count = 0
                 # 数据源
                 lst_user = self.get_info(table, int_start=-1).get('lst_ret', [])
-                if table in ['info', 'template'] and self.lang:
+                if table in ['info', 'body'] and self.lang:
                     str_lang = self.lang.currentText()
                     if str_lang and str_lang != '全部':
                         lst_user = [dit_info for dit_info in lst_user if dit_info['language'] == str_lang]
@@ -316,7 +316,7 @@ class EmailTools:
             dialog.setLayout(layout)
             self.button = QPushButton('下一步')
             # 账号,模板 按钮最开始禁用
-            if table in ['user', 'template']:
+            if table in ['user', 'body']:
                 self.button.setDisabled(True)
             self.button.clicked.connect(func)
             layout.addWidget(self.button, int_count, str_len)
@@ -356,7 +356,7 @@ class EmailTools:
             # 先关闭上一个的
             if self.dialog:
                 self.dialog.close()
-            self.dialog = self.__show_dialog(DIT_DATABASE['邮件模板'], self.select_info_language)
+            self.dialog = self.__show_dialog(DIT_DATABASE['邮件正文'], self.select_info_language)
         except Exception as err:
             logger.error(f"{err.__traceback__.tb_lineno}:--:{err}")
 
@@ -397,7 +397,7 @@ class EmailTools:
             if self.dialog:
                 self.dialog.close()
             lst_user = self.dit_v.get('user', {}).get('lst', [])
-            lst_text = self.dit_v.get('template', {}).get('lst', [])
+            lst_text = self.dit_v.get('body', {}).get('lst', [])
             # 起码保证 客户, 账号, 模板有
             if any([self.to_list, lst_user, lst_text]):
                 # 先把邮件标题和内容拆开 获取组合数
@@ -448,7 +448,7 @@ class EmailTools:
             self.obj_ui.show_message('', '', f"当前发送策略: {'携带网页' if contain_html else '不携带网页'}, 间隔时间: {int_sleep}s, 轮询数量: {self.send_mun}")
 
             if contain_html:
-                with open(os.path.join(BASE_PATH, 'template', 'templates.html'), 'r', encoding='utf-8') as f:
+                with open(os.path.join(BASE_PATH, 'body', 'templates.html'), 'r', encoding='utf-8') as f:
                     str_html = f.read()
             else:
                 str_html = ''

@@ -107,7 +107,7 @@ class MySql:
         try:
             if table == 'user':
                 str_sql = f"insert into {table} (name, pwd, str_type) values (?, ?, ?)"
-            elif table == 'template':
+            elif table == 'body':
                 str_sql = f"insert into {table} (title, content, language) values (?, ?, ?)"
             elif table == 'info':
                 str_sql = f"insert into {table} (url, language) values (?, ?)"
@@ -122,8 +122,8 @@ class MySql:
         lst_ret = []
         str_sql = ''
         try:
-            if str_type == 'template':
-                str_sql = "select distinct language from template"
+            if str_type == 'body':
+                str_sql = "select distinct language from body"
             elif str_type == 'info':
                 str_sql = "select distinct language from info"
             self.__exec_sql('select', str_sql)

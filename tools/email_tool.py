@@ -330,7 +330,7 @@ class EmailTools:
             else:
                 int_count = 0
                 # 数据源
-                lst_user = self.get_info(table).get('lst_ret', [])
+                lst_user = self.get_info(table, int_start=-1).get('lst_ret', [])
                 if table in ['info', 'template'] and self.lang:
                     str_lang = self.lang.currentText()
                     if str_lang and str_lang != '全部':

@@ -365,6 +365,26 @@ class EmailTools:
                 elif not lst_c and self.button:
                     self.button.setDisabled(True)
 
+    def __on_all_checkbox_changed(self, lst_checkbox, state):
+        """全选
+        :param lst_checkbox:
+        :param state:
+        :return:
+        """
+        try:
+            dit_info = self.dit_v[self.str_page]
+            if not state:
+                dit_info['lst'].clear()
+            for dit_value in lst_checkbox:
+                dit_value['obj'].setCheckState(2 if state else 0)
+                if state:
+                    dit_info['lst'].append(dit_value['value'])
+        except Exception as e:
+            logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
+        finally:
+            if self.str_page in FILTER_TABLE:
+                self.button.setEnabled(state)
+
     def __show_dialog(self, table: str, func):
         dialog = None
         try:
@@ -384,14 +404,15 @@ class EmailTools:
                 self.lang.addItems(lst_lang)
                 layout.addWidget(self.lang, 0, 0)
             else:
-                int_count = 0
+                int_count = 0 if table not in ['body', 'title'] else 1
                 # 数据源
                 lst_user = self.get_info(table, int_start=-1).get('lst_ret', [])
                 if table in FILTER_TABLE and self.lang:
                     str_lang = self.lang.currentText()
                     if str_lang and str_lang != '全部':
                         lst_user = [dit_info for dit_info in lst_user if dit_info['language'] == str_lang]
-                for i, item in enumerate(lst_user):
+                lst_all = []
+                for i, item in enumerate(lst_user, int_count):
                     str_t = str(item[str_key])
                     checkbox = QCheckBox(str_t if len(str_t) <= 400 else str_t[:400])
                     checkbox.setStyleSheet("height: 30px")
@@ -400,6 +421,12 @@ class EmailTools:
                     col = i % str_len
                     layout.addWidget(checkbox, row, col)
                     int_count += 1
+                    lst_all.append({'obj': checkbox, 'value': item})
+                if table in ['body', 'title']:
+                    checkbox = QCheckBox('全选')
+                    checkbox.setStyleSheet("height: 30px")
+                    checkbox.clicked.connect(partial(self.__on_all_checkbox_changed, lst_all))
+                    layout.addWidget(checkbox, 0, 0)
             dialog.setLayout(layout)
             self.button = QPushButton('下一步')
             # 账号,模板 按钮最开始禁用

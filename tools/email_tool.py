@@ -53,6 +53,7 @@ class EmailTools:
         self.button = None  # 每个页面的下一步按钮
         self.send_mun = 50  # 一个账号一次发50封
         self.lang = None
+        self.str_url = ''
 
     @staticmethod
     def __sub_html(str_html: str) -> str:
@@ -219,37 +220,30 @@ class EmailTools:
             self.obj_ui.show_message('错误', '未选择文件')
 
     def __add_info(self):
-        title = 'Text File(*.pdf);;JPG File(*.jpg);;PNG File(*.png)'
-        str_file, _ = QFileDialog.getOpenFileName(self.obj_ui, '选择本地附件上传', os.getcwd(), title)
-        if os.path.isfile(str_file):
-            str_url = self.__upload_aly(str_file)
-            if str_url:
-                dialog = QDialog(self.obj_ui)  # 自定义一个dialog
-                form_layout = QFormLayout(dialog)  # 配置layout
-                dialog.setWindowTitle('增加邮件附件')
-                dialog.resize(600, 100)
-                file_path = QLineEdit(self.obj_ui)
-                file_path.setText(str_url)
-                file_path.setReadOnly(True)
-                file_path.setStyleSheet("height: 20px")
-                form_layout.addRow('附件地址:', file_path)
-                str_box = QComboBox(self.obj_ui)
-                str_box.addItems(self.__get_language('info'))
-                str_box.setEditable(True)
-                form_layout.addRow('附件语种:', str_box)
-                button = QDialogButtonBox(QDialogButtonBox.Ok)
-                form_layout.addRow(button)
-                button.clicked.connect(dialog.accept)
-                dialog.show()
-                if dialog.exec() == QDialog.Accepted:
-                    str_1, str_2 = file_path.text().strip(), str_box.currentText().strip()
-                    if all([str_1, str_2]):
-                        return self.add_info(DIT_DATABASE[self.obj_ui.page], [str_1, str_2])
-                    return -1
-            else:
-                self.obj_ui.show_message('失败', '上传阿里云S3失败', '上传阿里云S3失败')
-        else:
-            self.obj_ui.show_message('错误', '未选择文件')
+        dialog = QDialog(self.obj_ui)  # 自定义一个dialog
+        form_layout = QFormLayout(dialog)  # 配置layout
+        dialog.setWindowTitle('增加邮件附件')
+        dialog.resize(600, 100)
+        push_button = QPushButton()
+        push_button.setText('选择本地文件上传并使用')
+        form_layout.addRow('本地上传:', push_button)
+        file_path = QLineEdit(self.obj_ui)
+        file_path.setStyleSheet("height: 20px")
+        form_layout.addRow('现有附件S3地址:', file_path)
+        push_button.clicked.connect(partial(self.__upload_aly, file_path))
+        str_box = QComboBox(self.obj_ui)
+        str_box.addItems(self.__get_language('info'))
+        str_box.setEditable(True)
+        form_layout.addRow('附件语种:', str_box)
+        button = QDialogButtonBox(QDialogButtonBox.Ok)
+        form_layout.addRow(button)
+        button.clicked.connect(dialog.accept)
+        dialog.show()
+        if dialog.exec() == QDialog.Accepted:
+            str_1, str_2 = file_path.text().strip(), str_box.currentText().strip()
+            if all([str_1, str_2]):
+                return self.add_info(DIT_DATABASE[self.obj_ui.page], [str_1, str_2])
+            return -1
 
     def __add_end(self):
         dialog = QDialog(self.obj_ui)  # 自定义一个dialog
@@ -303,22 +297,27 @@ class EmailTools:
             elif int_ret == 0:
                 self.obj_ui.show_message('失败', '添加失败')
 
-    def __upload_aly(self, str_file):
+    def __upload_aly(self, obj_file_line = None):
         """上传文件至阿里云"""
-        str_url = ''
-        dit_config = self.load_file('config.json')
-        obj_s3 = AlyS3(dit_config['AccessKey_ID'], dit_config['AccessKey_Secret'], dit_config['bucket'], dit_config['url'])
-        self.obj_ui.show_message('', '', 'Aly OSS 连接成功')
-        if obj_s3:
-            try:
-                if obj_s3.push_file(str_file) == 1:
-                    str_url = f"https://{dit_config['bucket']}.{dit_config['url'][8:]}/{os.path.split(str_file)[-1]}"
-                    self.obj_ui.show_message('', '', f'附件{str_file} 上传成功, 保存地址: {str_url}')
-            except Exception as e:
-                self.obj_ui.show_message('', '', f"{e.__traceback__.tb_lineno}:{e}")
+        title = 'Text File(*.pdf);;JPG File(*.jpg);;PNG File(*.png)'
+        str_file, _ = QFileDialog.getOpenFileName(self.obj_ui, '选择本地附件上传', os.getcwd(), title)
+        if os.path.isfile(str_file):
+            dit_config = self.load_file('config.json')
+            obj_s3 = AlyS3(dit_config['AccessKey_ID'], dit_config['AccessKey_Secret'], dit_config['bucket'], dit_config['url'])
+            self.obj_ui.show_message('', '', 'Aly OSS 连接成功')
+            if obj_s3:
+                try:
+                    if obj_s3.push_file(str_file) == 1:
+                        self.str_url = f"https://{dit_config['bucket']}.{dit_config['url'][8:]}/{os.path.split(str_file)[-1]}"
+                        self.obj_ui.show_message('', '', f'附件{str_file} 上传成功, 保存地址: {self.str_url}')
+                        if obj_file_line and self.str_url:
+                            obj_file_line.setText(self.str_url)
+                except Exception as e:
+                    self.obj_ui.show_message('', '', f"{e.__traceback__.tb_lineno}:{e}")
+            else:
+                self.obj_ui.show_message('错误提示', '上阿里云OSS连接失败,请检查配置', '上阿里云OSS连接失败,请检查配置')
         else:
-            self.obj_ui.show_message('错误提示', '上阿里云OSS连接失败,请检查配置', '上阿里云OSS连接失败,请检查配置')
-        return str_url
+            self.obj_ui.show_message('错误', '未选择文件')
 
     def get_aly(self):
         dit_config = self.load_file('config.json')
@@ -330,7 +329,7 @@ class EmailTools:
                 dialog = QDialog(self.obj_ui)  # 自定义一个dialog
                 form_layout = QFormLayout(dialog)  # 配置layout
                 dialog.setWindowTitle('查看阿里云S3附件列表')
-                dialog.resize(800, 200)
+                dialog.resize(800, 400)
                 str_txt = QTextEdit(self.obj_ui)
                 str_txt.setReadOnly(True)
                 str_txt.setText('\n'.join([dit_file['url'] for dit_file in lst_file]))

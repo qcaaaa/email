@@ -42,11 +42,11 @@ class EmailTools:
         self.to_list = []
         self.str_page = ''  # 当前在那个选择页
         self.dit_v = {
-            'user': {'key': 'name', 'len': 10, 'lst': [], 'cn': '账号'},
-            'body': {'key': 'str_body', 'len': 5, 'lst': [], 'cn': '内容'},
-            'title': {'key': 'str_title', 'len': 5, 'lst': [], 'cn': '标题'},
-            'info': {'key': 'url', 'len': 3, 'lst': [], 'cn': '附件'},
-            'end': {'key': 'name', 'len': 10, 'lst': [], 'cn': '结尾'},
+            'user': {'key': 'name', 'len': 5, 'lst': [], 'cn': '账号'},
+            'body': {'key': 'str_body', 'len': 1, 'lst': [], 'cn': '内容'},
+            'title': {'key': 'str_title', 'len': 3, 'lst': [], 'cn': '标题'},
+            'info': {'key': 'url', 'len': 2, 'lst': [], 'cn': '附件'},
+            'end': {'key': 'name', 'len': 5, 'lst': [], 'cn': '结尾'},
             'info_lang': {'key': 'language', 'len': 3, 'lst': [], 'cn': '附件语种'},
             'body_lang': {'key': 'language', 'len': 3, 'lst': [], 'cn': '正文语种'},
             'title_lang': {'key': 'language', 'len': 3, 'lst': [], 'cn': '标题语种'},
@@ -392,7 +392,8 @@ class EmailTools:
                     if str_lang and str_lang != '全部':
                         lst_user = [dit_info for dit_info in lst_user if dit_info['language'] == str_lang]
                 for i, item in enumerate(lst_user):
-                    checkbox = QCheckBox(str(item[str_key]))
+                    str_t = str(item[str_key])
+                    checkbox = QCheckBox(str_t if len(str_t) <= 400 else str_t[:400])
                     checkbox.setStyleSheet("height: 30px")
                     checkbox.clicked.connect(partial(self.__on_checkbox_changed, item))
                     row = i // str_len

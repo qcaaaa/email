@@ -110,7 +110,7 @@ class MySql:
             elif table == 'body':
                 str_sql = f"insert into {table} (str_body, language) values (?, ?)"
             elif table == 'title':
-                str_sql = f"insert into {table} (str_sitle, language) values (?, ?)"
+                str_sql = f"insert into {table} (str_title, language) values (?, ?)"
             elif table == 'info':
                 str_sql = f"insert into {table} (url, language) values (?, ?)"
             elif table == 'end':

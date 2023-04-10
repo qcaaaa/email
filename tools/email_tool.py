@@ -166,19 +166,20 @@ class EmailTools:
         if os.path.isfile(str_file):
             with open(str_file, 'r', encoding='utf-8') as f:
                 dialog = QDialog(self.obj_ui)  # 自定义一个dialog
+                dialog.resize(500, 200)
                 form_layout = QFormLayout(dialog)  # 配置layout
                 dialog.setWindowTitle('增加邮件标题')
                 str_txt = QTextEdit(self.obj_ui)
                 str_txt.setText(f.read())
-                form_layout.addRow('邮件正文:', str_txt)
+                form_layout.addRow('邮件标题:', str_txt)
                 button = QDialogButtonBox(QDialogButtonBox.Ok)
                 form_layout.addRow(button)
                 button.clicked.connect(dialog.accept)
                 dialog.show()
                 if dialog.exec() == QDialog.Accepted:
                     if str_txt:
-                        for str_t in str_txt.text().split('\n'):
-                            if str_txt.strip() and ' ' in str_txt:
+                        for str_t in str_txt.toPlainText().split('\n'):
+                            if str_t.strip() and ' ' in str_t:
                                 self.add_info(DIT_DATABASE[self.obj_ui.page], str_t.rsplit(maxsplit=1))
                         return 1
                     else:
@@ -187,9 +188,9 @@ class EmailTools:
             self.obj_ui.show_message('错误', '未选择文件')
 
     def __add_body(self):
-        str_file, _ = QFileDialog.getOpenFileName(self.obj_ui, '选取邮件正文文件', os.getcwd(), 'Text File(*.doc, *.docx)')
+        str_file, _ = QFileDialog.getOpenFileName(self.obj_ui, '选取邮件正文文件', os.getcwd(), 'Text File(*.docx)')
         if os.path.isfile(str_file):
-            with open("sample.docx", "rb") as docx_file:
+            with open(str_file, "rb") as docx_file:
                 result = mammoth.convert_to_html(docx_file)
             if result:
                 dialog = QDialog(self.obj_ui)  # 自定义一个dialog
@@ -197,7 +198,7 @@ class EmailTools:
                 dialog.setWindowTitle('增加邮件标题/正文')
                 dialog.resize(600, 300)
                 str_txt = QTextEdit(self.obj_ui)
-                str_txt.setPlainText(result)
+                str_txt.setHtml(result.value)
                 form_layout.addRow('邮件正文:', str_txt)
                 str_box = QComboBox(self.obj_ui)
                 str_box.addItems(self.__get_language('body'))
@@ -282,7 +283,6 @@ class EmailTools:
                 int_ret = self.__add_end()
         except Exception as e:
             logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
-            self.obj_ui.show_message('错误', '添加失败')
         finally:
             if int_ret == 1:
                 self.obj_ui.show_message('成功', '添加成功')

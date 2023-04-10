@@ -128,7 +128,7 @@ class GoogleTool:
             if lst_data:
                 self.obj_ui.show_message("", "", f"开始准备写入")
                 self.__write_excel(lst_data)
-            self.obj_ui.obj_ui.google_button.setEnabled(True)
+            self.obj_ui.google_button.setEnabled(True)
         return
 
     def __load(self, str_key):

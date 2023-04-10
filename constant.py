@@ -65,3 +65,10 @@ DIT_DATABASE = {
 
 FIRST_TAB = list(DIT_LIST.keys())[0]
 
+# 邮箱服务器
+
+DIT_EMAIL = {
+    '阿里企业邮箱': '1',
+    '网易邮箱': '3',
+    '腾讯邮箱': '2'
+}

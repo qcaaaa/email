@@ -108,7 +108,9 @@ class MySql:
             if table == 'user':
                 str_sql = f"insert into {table} (name, pwd, str_type) values (?, ?, ?)"
             elif table == 'body':
-                str_sql = f"insert into {table} (title, content, language) values (?, ?, ?)"
+                str_sql = f"insert into {table} (str_body, language) values (?, ?)"
+            elif table == 'title':
+                str_sql = f"insert into {table} (str_sitle, language) values (?, ?)"
             elif table == 'info':
                 str_sql = f"insert into {table} (url, language) values (?, ?)"
             elif table == 'end':

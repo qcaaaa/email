@@ -137,9 +137,9 @@ class EmailUi(QWidget):
         # ################# 上传附件控件 开始.......########################################
         self.upload_button = QPushButton(self)
         self.upload_button.setGeometry(QtCore.QRect(1180, 20, 100, 30))
-        self.upload_button.setText(QtCore.QCoreApplication.translate("Email-Tool", "上传附件"))
+        self.upload_button.setText(QtCore.QCoreApplication.translate("Email-Tool", "查看附件"))
         self.upload_button.setStyleSheet(button_style)
-        self.upload_button.clicked.connect(self.email_tool.upload_aly)
+        self.upload_button.clicked.connect(self.email_tool.get_aly)
         # ################# 上传附件控件 结束.......########################################
 
         # ################# 刷新控件 开始.......########################################

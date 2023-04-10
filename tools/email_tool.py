@@ -23,16 +23,14 @@ from sql.sql_db import MySql
 from loguru import logger
 from random import choice
 from functools import partial
-from datetime import datetime
 from itertools import product
 from email.header import Header
 from email.utils import formatdate
-from PyQt5.QtGui import QTextCursor
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from constant import INT_LIMIT, BASE_PATH, DIT_DATABASE, CONFIG_PATH
-from PyQt5.QtWidgets import QDialog, QFormLayout, QLineEdit, QDialogButtonBox, QMessageBox, QComboBox, \
-    QTextEdit, QFileDialog, QCheckBox, QGridLayout, QPushButton, QLabel
+from PyQt5.QtWidgets import QDialog, QFormLayout, QLineEdit, QDialogButtonBox, QComboBox, \
+    QTextEdit, QFileDialog, QCheckBox, QGridLayout, QPushButton
 
 
 class EmailTools:
@@ -71,7 +69,7 @@ class EmailTools:
             obj_smtp = smtplib.SMTP(str_server, port=int_port, local_hostname='localhost')
             obj_smtp.login(str_user, str_pwd)
         except Exception as err:
-            self.show_message('', '', f"{err.__traceback__.tb_lineno}: {err}")
+            self.obj_ui.show_message('', '', f"{err.__traceback__.tb_lineno}: {err}")
             obj_smtp = None
         return obj_smtp
 
@@ -106,16 +104,6 @@ class EmailTools:
             logger.error(f"{err_msg.__traceback__.tb_lineno}:--:{err_msg}")
         return dit_info
 
-    def show_message(self, title: str = '', text: str = '', info: str = ''):
-        try:
-            if title and text:
-                QMessageBox.information(self.obj_ui, title, text, QMessageBox.Yes)
-            if info:
-                self.obj_ui.log_text.append(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}  {info}")
-                self.obj_ui.log_text.moveCursor(QTextCursor.End)
-        except Exception as e:
-            logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
-
     def import_user(self):
         """导入客户"""
         try:
@@ -127,11 +115,11 @@ class EmailTools:
                         if len(lst_line) == 2 and '@' in lst_line[1]:
                             self.to_list.append({'firm': lst_line[0], 'email': lst_line[1]})
                 if not self.to_list:
-                    self.show_message('错误提示', '收件人文件格式错误', '收件人文件格式错误')
+                    self.obj_ui.show_message('错误提示', '收件人文件格式错误', '收件人文件格式错误')
                 else:
-                    self.show_message('提示', '上传收件人文件成功', f'上传收件人文件成功, 此次导入收件人: {len(self.to_list)}个')
+                    self.obj_ui.show_message('提示', '上传收件人文件成功', f'上传收件人文件成功, 此次导入收件人: {len(self.to_list)}个')
             else:
-                self.show_message('错误提示', '收件人文件不存在', '收件人文件不存在')
+                self.obj_ui.show_message('错误提示', '收件人文件不存在', '收件人文件不存在')
         except Exception as e:
             logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
         finally:
@@ -231,32 +219,14 @@ class EmailTools:
                         lst_data = [str_1, str_2]
                 if lst_data:
                     int_ret = self.add_info(DIT_DATABASE[str_page], lst_data)
-                    self.show_message('成功' if int_ret == 1 else '失败', '添加成功' if int_ret == 1 else '添加失败')
+                    self.obj_ui.show_message('成功' if int_ret == 1 else '失败', '添加成功' if int_ret == 1 else '添加失败')
                     if int_ret == 1:
                         self.obj_ui.flush_table(True)
                 else:
-                    self.show_message('错误', '未正确填写')
+                    self.obj_ui.show_message('错误', '未正确填写')
         except Exception as e:
             logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
-            self.show_message('错误', '添加失败')
-
-    def check_email(self):
-        """邮箱检测"""
-        file_name, _ = QFileDialog.getOpenFileName(self.obj_ui, '选取文件', os.getcwd(), 'Text File(*.txt)')
-        if os.path.isfile(file_name):
-            try:
-                with open(file_name, 'r', encoding='utf-8') as f:
-                    lst_email = list(set([i for i in f.read().split('\n') if i.strip()]))
-                if lst_email:
-                    self.show_message('提示', '上传邮箱账号文件成功,后台正在校验中....', '上传邮箱账号文件成功,后台正在校验中....')
-                    from tools.email_check import check_email
-                    threading.Thread(target=check_email, args=(lst_email, self), daemon=True).start()
-                else:
-                    self.show_message('错误提示', '邮箱账号文件格式错误', '邮箱账号文件格式错误')
-            except Exception as e:
-                self.show_message('', '', f"{e.__traceback__.tb_lineno}:{e}")
-        else:
-            self.show_message('错误提示', '邮箱账号文件不存在', '邮箱账号文件不存在')
+            self.obj_ui.show_message('错误', '添加失败')
 
     def upload_aly(self):
         """上传文件至阿里云"""
@@ -267,7 +237,7 @@ class EmailTools:
             dit_config = self.load_file('config.json')
             obj_s3 = AlyS3(dit_config['AccessKey_ID'], dit_config['AccessKey_Secret'], dit_config['bucket'],
                            dit_config['url'])
-            self.show_message('', '', 'Aly OSS 连接成功')
+            self.obj_ui.show_message('', '', 'Aly OSS 连接成功')
             if obj_s3:
                 for str_path in lst_file:
                     try:
@@ -275,17 +245,17 @@ class EmailTools:
                             int_num += 1
                             url = f"https://{dit_config['bucket']}.{dit_config['url'][8:]}/{os.path.split(str_path)[-1]}"
                             int_ret = self.add_info('info', [url])
-                            self.show_message('', '', f'附件{str_path} 保存{"成功" if int_ret == 1 else "失败"}')
+                            self.obj_ui.show_message('', '', f'附件{str_path} 保存{"成功" if int_ret == 1 else "失败"}')
                     except Exception as e:
-                        self.show_message('', '', f"{e.__traceback__.tb_lineno}:{e}")
+                        self.obj_ui.show_message('', '', f"{e.__traceback__.tb_lineno}:{e}")
                 else:
-                    self.show_message('提示', f'本次上传文件至阿里云OSS成功{int_num}个文件', f'本次上传文件至阿里云OSS成功{int_num}个文件')
+                    self.obj_ui.show_message('提示', f'本次上传文件至阿里云OSS成功{int_num}个文件', f'本次上传文件至阿里云OSS成功{int_num}个文件')
                     if self.obj_ui.page == '邮件附件':
                         self.obj_ui.flush_table(True)
             else:
-                self.show_message('错误提示', '上阿里云OSS连接失败,请检查配置', '上阿里云OSS连接失败,请检查配置')
+                self.obj_ui.show_message('错误提示', '上阿里云OSS连接失败,请检查配置', '上阿里云OSS连接失败,请检查配置')
         else:
-            self.show_message('错误提示', '未选择文件', '未选择文件')
+            self.obj_ui.show_message('错误提示', '未选择文件', '未选择文件')
 
     def __on_checkbox_changed(self, dit_value: dict, state):
         lst_c = []
@@ -295,10 +265,10 @@ class EmailTools:
             dit_info = self.dit_v[self.str_page]
             lst_c = dit_info['lst']
             if checkbox.isChecked():
-                self.show_message('', '', f'{dit_info["cn"]}:{str_user}已选择')
+                self.obj_ui.show_message('', '', f'{dit_info["cn"]}:{str_user}已选择')
                 lst_c.append(dit_value)
             else:
-                self.show_message('', '', f'{dit_info["cn"]}:{str_user}取消选择')
+                self.obj_ui.show_message('', '', f'{dit_info["cn"]}:{str_user}取消选择')
                 lst_c.remove(dit_value)
         except Exception as e:
             logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
@@ -365,7 +335,7 @@ class EmailTools:
                     value['lst'] = []
                 self.dialog = self.__show_dialog(DIT_DATABASE['账号配置'], self.select_template_language)
             else:
-                self.show_message('提示', '先导入收件人')
+                self.obj_ui.show_message('提示', '先导入收件人')
         except Exception as err:
             logger.error(f"{err.__traceback__.tb_lineno}:--:{err}")
 
@@ -435,10 +405,10 @@ class EmailTools:
                     product([dit_text['title'] for dit_text in lst_text], [dit_text['content'] for dit_text in lst_text]))
                 lst_info = [dit_info['url'] for dit_info in self.dit_v.get('info', {}).get('lst', [])]
                 lst_end = self.dit_v.get('end', {}).get('lst', [])
-                self.show_message('提示', '正在后台发送中,请稍等......', '正在后台发送中,请稍等......')
+                self.obj_ui.show_message('提示', '正在后台发送中,请稍等......', '正在后台发送中,请稍等......')
                 threading.Thread(target=self.__send_mail, args=(lst_user, lst_text, lst_info, lst_end), daemon=True).start()
             else:
-                self.show_message('错误', '缺少数据,无法发送邮件.请重试')
+                self.obj_ui.show_message('错误', '缺少数据,无法发送邮件.请重试')
         except Exception as e:
             logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
         finally:
@@ -475,7 +445,7 @@ class EmailTools:
             contain_html = self.obj_ui.radio_button.isChecked()
             # 间隔时间
             int_sleep = int(self.obj_ui.sleep_edit.text() or 20)
-            self.show_message('', '', f"当前发送策略: {'携带网页' if contain_html else '不携带网页'}, 间隔时间: {int_sleep}s, 轮询数量: {self.send_mun}")
+            self.obj_ui.show_message('', '', f"当前发送策略: {'携带网页' if contain_html else '不携带网页'}, 间隔时间: {int_sleep}s, 轮询数量: {self.send_mun}")
 
             if contain_html:
                 with open(os.path.join(BASE_PATH, 'template', 'templates.html'), 'r', encoding='utf-8') as f:
@@ -535,7 +505,7 @@ class EmailTools:
                         obj_email.attach(str_html_)
                         obj_smtp.sendmail(dit_user['name'], [dit_send['email']], obj_email.as_string())
                         int_num += 1
-                        self.show_message('', '', f"{dit_user['name']} --> {dit_send['email']} 成功")
+                        self.obj_ui.show_message('', '', f"{dit_user['name']} --> {dit_send['email']} 成功")
                         time.sleep(int_sleep)
                     except Exception as err:
                         logger.error(f"{err.__traceback__.tb_lineno}:--:{err}")
@@ -544,37 +514,8 @@ class EmailTools:
         except Exception as e:
             logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
         finally:
-            self.show_message('', f'', f'本轮发送结束. 一共需要发送: {int_len}封邮件, 发送成功: {int_num}封邮件')
+            self.obj_ui.show_message('', f'', f'本轮发送结束. 一共需要发送: {int_len}封邮件, 发送成功: {int_num}封邮件')
             # 还原数据
             self.to_list.clear()
             for value in self.dit_v.values():
                 value['lst'] = []
-
-    def google_search(self):
-        """谷歌定位搜索
-        :return:
-        """
-        dialog = QDialog(self.obj_ui)  # 自定义一个dialog
-        formLayout = QFormLayout(dialog)  # 配置layout
-        dialog.setWindowTitle('谷歌定位搜索(一行一个)')
-        dialog.resize(500, 100)
-        city_input = QLineEdit(self.obj_ui)
-        city_input.setStyleSheet("height: 30px")
-        formLayout.addRow('定位城市:', city_input)
-        key_input = QLineEdit(self.obj_ui)
-        formLayout.addRow('关键字:', key_input)
-        key_input.setStyleSheet("height: 30px")
-        button = QDialogButtonBox(QDialogButtonBox.Ok)
-        formLayout.addRow(button)
-        button.clicked.connect(dialog.accept)
-        dialog.show()
-        if dialog.exec() == QDialog.Accepted:
-            city = city_input.text().strip()
-            keyword = key_input.text().strip()
-            if city and keyword:
-                self.show_message('提示', f'点击确认,后台开始抓取数据....', f'后台开始抓取数据....')
-                from tools.email_goole import search
-                threading.Thread(target=search, args=(city, keyword, self), daemon=True).start()
-                self.obj_ui.google_button.setDisabled(True)
-            else:
-                self.show_message('错误', f'缺少数据,无法搜索')

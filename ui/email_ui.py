@@ -15,8 +15,9 @@
 
 import os
 from loguru import logger
+from datetime import datetime
 from PyQt5.QtWidgets import QTextEdit
-from PyQt5.QtWidgets import QListWidget, QStackedWidget
+from PyQt5.QtWidgets import QMessageBox
 from PyQt5.QtWidgets import QListWidgetItem
 from PyQt5.QtWidgets import QWidget
 from PyQt5.QtWidgets import QHBoxLayout
@@ -26,16 +27,17 @@ from PyQt5.QtWidgets import QLineEdit
 from PyQt5.QtWidgets import QLabel
 from PyQt5.QtWidgets import QDesktopWidget
 from PyQt5.QtWidgets import QRadioButton
-from PyQt5.QtWidgets import QMenuBar, QMenu
 from PyQt5.QtCore import QSize, Qt, QEvent
 from PyQt5 import QtCore, QtGui
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QAction
+from PyQt5.QtGui import QTextCursor
+from PyQt5.QtWidgets import QListWidget, QStackedWidget
 from PyQt5.QtWidgets import QHeaderView, QAbstractItemView
 from PyQt5.Qt import QTableWidgetItem
 from constant import FIRST_TAB, FONT_WEIGHT, DIT_LIST, INT_LIMIT, DIT_DATABASE, STATIC_PATH
 from tools.email_tool import EmailTools
-from functools import partial
+from tools.email_check import CheckTool
+from tools.email_google import GoogleTool
 
 
 class EmailUi(QWidget):
@@ -54,6 +56,8 @@ class EmailUi(QWidget):
         self.move(int(newLeft), int(newTop) if int(newTop) > 60 else 0)
         self.setWindowTitle('Email-Tool')
         self.obj_tool = EmailTools(self)
+        self.check_tool = CheckTool(self)
+        self.google_tool = GoogleTool(self)
 
         with open(os.path.join(STATIC_PATH, 'css', 'QPushButtonQSS.qss'), 'r', encoding='utf-8') as f:
             button_style = f.read()
@@ -119,7 +123,7 @@ class EmailUi(QWidget):
         self.google_button.setGeometry(QtCore.QRect(940, 20, 100, 30))
         self.google_button.setText(QtCore.QCoreApplication.translate("Email-Tool", "谷歌搜索"))
         self.google_button.setStyleSheet(button_style)
-        self.google_button.clicked.connect(self.obj_tool.google_search)
+        self.google_button.clicked.connect(self.google_tool.google_search)
         # ################# 谷歌搜索控件 结束.......########################################
 
         # ################# 邮箱账号检查控件 开始.......########################################
@@ -127,7 +131,7 @@ class EmailUi(QWidget):
         self.check_button.setGeometry(QtCore.QRect(1060, 20, 100, 30))
         self.check_button.setText(QtCore.QCoreApplication.translate("Email-Tool", "邮箱账号检测"))
         self.check_button.setStyleSheet(button_style)
-        self.check_button.clicked.connect(self.obj_tool.check_email)
+        self.check_button.clicked.connect(self.check_tool.check_email)
         # ################# 邮箱账号检查控件 结束.......########################################
 
         # ################# 上传附件控件 开始.......########################################
@@ -264,6 +268,8 @@ class EmailUi(QWidget):
         try:
             if event.type() == QEvent.ToolTip and self.tool_tip is not None:
                 self.setToolTip(self.tool_tip)
+            else:
+                self.setToolTip('')
             return QWidget.eventFilter(self, object, event)
         except Exception as e:
             logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
@@ -286,7 +292,7 @@ class EmailUi(QWidget):
         if int_pag > 0:
             dit_info = self.obj_tool.get_info(DIT_DATABASE[self.page], int_start=int_pag)
             self.show_table(dit_info.get('lst_ret', []), self.page, curr_pag=int_pag, count_pag=dit_info.get('count', 0))
-        self.obj_tool.show_message('', '', f'当前处于 {self.page}页面 第{int_pag}页')
+        self.show_message('', '', f'当前处于 {self.page}页面 第{int_pag}页')
 
     def text_changed(self, text):
         """跳转输入框 监听事件"""
@@ -309,7 +315,7 @@ class EmailUi(QWidget):
             str_items = str(item.text())
             if self.page != str_items:
                 self.page = str_items  # 记住当前在哪个页面
-                self.obj_tool.show_message('', '', f'切换到 {str_items}页面')
+                self.show_message('', '', f'切换到 {str_items}页面')
                 # 填充表格
                 dit_info = self.obj_tool.get_info(DIT_DATABASE[self.page])
                 self.show_table(dit_info.get('lst_ret', []), str_items, count_pag=dit_info.get('count', ''))
@@ -363,7 +369,7 @@ class EmailUi(QWidget):
             logger.debug(f"{e.__traceback__.tb_lineno}:--:{e}")
         finally:
             sender.setEnabled(True)
-            self.obj_tool.show_message('删除', f'删除成功' if int_ret else '删除失败')
+            self.show_message('删除', f'删除成功' if int_ret else '删除失败')
             if int_ret == 1:
                 self.flush_table(True)
 
@@ -371,5 +377,14 @@ class EmailUi(QWidget):
         dit_info = self.obj_tool.get_info(DIT_DATABASE[self.page])
         self.show_table(dit_info.get('lst_ret', []), self.page, count_pag=dit_info.get('count', ''))
         if not is_show:
-            self.obj_tool.show_message('刷新', '刷新当前页面成功')
+            self.show_message('刷新', '刷新当前页面成功')
 
+    def show_message(self, title: str = '', text: str = '', info: str = ''):
+        try:
+            if title and text:
+                QMessageBox.information(self, title, text, QMessageBox.Yes)
+            if info:
+                self.log_text.append(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}  {info}")
+                self.log_text.moveCursor(QTextCursor.End)
+        except Exception as e:
+            logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")

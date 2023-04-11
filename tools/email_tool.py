@@ -16,9 +16,9 @@
 import os
 import time
 import smtplib
-import mammoth
 import threading
 from json import load
+import win32com.client
 from tools.aly_s3 import AlyS3
 from sql.sql_db import MySql
 from loguru import logger
@@ -64,6 +64,32 @@ class EmailTools:
             str_html = '\n'.join(re.findall('<p .*</p>', str_html))
         except Exception as err:
             logger.error(f'截取html失败: {err.__traceback__.tb_lineno}: {err}')
+        return str_html
+
+    def __word_2_html(self, str_file: str) -> str:
+        """word文件转html"""
+        word = None
+        doc = None
+        str_html = ''
+        try:
+            word = win32com.client.Dispatch('Word.Application')
+            word.Visible = 0  # 后台运行
+            word.DisplayAlerts = 0  # 不显示，不警告
+            doc = word.Documents.Open(str_file)
+            doc.SaveAs(f"{str_file}.html", 10)
+            with open(f"{str_file}.html", 'r') as f:
+                str_html = f.read()
+            try:
+                os.remove(f"{str_file}.html")
+            except:
+                pass
+        except Exception as e:
+            logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
+        finally:
+            if doc:
+                doc.Close()
+            if word:
+                word.Quit()
         return str_html
 
     def __login(self, str_user: str, str_pwd: str, str_type: str):
@@ -193,15 +219,14 @@ class EmailTools:
     def __add_body(self):
         str_file, _ = QFileDialog.getOpenFileName(self.obj_ui, '选取邮件正文文件', os.getcwd(), 'Text File(*.docx)')
         if os.path.isfile(str_file):
-            with open(str_file, "rb") as docx_file:
-                result = mammoth.convert_to_html(docx_file)
+            result = self.__word_2_html(str_file)
             if result:
                 dialog = QDialog(self.obj_ui)  # 自定义一个dialog
                 form_layout = QFormLayout(dialog)  # 配置layout
                 dialog.setWindowTitle('增加邮件正文')
-                dialog.resize(600, 300)
+                dialog.resize(1000, 500)
                 str_txt = QTextEdit(self.obj_ui)
-                str_txt.setHtml(result.value)
+                str_txt.setHtml(result)
                 form_layout.addRow('邮件正文:', str_txt)
                 str_box = QComboBox(self.obj_ui)
                 str_box.addItems(self.__get_language('body'))
@@ -251,7 +276,7 @@ class EmailTools:
         dialog = QDialog(self.obj_ui)  # 自定义一个dialog
         form_layout = QFormLayout(dialog)  # 配置layout
         dialog.setWindowTitle('增加邮件结尾')
-        dialog.resize(500, 300)
+        dialog.resize(1000, 500)
         temp_name = QLineEdit(self.obj_ui)
         temp_name.setStyleSheet("height: 20px")
         form_layout.addRow('模板名称:', temp_name)

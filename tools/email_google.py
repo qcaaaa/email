@@ -40,7 +40,6 @@ class GoogleTool:
         self.driver = None
         self.wb = None
         self.ws = None
-        self.num = 0
 
     def google_search(self):
         """谷歌定位搜索
@@ -241,18 +240,9 @@ class GoogleTool:
                         self.driver.close()
                     self.driver.switch_to.window(index_win)
                 if url and any([second_snap_value, address1, address2, phone]):
-                    self.__write_excel({
-                        'name': second_snap_value,
-                        'address1': address1,
-                        'address2': address2,
-                        'url': url,
-                        'phone': phone,
-                        'city': city,
-                        'keyword': keyword
-                    }, str_file)
-                    self.num += 1
+                    self.__write_excel([city, keyword, second_snap_value, address1, address2, url, phone], str_file)
         else:
-            self.obj_ui.show_message('', '', f'{city}--{keyword}组合搜索完毕, 当前一共搜索出 {self.num} 组有效信息')
+            self.obj_ui.show_message('', '', f'{city}--{keyword}组合搜索完毕')
         return
 
     def __get_excel(self) -> str:
@@ -263,25 +253,18 @@ class GoogleTool:
             # 默认工作簿
             self.ws = self.wb.active
             # 写入表头
-            for int_index, str_title in enumerate(SEARCH_TITLE, self.num + 1):
-                self.ws.cell(1, int_index).value = str_title
-            self.wb.save(f'{str_file}')
+            self.ws.append(SEARCH_TITLE)
+            self.wb.save(str_file)
         except Exception as err:
             logger.error(f'生成搜索结果文件失败: {err.__traceback__.tb_lineno}: {err}')
             self.wb = None
             self.ws = None
         return str_file
 
-    def __write_excel(self, dit_data: dict, str_file: str):
+    def __write_excel(self, lst_data: list, str_file: str):
         try:
-            self.ws.cell(self.num + 2, 1).value = dit_data['city']
-            self.ws.cell(self.num + 2, 2).value = dit_data['keyword']
-            self.ws.cell(self.num + 2, 3).value = dit_data['name']
-            self.ws.cell(self.num + 2, 4).value = dit_data['address1']
-            self.ws.cell(self.num + 2, 5).value = dit_data['address2']
-            self.ws.cell(self.num + 2, 6).value = dit_data['url']
-            self.ws.cell(self.num + 2, 7).value = dit_data['phone']
-            self.wb.save(f'{str_file}')
+            self.ws.append(lst_data)
+            self.wb.save(str_file)
         except Exception as err:
             logger.error(f'保存搜索结果失败: {err.__traceback__.tb_lineno}: {err}')
         return

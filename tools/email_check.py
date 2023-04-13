@@ -20,6 +20,8 @@ import threading
 import dns.resolver
 from loguru import logger
 from openpyxl import Workbook
+from datetime import datetime
+from constant import CHECK_TITLE, EMAIL_CHECK_PATH
 
 
 class CheckTool:
@@ -81,10 +83,7 @@ class CheckTool:
         return str_ret
 
     def __write_excel(self, lst_info: list):
-        from constant import EMAIL_CHECK_PATH
-        str_file = os.path.join(EMAIL_CHECK_PATH,
-                                f"check_{time.strftime('%Y%m%d%H%M%S', time.localtime(time.time()))}.xlsx")
-        lst_title = ['邮箱地址', '验证日期', '第一步', '第二步', '第三步', '第四步', '第五步', '第六步', '结果', '有效性概率(%)']
+        str_file = os.path.join(EMAIL_CHECK_PATH, f"check_{datetime.now().strftime('%Y%m%d%H%M%S')}.xlsx")
         try:
             wb = Workbook()
             # 默认工作簿
@@ -93,7 +92,7 @@ class CheckTool:
             # 创建校验失败的工作簿
             ws_fail = wb.create_sheet('校验失败', 1)
             # 写入表头
-            for int_index, str_title in enumerate(lst_title, 1):
+            for int_index, str_title in enumerate(CHECK_TITLE, 1):
                 ws_succ.cell(1, int_index).value = str_title
                 ws_fail.cell(1, int_index).value = str_title
             int_succ = 2

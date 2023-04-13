@@ -18,6 +18,7 @@ import time
 import threading
 import pyautogui
 from loguru import logger
+from datetime import datetime
 from itertools import product
 from openpyxl import Workbook
 from selenium import webdriver
@@ -27,7 +28,7 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from PyQt5.QtWidgets import QDialog, QFormLayout, QLineEdit, QDialogButtonBox
-from constant import DRIVER_PATH, INT_TIMEOUT
+from constant import DRIVER_PATH, INT_TIMEOUT, SEARCH_TITLE, EMAIL_SEARCH_PATH
 
 
 class GoogleTool:
@@ -36,6 +37,9 @@ class GoogleTool:
 
         self.obj_ui = obj_ui
         self.driver = None
+        self.wb = None
+        self.ws = None
+        self.num = 0
 
     def google_search(self):
         """谷歌定位搜索
@@ -66,7 +70,6 @@ class GoogleTool:
                 self.obj_ui.show_message('错误', f'缺少数据,无法搜索')
 
     def __search(self, city, keyword):
-        lst_data = []
         lst_search = list(product(city.split('\n'), keyword.split('\n')))
         self.obj_ui.show_message('', '', f'本轮一共 {len(lst_search)} 种搜索组合')
         for tuple_search in lst_search:
@@ -106,7 +109,6 @@ class GoogleTool:
                     search_box.send_keys(Keys.RETURN)
                     self.obj_ui.show_message('', '', f'开始搜索关键字: {str_key}')
                     time.sleep(5)
-
                     # 滑动 获取全部搜索结果
                     if self.__load(str_key):
 
@@ -115,7 +117,12 @@ class GoogleTool:
                             EC.presence_of_all_elements_located((By.CLASS_NAME, 'hfpxzc'))
                         )
                         self.obj_ui.show_message('', '', f'开始解析数据')
-                        lst_data.extend(self.__check_url(a_tags, str_city, str_key))
+                        # 同步写入数据
+                        str_file = self.__get_excel()
+                        if str_file and self.ws and self.wb:
+                            self.__check_url(a_tags, str_city, str_key, str_file)
+                        else:
+                            self.obj_ui.show_message('', '', f'生成搜索结果文件失败')
                 except Exception as err:
                     logger.error(f'定位失败: {err.__traceback__.tb_lineno}: {err}')
             finally:
@@ -124,11 +131,9 @@ class GoogleTool:
                     self.driver.quit()
                     self.driver = None
         else:
-            self.obj_ui.show_message('', '', f'全部搜索完毕, 共搜索出 {len(lst_data)} 组信息')
-            if lst_data:
-                self.obj_ui.show_message("", "", f"开始准备写入")
-                self.__write_excel(lst_data)
             self.obj_ui.google_button.setEnabled(True)
+            if self.wb:
+                self.wb.close()
         return
 
     def __load(self, str_key):
@@ -141,7 +146,7 @@ class GoogleTool:
                 )
             except:
                 self.obj_ui.show_message('', '', f'无法通过页面定位, 开始控制鼠标移动, 请勿移动鼠标...')
-                pyautogui.moveTo(70, tuple_size[1] // 2)
+                pyautogui.moveTo(90, tuple_size[1] // 2)
 
             s_time = time.time()
 
@@ -185,8 +190,7 @@ class GoogleTool:
             pass
         return str_info
 
-    def __check_url(self, lst_tags, city, keyword):
-        lst_firm = []
+    def __check_url(self, lst_tags, city, keyword, str_file: str):
         index_win = self.driver.window_handles[0]
         for a_tag in lst_tags:
             second_snap_value = address1 = address2 = url = phone = ''
@@ -230,7 +234,7 @@ class GoogleTool:
                         self.driver.close()
                     self.driver.switch_to.window(index_win)
                 if url and any([second_snap_value, address1, address2, phone]):
-                    lst_firm.append({
+                    self.__write_excel({
                         'name': second_snap_value,
                         'address1': address1,
                         'address2': address2,
@@ -238,32 +242,39 @@ class GoogleTool:
                         'phone': phone,
                         'city': city,
                         'keyword': keyword
-                    })
+                    }, str_file)
+                    self.num += 1
         else:
-            self.obj_ui.show_message('', '', f'{city}--{keyword}组合搜索完毕, 共搜索出 {len(lst_firm)} 组信息')
-        return lst_firm
+            self.obj_ui.show_message('', '', f'{city}--{keyword}组合搜索完毕, 当前一共搜索出 {self.num} 组有效信息')
+        return
 
-    def __write_excel(self, lst_data: list):
-        from constant import EMAIL_SEARCH_PATH
-        str_file = os.path.join(EMAIL_SEARCH_PATH, f"search_{time.strftime('%Y%m%d%H%M%S', time.localtime(time.time()))}.xlsx")
-        lst_title = ['城市', '关键字', '公司名称', '公司地址1', '公司地址2', '公司网站', '公司联系电话']
+    def __get_excel(self) -> str:
+        str_file = ''
         try:
-            wb = Workbook()
+            str_file = os.path.join(EMAIL_SEARCH_PATH, f"search_{datetime.now().strftime('%Y%m%d%H%M%S')}.xlsx")
+            self.wb = Workbook()
             # 默认工作簿
-            ws_succ = wb.active
+            self.ws = self.wb.active
             # 写入表头
-            for int_index, str_title in enumerate(lst_title, 1):
-                ws_succ.cell(1, int_index).value = str_title
-            for int_index, dit_info in enumerate(lst_data, 2):
-                ws_succ.cell(int_index, 1).value = dit_info['city']
-                ws_succ.cell(int_index, 2).value = dit_info['keyword']
-                ws_succ.cell(int_index, 3).value = dit_info['name']
-                ws_succ.cell(int_index, 4).value = dit_info['address1']
-                ws_succ.cell(int_index, 5).value = dit_info['address2']
-                ws_succ.cell(int_index, 6).value = dit_info['url']
-                ws_succ.cell(int_index, 7).value = dit_info['phone']
-            wb.save(f'{str_file}')
-            wb.close()
-            self.obj_ui.show_message('', '', f'邮箱解析结果写入excel成功,保存路径: {str_file}')
+            for int_index, str_title in enumerate(SEARCH_TITLE, self.num + 1):
+                self.ws.cell(1, int_index).value = str_title
+            self.wb.save(f'{str_file}')
+        except Exception as err:
+            logger.error(f'生成搜索结果文件失败: {err.__traceback__.tb_lineno}: {err}')
+            self.wb = None
+            self.ws = None
+        return str_file
+
+    def __write_excel(self, dit_data: dict, str_file: str):
+        try:
+            self.ws.cell(self.num + 2, 1).value = dit_data['city']
+            self.ws.cell(self.num + 2, 2).value = dit_data['keyword']
+            self.ws.cell(self.num + 2, 3).value = dit_data['name']
+            self.ws.cell(self.num + 2, 4).value = dit_data['address1']
+            self.ws.cell(self.num + 2, 5).value = dit_data['address2']
+            self.ws.cell(self.num + 2, 6).value = dit_data['url']
+            self.ws.cell(self.num + 2, 7).value = dit_data['phone']
+            self.wb.save(f'{str_file}')
         except Exception as err:
             logger.error(f'保存搜索结果失败: {err.__traceback__.tb_lineno}: {err}')
+        return

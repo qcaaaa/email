@@ -76,3 +76,9 @@ DIT_EMAIL = {
 # 有过滤的表
 FILTER_TABLE = ['info', 'body', 'title']
 FILTER_LANG = ['info_lang', 'body_lang', 'title_lang']
+
+# 搜索表头
+SEARCH_TITLE = ['城市', '关键字', '公司名称', '公司地址1', '公司地址2', '公司网站', '公司联系电话']
+
+# 校验表头
+CHECK_TITLE = ['邮箱地址', '验证日期', '第一步', '第二步', '第三步', '第四步', '第五步', '第六步', '结果', '有效性概率(%)']

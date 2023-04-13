@@ -25,6 +25,7 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from PyQt5.QtWidgets import QDialog, QFormLayout, QLineEdit, QDialogButtonBox
@@ -192,6 +193,12 @@ class GoogleTool:
 
     def __check_url(self, lst_tags, city, keyword, str_file: str):
         index_win = self.driver.window_handles[0]
+        # 获取具体信息 加速打开网站
+        # 创建ChromeOptions实例
+        options = Options()
+        # 只加载 html
+        options.page_load_strategy = "eager"
+        self.driver.options = options
         for a_tag in lst_tags:
             second_snap_value = address1 = address2 = url = phone = ''
             try:

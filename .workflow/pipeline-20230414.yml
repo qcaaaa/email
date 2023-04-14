@@ -24,7 +24,7 @@ stages:
         commands:
           - pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
           - '# 可以使用pip下载依赖'
-          - '# pip install --user -r requirements.txt'
+          - pip install --user -r requirements.txt
           - python --version
           - pyinstaller -y Email.spec
         artifacts:

@@ -51,9 +51,9 @@ class EmailUi(QWidget):
         screen = QDesktopWidget().screenGeometry()
         # 获取窗口坐标系
         size = self.geometry()
-        newLeft = (screen.width() - size.width()) / 2
-        newTop = (screen.height() - size.height()) / 2
-        self.move(int(newLeft), int(newTop) if int(newTop) > 60 else 0)
+        new_left = (screen.width() - size.width()) / 2
+        new_top = (screen.height() - size.height()) / 2
+        self.move(int(new_left), int(new_top) if int(new_top) > 60 else 0)
         self.setWindowTitle('Email-Tool')
         self.email_tool = EmailTools(self)
         self.check_tool = CheckTool(self)
@@ -268,8 +268,6 @@ class EmailUi(QWidget):
         try:
             if event.type() == QEvent.ToolTip and self.tool_tip is not None:
                 self.setToolTip(self.tool_tip)
-            else:
-                self.setToolTip('')
             return QWidget.eventFilter(self, object, event)
         except Exception as e:
             logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")

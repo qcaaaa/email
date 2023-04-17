@@ -27,6 +27,7 @@ from PyQt5.QtWidgets import QLineEdit
 from PyQt5.QtWidgets import QLabel
 from PyQt5.QtWidgets import QDesktopWidget
 from PyQt5.QtWidgets import QRadioButton
+from PyQt5.QtWidgets import QStatusBar
 from PyQt5.QtCore import QSize, Qt, QEvent
 from PyQt5 import QtCore, QtGui
 from PyQt5.QtGui import QIcon
@@ -38,6 +39,7 @@ from constant import FIRST_TAB, FONT_WEIGHT, DIT_LIST, INT_LIMIT, DIT_DATABASE, 
 from tools.email_tool import EmailTools
 from tools.email_check import CheckTool
 from tools.email_google import GoogleTool
+from ota.otaupgrade import OtaUpgrade
 
 
 class EmailUi(QWidget):
@@ -58,6 +60,7 @@ class EmailUi(QWidget):
         self.email_tool = EmailTools(self)
         self.check_tool = CheckTool(self)
         self.google_tool = GoogleTool(self)
+        self.ota_tool = OtaUpgrade(self)
 
         with open(os.path.join(STATIC_PATH, 'css', 'QPushButtonQSS.qss'), 'r', encoding='utf-8') as f:
             button_style = f.read()
@@ -208,7 +211,17 @@ class EmailUi(QWidget):
 
         self.log_text = QTextEdit(self)
         self.log_text.setReadOnly(True)  # 只读
-        self.log_text.setGeometry(QtCore.QRect(10, 810, 1380, 185))
+        self.log_text.setGeometry(QtCore.QRect(10, 800, 1380, 175))
+
+        # 版本
+        self.ver_label = QLabel(self)
+        self.ver_label.setGeometry(QtCore.QRect(10, 975, 240, 20))
+        self.upd_btu = QPushButton(self)
+        self.upd_btu.setGeometry(QtCore.QRect(250, 975, 80, 20))
+        self.upd_btu.setStyleSheet("QPushButton { border: none; color: blue;}")
+        self.upd_btu.setDisabled(True)
+        self.upd_btu.clicked.connect(self.ota_tool.show_page)
+        self.ota_tool.set_ver()
 
         self.page = FIRST_TAB
 

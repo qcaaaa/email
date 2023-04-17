@@ -1,0 +1,41 @@
+version: '1.0'
+name: pipeline-20230417
+displayName: pipeline-20230417
+triggers:
+  trigger: auto
+  push:
+    branches:
+      precise:
+        - master
+    commitMessages:
+      include:
+        - ^build.*
+stages:
+  - name: stage-f06197e5
+    displayName: Pyintsaller
+    strategy: naturally
+    trigger: auto
+    executor:
+      - yypqc
+    steps:
+      - step: build@python
+        name: build_python
+        displayName: Python 构建
+        pythonVersion: '3.9'
+        commands:
+          - pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
+          - '# 可以使用pip下载依赖'
+          - pip install --user -r requirements.txt
+          - python --version
+          - pyintsaller -y Email.spec
+          - ''
+        artifacts:
+          - name: BUILD_ARTIFACT
+            path:
+              - ./
+        caches: []
+        notify: []
+        strategy:
+          retry: '0'
+strategy:
+  blocking: true

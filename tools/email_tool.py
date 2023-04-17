@@ -18,7 +18,6 @@ import time
 import smtplib
 import threading
 from json import load
-import win32com.client
 from tools.aly_s3 import AlyS3
 from sql.sql_db import MySql
 from loguru import logger
@@ -29,6 +28,7 @@ from email.header import Header
 from email.utils import formatdate
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from utils.tools import sub_html, word_2_html, load_file
 from constant import INT_LIMIT, BASE_PATH, DIT_DATABASE, CONFIG_PATH, DIT_EMAIL, FILTER_TABLE, FILTER_LANG
 from PyQt5.QtWidgets import QDialog, QFormLayout, QLineEdit, QDialogButtonBox, QComboBox, \
     QTextEdit, QFileDialog, QCheckBox, QGridLayout, QPushButton
@@ -38,7 +38,7 @@ class EmailTools:
 
     def __init__(self, obj_ui):
         self.obj_ui = obj_ui
-        self.email_dict = self.load_file()
+        self.email_dict = load_file()
         self.to_list = []
         self.str_page = ''  # 当前在那个选择页
         self.dit_v = {
@@ -57,44 +57,9 @@ class EmailTools:
         self.lang = None
         self.str_url = ''
 
-    @staticmethod
-    def __sub_html(str_html: str) -> str:
-        try:
-            import re
-            str_html = '\n'.join(re.findall('<p .*</p>', str_html))
-        except Exception as err:
-            logger.error(f'截取html失败: {err.__traceback__.tb_lineno}: {err}')
-        return str_html
-
-    def __word_2_html(self, str_file: str) -> str:
-        """word文件转html"""
-        word = None
-        doc = None
-        str_html = ''
-        try:
-            word = win32com.client.Dispatch('Word.Application')
-            word.Visible = 0  # 后台运行
-            word.DisplayAlerts = 0  # 不显示，不警告
-            doc = word.Documents.Open(str_file)
-            doc.SaveAs(f"{str_file}.html", 10)
-            with open(f"{str_file}.html", 'r') as f:
-                str_html = f.read()
-            try:
-                os.remove(f"{str_file}.html")
-            except:
-                pass
-        except Exception as e:
-            logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
-        finally:
-            if doc:
-                doc.Close()
-            if word:
-                word.Quit()
-        return str_html
-
     def __login(self, str_user: str, str_pwd: str, str_type: str):
         try:
-            dit_config = self.load_file()
+            dit_config = load_file()
             str_server, int_port = dit_config[str_type]['server'], dit_config[str_type]['port']
             obj_smtp = smtplib.SMTP(str_server, port=int_port, local_hostname='localhost')
             obj_smtp.login(str_user, str_pwd)
@@ -219,7 +184,7 @@ class EmailTools:
     def __add_body(self):
         str_file, _ = QFileDialog.getOpenFileName(self.obj_ui, '选取邮件正文文件', os.getcwd(), 'Text File(*.docx)')
         if os.path.isfile(str_file):
-            result = self.__word_2_html(str_file)
+            result = word_2_html(str_file)
             if result:
                 dialog = QDialog(self.obj_ui)  # 自定义一个dialog
                 form_layout = QFormLayout(dialog)  # 配置layout
@@ -237,7 +202,7 @@ class EmailTools:
                 button.clicked.connect(dialog.accept)
                 dialog.show()
                 if dialog.exec() == QDialog.Accepted:
-                    str_2, str_3 = self.__sub_html(str_txt.toHtml()), str_box.currentText().strip()
+                    str_2, str_3 = sub_html(str_txt.toHtml()), str_box.currentText().strip()
                     if all([str_2, str_3]):
                         return self.add_info(DIT_DATABASE[self.obj_ui.page], [str_2, str_3])
                     return -1
@@ -291,7 +256,7 @@ class EmailTools:
         button.clicked.connect(dialog.accept)
         dialog.show()
         if dialog.exec() == QDialog.Accepted:
-            str_1, str_2, str_3 = temp_name.text(), self.__sub_html(temp_txt.toHtml()), url_path.text().strip()
+            str_1, str_2, str_3 = temp_name.text(), sub_html(temp_txt.toHtml()), url_path.text().strip()
             if any([str_1, str_2, str_3]):
                 return self.add_info(DIT_DATABASE[self.obj_ui.page], [str_1, str_2, str_3])
             return -1
@@ -329,7 +294,7 @@ class EmailTools:
         title = 'Text File(*.pdf);;JPG File(*.jpg);;PNG File(*.png)'
         str_file, _ = QFileDialog.getOpenFileName(self.obj_ui, '选择本地附件上传', os.getcwd(), title)
         if os.path.isfile(str_file):
-            dit_config = self.load_file('config.json')
+            dit_config = load_file('config.json')
             obj_s3 = AlyS3(dit_config['AccessKey_ID'], dit_config['AccessKey_Secret'], dit_config['bucket'], dit_config['url'])
             self.obj_ui.show_message('', '', 'Aly OSS 连接成功')
             if obj_s3:
@@ -347,7 +312,7 @@ class EmailTools:
             self.obj_ui.show_message('错误', '未选择文件')
 
     def get_aly(self):
-        dit_config = self.load_file('config.json')
+        dit_config = load_file('config.json')
         obj_s3 = AlyS3(dit_config['AccessKey_ID'], dit_config['AccessKey_Secret'], dit_config['bucket'], dit_config['url'])
         self.obj_ui.show_message('', '', 'Aly OSS 连接成功')
         if obj_s3:

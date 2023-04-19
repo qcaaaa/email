@@ -27,7 +27,6 @@ from PyQt5.QtWidgets import QLineEdit
 from PyQt5.QtWidgets import QLabel
 from PyQt5.QtWidgets import QDesktopWidget
 from PyQt5.QtWidgets import QRadioButton
-from PyQt5.QtWidgets import QStatusBar
 from PyQt5.QtCore import QSize, Qt, QEvent
 from PyQt5 import QtCore, QtGui
 from PyQt5.QtGui import QIcon
@@ -35,7 +34,7 @@ from PyQt5.QtGui import QTextCursor
 from PyQt5.QtWidgets import QListWidget, QStackedWidget
 from PyQt5.QtWidgets import QHeaderView, QAbstractItemView
 from PyQt5.Qt import QTableWidgetItem
-from constant import FIRST_TAB, FONT_WEIGHT, DIT_LIST, INT_LIMIT, DIT_DATABASE, STATIC_PATH
+from constant import FIRST_TAB, FONT_WEIGHT, DIT_LIST, INT_LIMIT, DIT_DATABASE, STATIC_PATH, GIT_URL
 from tools.email_tool import EmailTools
 from tools.email_check import CheckTool
 from tools.email_google import GoogleTool
@@ -60,7 +59,7 @@ class EmailUi(QWidget):
         self.email_tool = EmailTools(self)
         self.check_tool = CheckTool(self)
         self.google_tool = GoogleTool(self)
-        self.ota_tool = OtaUpgrade(self)
+        self.ota_tool = OtaUpgrade(self, GIT_URL)
 
         with open(os.path.join(STATIC_PATH, 'css', 'QPushButtonQSS.qss'), 'r', encoding='utf-8') as f:
             button_style = f.read()

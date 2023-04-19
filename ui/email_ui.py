@@ -214,9 +214,9 @@ class EmailUi(QWidget):
 
         # 版本
         self.ver_label = QLabel(self)
-        self.ver_label.setGeometry(QtCore.QRect(10, 975, 240, 20))
+        self.ver_label.setGeometry(QtCore.QRect(10, 975, 270, 20))
         self.upd_btu = QPushButton(self)
-        self.upd_btu.setGeometry(QtCore.QRect(250, 975, 80, 20))
+        self.upd_btu.setGeometry(QtCore.QRect(280, 975, 80, 20))
         self.upd_btu.setStyleSheet("QPushButton { border: none; color: blue;}")
         self.upd_btu.setDisabled(True)
         self.upd_btu.clicked.connect(self.ota_tool.show_page)

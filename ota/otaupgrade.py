@@ -20,7 +20,7 @@ import threading
 from loguru import logger
 from PyQt5.QtCore import Qt, QThread, pyqtSignal
 from PyQt5.QtGui import QIcon, QFont
-from PyQt5.QtWidgets import QLabel, QDialog, QVBoxLayout, QPushButton, QTextEdit, QHBoxLayout, QProgressBar
+from PyQt5.QtWidgets import QLabel, QDialog, QVBoxLayout, QPushButton, QTextEdit, QHBoxLayout, QProgressBar, QMessageBox
 from functools import partial
 from constant import STATIC_PATH
 
@@ -137,7 +137,7 @@ class OtaUpgrade:
                 skip_button.clicked.connect(dialog.close)
                 upgrade_button = QPushButton("立即升级", dialog)
                 upgrade_button.setFixedSize(100, 30)
-                upgrade_button.clicked.connect(partial(self.download_page, dialog, upgrade_button))
+                upgrade_button.clicked.connect(partial(self.download_page, dialog, upgrade_button, skip_button))
                 button_layout.addWidget(skip_button, alignment=Qt.AlignLeft)
                 button_layout.addWidget(upgrade_button, alignment=Qt.AlignRight)
                 # 将按钮放到底部
@@ -151,16 +151,19 @@ class OtaUpgrade:
         except Exception as e:
             logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
 
-    def download_page(self, obj_dialog, obj_btu):
+    def download_page(self, obj_dialog, load_btu, skip_btu):
         """下载安装包
         :return:
         """
         try:
             self.progress_bar.show()
-            thread = Worker(self.__url)
+            _, tmp_file = tempfile.mkstemp(suffix='.exe')
+            thread = Worker(obj_dialog, self.__url, tmp_file)
             thread.progress.connect(self.__set_progress)
+            thread.finished.connect(partial(self.install_page, obj_dialog, tmp_file))
             thread.start()
-            obj_btu.setDisabled(True)
+            load_btu.setDisabled(True)
+            skip_btu.setDisabled(True)
         except Exception as e:
             logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
 
@@ -168,39 +171,51 @@ class OtaUpgrade:
         """设置进度条"""
         self.progress_bar.setValue(value)
 
-        if value >= 100:
-            self.obj_ui.show_message('下载', '下载完成,是否立即安装')
-
-    def install_page(self):
+    def install_page(self, obj_dialog, str_file):
         """安装升级包
         :return:
         """
-        print('xxx')
+        try:
+            msg_box = QMessageBox(obj_dialog)
+            msg_box.setWindowTitle('升级')
+            msg_box.setText('下载完成是否立即重启升级!')
+            yes_button = msg_box.addButton('确认', QMessageBox.YesRole)
+            msg_box.addButton('取消', QMessageBox.NoRole)
+            msg_box.exec_()
+            if msg_box.clickedButton() == yes_button:
+                print('升级成功')
+            else:
+                print('取消升级')
+        except Exception as e:
+            logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
+        finally:
+            if obj_dialog:
+                obj_dialog.close()
 
 
 class Worker(QThread):
     progress = pyqtSignal(int)
 
-    def __init__(self, str_url: str):
-        super(Worker, self).__init__()
+    def __init__(self, p, str_url, str_file):
+        super(Worker, self).__init__(p)
         self.str_url = str_url
+        self.str_file = str_file
 
     def run(self):
-        tmp_file = ''
         try:
             url = f'https://gitee.com{self.str_url}'
             response = requests.get(url=url, stream=True)
             response.raise_for_status()
             total_length = int(response.headers.get('content-length'))
-            _, tmp_file = tempfile.mkstemp(suffix='.exe')
+
             int_length = 0
-            with open(tmp_file, 'wb') as f:
+            with open(self.str_file, 'wb') as f:
                 for content in response.iter_content(1024 * 1024):
                     f.write(content)
                     f.flush()
                     int_length += len(content)
-                    self.progress.emit(int(int_length / total_length))
+                    self.progress.emit(int(int_length / total_length * 100))
         except Exception as e:
-            if os.path.isfile(tmp_file):
-                os.unlink(tmp_file)
+            if os.path.isfile(self.str_file):
+                os.unlink(self.str_file)
             logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")

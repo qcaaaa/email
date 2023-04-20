@@ -224,7 +224,7 @@ class EmailUi(QWidget):
         self.log_label = QLabel(self)
         self.log_label.setGeometry(QtCore.QRect(10, 760, 100, 35))
         self.log_label.setAlignment(Qt.AlignLeft)
-        self.pix = QPixmap(os.path.join(STATIC_PATH, 'images', 'logg.png'))
+        self.pix = QPixmap(os.path.join(STATIC_PATH, 'images', 'log.png'))
         self.log_label.setPixmap(self.pix)
         self.log_label.setToolTip('日志输出')
 
@@ -394,19 +394,25 @@ class EmailUi(QWidget):
             logger.debug(f"{e.__traceback__.tb_lineno}:--:{e}")
 
     def del_info(self):
-        int_ret = 0
         sender = self.sender()
         try:
             sender.setDisabled(True)
             db_id = int(sender.objectName())
-            int_ret = self.email_tool.del_info(DIT_DATABASE[self.page], db_id)
+            msg_box = QMessageBox(self)
+            msg_box.setWindowTitle('确认')
+            msg_box.setText('确认删除该条记录吗?')
+            yes_button = msg_box.addButton('确认', QMessageBox.YesRole)
+            no_button = msg_box.addButton('取消', QMessageBox.NoRole)
+            msg_box.exec_()
+            if msg_box.clickedButton() == yes_button:
+                int_ret = self.email_tool.del_info(DIT_DATABASE[self.page], db_id)
+                self.show_message('删除', f'删除成功' if int_ret else '删除失败')
+                if int_ret == 1:
+                    self.flush_table(True)
         except Exception as e:
             logger.debug(f"{e.__traceback__.tb_lineno}:--:{e}")
         finally:
             sender.setEnabled(True)
-            self.show_message('删除', f'删除成功' if int_ret else '删除失败')
-            if int_ret == 1:
-                self.flush_table(True)
 
     def flush_table(self, is_show: bool = False):
         dit_info = self.email_tool.get_info(DIT_DATABASE[self.page])
@@ -417,7 +423,11 @@ class EmailUi(QWidget):
     def show_message(self, title: str = '', text: str = '', info: str = ''):
         try:
             if title and text:
-                QMessageBox.information(self, title, text, QMessageBox.Yes)
+                msg_box = QMessageBox(self)
+                msg_box.setWindowTitle(title)
+                msg_box.setText(text)
+                msg_box.addButton('确认', QMessageBox.YesRole)
+                msg_box.exec_()
             if info:
                 self.log_text.append(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}  {info}")
                 self.log_text.moveCursor(QTextCursor.End)

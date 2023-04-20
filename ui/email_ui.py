@@ -16,7 +16,7 @@
 import os
 from loguru import logger
 from datetime import datetime
-from PyQt5.QtWidgets import QTextEdit
+from PyQt5.QtWidgets import QTextEdit, QScrollBar
 from PyQt5.QtWidgets import QMessageBox
 from PyQt5.QtWidgets import QListWidgetItem
 from PyQt5.QtWidgets import QWidget
@@ -62,15 +62,15 @@ class EmailUi(QWidget):
         self.google_tool = GoogleTool(self)
         self.ota_tool = OtaUpgrade(self, GIT_URL, VERSION, EXE_NAME)
 
-        with open(os.path.join(STATIC_PATH, 'css', 'QPushButtonQSS.qss'), 'r', encoding='utf-8') as f:
-            button_style = f.read()
+        with open(os.path.join(STATIC_PATH, 'css', 'QSS.qss'), 'r', encoding='utf-8') as f:
+            file_style = f.read()
 
         # ################# 增加控件 开始.......########################################
         self.add_button = QPushButton(self)
         self.add_button.setGeometry(QtCore.QRect(120, 20, 100, 30))
         self.add_button.setIcon(QIcon(os.path.join(STATIC_PATH, 'images', 'add.png')))
         self.add_button.setToolTip('增加')
-        self.add_button.setStyleSheet(button_style)
+        self.add_button.setStyleSheet(file_style)
         self.add_button.clicked.connect(self.email_tool.add_table)
         # ################# 增加控件 结束.......########################################
 
@@ -79,7 +79,7 @@ class EmailUi(QWidget):
         self.import_button.setGeometry(QtCore.QRect(240, 20, 100, 30))
         self.import_button.setIcon(QIcon(os.path.join(STATIC_PATH, 'images', 'import.png')))
         self.import_button.setToolTip('导入客户')
-        self.import_button.setStyleSheet(button_style)
+        self.import_button.setStyleSheet(file_style)
         self.import_button.clicked.connect(self.email_tool.import_user)
         # ################# 导入联系人控件 结束.......########################################
 
@@ -88,7 +88,7 @@ class EmailUi(QWidget):
         self.send_button.setGeometry(QtCore.QRect(360, 20, 100, 30))
         self.send_button.setIcon(QIcon(os.path.join(STATIC_PATH, 'images', 'email.png')))
         self.send_button.setToolTip('发送邮件')
-        self.send_button.setStyleSheet(button_style)
+        self.send_button.setStyleSheet(file_style)
         # 最开始禁用
         self.send_button.setDisabled(True)
         self.send_button.clicked.connect(self.email_tool.select_account)
@@ -100,6 +100,7 @@ class EmailUi(QWidget):
         self.sleep_label.setText(QtCore.QCoreApplication.translate("Email-Tool", "发送间隔(s)"))
         self.sleep_edit = QLineEdit(self)
         self.sleep_edit.setGeometry(QtCore.QRect(565, 20, 80, 30))
+        self.sleep_edit.setStyleSheet(file_style)
         # 设置默认值
         self.sleep_edit.setPlaceholderText('20')
         # 设置只能输入数字
@@ -118,6 +119,7 @@ class EmailUi(QWidget):
         self.interval_label.setText(QtCore.QCoreApplication.translate("Email-Tool", "最大发送"))
         self.interval_edit = QLineEdit(self)
         self.interval_edit.setGeometry(QtCore.QRect(820, 20, 80, 30))
+        self.interval_edit.setStyleSheet(file_style)
         # 设置默认值
         self.interval_edit.setPlaceholderText('50')
         # 设置只能输入数字
@@ -129,7 +131,7 @@ class EmailUi(QWidget):
         self.google_button.setGeometry(QtCore.QRect(940, 20, 100, 30))
         self.google_button.setIcon(QIcon(os.path.join(STATIC_PATH, 'images', 'search.png')))
         self.google_button.setToolTip('谷歌搜索')
-        self.google_button.setStyleSheet(button_style)
+        self.google_button.setStyleSheet(file_style)
         self.google_button.clicked.connect(self.google_tool.google_search)
         # ################# 谷歌搜索控件 结束.......########################################
 
@@ -138,7 +140,7 @@ class EmailUi(QWidget):
         self.check_button.setGeometry(QtCore.QRect(1060, 20, 100, 30))
         self.check_button.setIcon(QIcon(os.path.join(STATIC_PATH, 'images', 'check.png')))
         self.check_button.setToolTip('邮箱账号检测')
-        self.check_button.setStyleSheet(button_style)
+        self.check_button.setStyleSheet(file_style)
         self.check_button.clicked.connect(self.check_tool.check_email)
         # ################# 邮箱账号检查控件 结束.......########################################
 
@@ -147,7 +149,7 @@ class EmailUi(QWidget):
         self.upload_button.setGeometry(QtCore.QRect(1180, 20, 100, 30))
         self.upload_button.setIcon(QIcon(os.path.join(STATIC_PATH, 'images', 'fj.png')))
         self.upload_button.setToolTip('查看附件')
-        self.upload_button.setStyleSheet(button_style)
+        self.upload_button.setStyleSheet(file_style)
         self.upload_button.clicked.connect(self.email_tool.get_aly)
         # ################# 上传附件控件 结束.......########################################
 
@@ -156,7 +158,7 @@ class EmailUi(QWidget):
         self.flush_button.setGeometry(QtCore.QRect(1300, 20, 100, 30))
         self.flush_button.setIcon(QIcon(os.path.join(STATIC_PATH, 'images', 'flush.png')))
         self.flush_button.setToolTip('刷新')
-        self.flush_button.setStyleSheet(button_style)
+        self.flush_button.setStyleSheet(file_style)
         self.flush_button.clicked.connect(self.flush_table)
         # ################# 刷新控件 结束.......########################################
 
@@ -166,7 +168,7 @@ class EmailUi(QWidget):
         self.page_up.setIcon(QIcon(os.path.join(STATIC_PATH, 'images', 'up.png')))
         self.page_up.setToolTip('上一页')
         self.page_up.setDisabled(True)
-        self.page_up.setStyleSheet(button_style)
+        self.page_up.setStyleSheet(file_style)
         self.page_up.clicked.connect(self.page_turning)
 
         self.page_text = QLabel(self)
@@ -179,31 +181,29 @@ class EmailUi(QWidget):
         self.page_down.setIcon(QIcon(os.path.join(STATIC_PATH, 'images', 'next.png')))
         self.page_down.setToolTip('下一页')
         self.page_down.setDisabled(True)
-        self.page_down.setStyleSheet(button_style)
+        self.page_down.setStyleSheet(file_style)
         self.page_down.clicked.connect(self.page_turning)
 
         self.page_text_2 = QLineEdit(self)
         self.page_text_2.textChanged.connect(self.text_changed)
         self.page_text_2.setGeometry(QtCore.QRect(785, 760, 70, 30))
+        self.page_text_2.setStyleSheet(file_style)
 
         self.page_skip = QPushButton(self)
         self.page_skip.setGeometry(QtCore.QRect(875, 760, 80, 30))
         self.page_skip.setIcon(QIcon(os.path.join(STATIC_PATH, 'images', 'skip.png')))
         self.page_skip.setToolTip('跳转')
         self.page_skip.setDisabled(True)
-        self.page_skip.setStyleSheet(button_style)
+        self.page_skip.setStyleSheet(file_style)
         self.page_skip.clicked.connect(self.page_turning)
         # ################# 分页 结束....########################################
-
-        with open(os.path.join(STATIC_PATH, 'css', 'QListWidgetQSS.qss'), 'r', encoding='utf-8') as f:  # 导入QListWidget的qss样式
-            list_style = f.read()
 
         self.main_layout = QHBoxLayout(self)  # 窗口的整体布局
         # 上面留60 下面留250
         self.main_layout.setContentsMargins(0, 60, 0, 250)
         # 左侧选项列表
         self.left_widget = QListWidget()
-        self.left_widget.setStyleSheet(list_style)
+        self.left_widget.setStyleSheet(file_style)
         # 左侧绑定 点击事件
         self.left_widget.itemClicked.connect(self.display)
         self.main_layout.addWidget(self.left_widget)
@@ -211,6 +211,10 @@ class EmailUi(QWidget):
         # 右侧
         self.right_widget = QStackedWidget()
         self.main_layout.addWidget(self.right_widget)
+
+        # 滚动条
+        text_scroll = QScrollBar()
+        text_scroll.setStyleSheet(file_style)
 
         # 下侧 日志框
         self.log_label = QLabel(self)
@@ -222,6 +226,8 @@ class EmailUi(QWidget):
         self.log_text = QTextEdit(self)
         self.log_text.setReadOnly(True)  # 只读
         self.log_text.setGeometry(QtCore.QRect(10, 800, 1380, 175))
+        # 加载滚动条
+        self.log_text.setVerticalScrollBar(text_scroll)
 
         # 版本
         self.ver_label = QLabel(self)

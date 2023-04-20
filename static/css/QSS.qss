@@ -1,0 +1,106 @@
+/*按钮样式*/
+
+QPushButton {
+    border: none; /*去掉边框*/;
+    border-radius: 5px; /*圆角*/
+}
+/*
+QPushButton#xxx
+或者
+#xx
+都表示通过设置的objectName来指定
+*/
+QPushButton#add_button {
+    background-color: #f44336; /*背景颜色*/
+}
+QPushButton:hover {
+    background-color: #e57373; /*鼠标悬停时背景颜色*/
+}
+/*注意pressed一定要放在hover的后面，否则没有效果*/
+#pushButton:pressed {
+    background-color: #ffcdd2; /*鼠标按下不放时背景颜色*/
+}
+
+/*左侧菜单样式*/
+
+QListWidget, QListView, QTreeWidget, QTreeView {
+    outline: 0px;
+}
+
+QListWidget {
+    min-width: 120px;
+    max-width: 120px;
+    color: Black;
+    background: #F5F5F5;
+}
+
+QListWidget::Item:selected {
+    background: seagreen;
+    border-right: 5px solid red;
+}
+HistoryPanel:hover {
+    background: rgb(52, 52, 52);
+}
+
+/*单行输入框样式*/
+
+QLineEdit {
+	border: 1px solid #A0A0A0; /* 边框宽度为1px，颜色为#A0A0A0 */
+	border-radius: 5px; /* 边框圆角 */
+	padding-left: 5px; /* 文本距离左边界有5px */
+	background-color: #F2F2F2; /* 背景颜色 */
+	color: #A0A0A0; /* 文本颜色 */
+	selection-background-color: #A0A0A0; /* 选中文本的背景颜色 */
+	selection-color: #F2F2F2; /* 选中文本的颜色 */
+	font-family: "Microsoft YaHei"; /* 文本字体族 */
+	font-size: 10pt; /* 文本字体大小 */
+}
+
+QLineEdit:hover { /* 鼠标悬浮在QLineEdit时的状态 */
+	border: 1px solid #298DFF;
+	border-radius: 10px;
+	background-color: #F2F2F2;
+	color: #298DFF;
+	selection-background-color: #298DFF;
+	selection-color: #F2F2F2;
+}
+
+/*滚动条样式*/
+QScrollBar:vertical {
+    border-width: 0px;
+    border: none;
+    background:rgba(64, 65, 79, 0);
+    width:12px;
+    margin: 0px 0px 0px 0px;
+}
+QScrollBar::handle:vertical {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+    stop: 0 #aaaaff, stop: 0.5 #aaaaff, stop:1 #aaaaff);
+    min-height: 20px;
+    max-height: 20px;
+    margin: 0 0px 0 0px;
+    border-radius: 6px;
+}
+QScrollBar::add-line:vertical {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+    stop: 0 rgba(64, 65, 79, 0), stop: 0.5 rgba(64, 65, 79, 0),  stop:1 rgba(64, 65, 79, 0));
+    height: 0px;
+    border: none;
+    subcontrol-position: bottom;
+    subcontrol-origin: margin;
+}
+QScrollBar::sub-line:vertical {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+    stop: 0  rgba(64, 65, 79, 0), stop: 0.5 rgba(64, 65, 79, 0),  stop:1 rgba(64, 65, 79, 0));
+    height: 0 px;
+    border: none;
+    subcontrol-position: top;
+    subcontrol-origin: margin;
+}
+QScrollBar::sub-page:vertical {
+    background: rgba(64, 65, 79, 0);
+}
+
+QScrollBar::add-page:vertical {
+    background: rgba(64, 65, 79, 0);
+}

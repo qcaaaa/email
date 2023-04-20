@@ -14,31 +14,34 @@
 """
 
 import os
-import time
+import tempfile
 import requests
 import threading
 from loguru import logger
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon, QFont
 from PyQt5.QtWidgets import QLabel, QDialog, QVBoxLayout, QPushButton, QTextEdit, QHBoxLayout, QProgressBar
-from version import VERSION
 from functools import partial
 from constant import STATIC_PATH
 
 
 class OtaUpgrade:
 
-    def __init__(self, obj_ui, git_url: str):
+    def __init__(self, obj_ui, git_url: str, str_ver: str, str_exe: str = ''):
         """
         :param obj_ui: 主界面 UI读对象
         :param git_url: 仓库地址  ps: https://gitee.com/yypqc/email
+        :param str_ver: 当前版本
+        :param str_exe: 打包软件名称
         """
         self.obj_ui = obj_ui
         self.git_url = git_url
+        self.exe_name = str_exe
+        self.str_ver = str_ver
         self.__str_ver = '----'
         self.__dest = ''
         self.__create = ''
-        self.__dit_url = {}
+        self.__url = ''
 
     def get_ver(self):
         """获取软件最新版本
@@ -52,7 +55,10 @@ class OtaUpgrade:
             self.__create = dit_data.get('release', {}).get('created_at', '')
             self.__dest = dit_data.get('release', {}).get('description', '')
             lst_url = dit_data.get('release', {}).get('attach_files', [])
-            self.__dit_url = lst_url[0] if lst_url else {}
+            for dit_url in lst_url:
+                if self.exe_name and dit_url.get('name') == self.exe_name:
+                    self.__url = dit_url.get('download_url', '')
+                    break
         except Exception as e:
             logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
         return
@@ -64,12 +70,12 @@ class OtaUpgrade:
 
         def __do():
             self.get_ver()
-            str_title = f'软件当前版本: {VERSION} 最新版本: {self.__str_ver}'
+            str_title = f'软件当前版本: {self.str_ver} 最新版本: {self.__str_ver}'
             self.obj_ui.ver_label.setText(str_title)
             try:
-                if self.__str_ver.count('.') == VERSION.count('.') == 3:
+                if self.__str_ver.count('.') == self.str_ver.count('.') == 3:
                     lst_new_ver = [int(i) for i in self.__str_ver.lower().replace('v', '').split('.')]
-                    lst_old_ver = [int(i) for i in VERSION.lower().replace('v', '').split('.')]
+                    lst_old_ver = [int(i) for i in self.str_ver.lower().replace('v', '').split('.')]
 
                     for index_ in range(4):
                         if lst_new_ver[index_] > lst_old_ver[index_]:
@@ -86,7 +92,7 @@ class OtaUpgrade:
         :return:
         """
         try:
-            if self.__dit_url:
+            if self.__url:
                 dialog = QDialog()  # 自定义一个dialog
                 dialog.setWindowTitle('版本更新')
                 dialog.setWindowIcon(QIcon(os.path.join(STATIC_PATH, 'images', 'update.png')))
@@ -101,7 +107,7 @@ class OtaUpgrade:
                 # QTextEdit
                 text_edit = QTextEdit(dialog)
                 text_edit.setReadOnly(True)
-                text_edit.setFixedHeight(300)
+                text_edit.setFixedHeight(250)
                 str_info = f'<h2>{self.__str_ver}___<em>{self.__create}</em></h2>'
                 str_d = ''
                 if self.__dest:
@@ -128,7 +134,7 @@ class OtaUpgrade:
                 skip_button = QPushButton("跳过版本", dialog)
                 skip_button.setFixedSize(100, 30)
                 skip_button.clicked.connect(dialog.close)
-                upgrade_button  = QPushButton("立即升级", dialog)
+                upgrade_button = QPushButton("立即升级", dialog)
                 upgrade_button .setFixedSize(100, 30)
                 upgrade_button .clicked.connect(partial(self.download_page, dialog, progress_bar, upgrade_button))
                 button_layout.addWidget(skip_button, alignment=Qt.AlignLeft)
@@ -153,14 +159,26 @@ class OtaUpgrade:
         """下载安装包
         :return:
         """
+        tmp_file = ''
         try:
             obj_bar.show()
             obj_btu.setDisabled(True)
-            for _ in range(1, 101):
-                obj_bar.setValue(_)
-                time.sleep(0.1)
+            url = f'https://gitee.com{self.__url}'
+            response = requests.get(url=url, stream=True)
+            response.raise_for_status()
+            total_length = int(response.headers.get('content-length'))
+            _, tmp_file = tempfile.mkstemp(suffix='.exe')
+            int_length = 0
+            with open(tmp_file, 'wb') as f:
+                for content in response.iter_content(1024 * 1024):
+                    f.write(content)
+                    f.flush()
+                    int_length += len(content)
+                    obj_bar.setValue(round(int_length / total_length, 2))
         except Exception as e:
             logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
+            if os.path.isfile(tmp_file):
+                os.unlink(tmp_file)
 
     def install_page(self):
         """安装升级包

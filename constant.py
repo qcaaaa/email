@@ -85,3 +85,6 @@ CHECK_TITLE = ['邮箱地址', '验证日期', '第一步', '第二步', '第三
 
 # 项目地址
 GIT_URL = 'https://gitee.com/yypqc/email'
+
+# 打包软件名称
+EXE_NAME = 'Email.exe'

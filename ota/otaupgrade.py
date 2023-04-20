@@ -18,7 +18,7 @@ import tempfile
 import requests
 import threading
 from loguru import logger
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QThread, pyqtSignal
 from PyQt5.QtGui import QIcon, QFont
 from PyQt5.QtWidgets import QLabel, QDialog, QVBoxLayout, QPushButton, QTextEdit, QHBoxLayout, QProgressBar
 from functools import partial
@@ -42,6 +42,7 @@ class OtaUpgrade:
         self.__dest = ''
         self.__create = ''
         self.__url = ''
+        self.progress_bar = None
 
     def get_ver(self):
         """获取软件最新版本
@@ -122,12 +123,12 @@ class OtaUpgrade:
                 layout.addStretch(1)
 
                 # 进度条，默认隐藏
-                progress_bar = QProgressBar(dialog)
-                progress_bar.setMaximum(100)
-                progress_bar.hide()
-                progress_bar.setStyleSheet("QProgressBar {border: 2px solid grey; border-radius: 5px; background-color: #FFFFFF; "
-                                           "text-align:center; font-size:20px}")
-                layout.addWidget(progress_bar)
+                self.progress_bar = QProgressBar(dialog)
+                self.progress_bar.setMaximum(100)
+                self.progress_bar.hide()
+                self.progress_bar.setStyleSheet("QProgressBar {border: 2px solid grey; border-radius: 5px; "
+                                                "background-color: #FFFFFF; text-align:center; font-size:20px}")
+                layout.addWidget(self.progress_bar)
 
                 # 按钮
                 button_layout = QHBoxLayout()
@@ -135,35 +136,59 @@ class OtaUpgrade:
                 skip_button.setFixedSize(100, 30)
                 skip_button.clicked.connect(dialog.close)
                 upgrade_button = QPushButton("立即升级", dialog)
-                upgrade_button .setFixedSize(100, 30)
-                upgrade_button .clicked.connect(partial(self.download_page, dialog, progress_bar, upgrade_button))
+                upgrade_button.setFixedSize(100, 30)
+                upgrade_button.clicked.connect(partial(self.download_page, dialog, upgrade_button))
                 button_layout.addWidget(skip_button, alignment=Qt.AlignLeft)
-                button_layout.addWidget(upgrade_button , alignment=Qt.AlignRight)
-
+                button_layout.addWidget(upgrade_button, alignment=Qt.AlignRight)
                 # 将按钮放到底部
                 layout.addStretch(1)
                 layout.addLayout(button_layout)
 
                 dialog.setLayout(layout)
-                dialog.show()
-                if dialog.exec() == QDialog.Accepted:
-                    pass
-                else:
-                    dialog.close()
+                dialog.exec_()
             else:
                 self.obj_ui.show_message('错误', '未获取到最新版本下载地址')
         except Exception as e:
             logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
 
-    def download_page(self, obj_dialog, obj_bar, obj_btu):
+    def download_page(self, obj_dialog, obj_btu):
         """下载安装包
         :return:
         """
+        try:
+            self.progress_bar.show()
+            thread = Worker(self.__url)
+            thread.progress.connect(self.__set_progress)
+            thread.start()
+            obj_btu.setDisabled(True)
+        except Exception as e:
+            logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
+
+    def __set_progress(self, value):
+        """设置进度条"""
+        self.progress_bar.setValue(value)
+
+        if value >= 100:
+            self.obj_ui.show_message('下载', '下载完成,是否立即安装')
+
+    def install_page(self):
+        """安装升级包
+        :return:
+        """
+        print('xxx')
+
+
+class Worker(QThread):
+    progress = pyqtSignal(int)
+
+    def __init__(self, str_url: str):
+        super(Worker, self).__init__()
+        self.str_url = str_url
+
+    def run(self):
         tmp_file = ''
         try:
-            obj_bar.show()
-            obj_btu.setDisabled(True)
-            url = f'https://gitee.com{self.__url}'
+            url = f'https://gitee.com{self.str_url}'
             response = requests.get(url=url, stream=True)
             response.raise_for_status()
             total_length = int(response.headers.get('content-length'))
@@ -174,14 +199,8 @@ class OtaUpgrade:
                     f.write(content)
                     f.flush()
                     int_length += len(content)
-                    obj_bar.setValue(round(int_length / total_length, 2))
+                    self.progress.emit(int(int_length / total_length))
         except Exception as e:
-            logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
             if os.path.isfile(tmp_file):
                 os.unlink(tmp_file)
-
-    def install_page(self):
-        """安装升级包
-        :return:
-        """
-        pass
+            logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")

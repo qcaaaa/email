@@ -31,6 +31,7 @@ from PyQt5.QtCore import QSize, Qt, QEvent
 from PyQt5 import QtCore, QtGui
 from PyQt5.QtGui import QIcon
 from PyQt5.QtGui import QTextCursor
+from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QListWidget, QStackedWidget
 from PyQt5.QtWidgets import QHeaderView, QAbstractItemView
 from PyQt5.Qt import QTableWidgetItem
@@ -218,10 +219,11 @@ class EmailUi(QWidget):
 
         # 下侧 日志框
         self.log_label = QLabel(self)
-        self.log_label.setGeometry(QtCore.QRect(10, 770, 100, 30))
+        self.log_label.setGeometry(QtCore.QRect(10, 760, 100, 35))
         self.log_label.setAlignment(Qt.AlignLeft)
-        self.log_label.setText(QtCore.QCoreApplication.translate("Email-Tool", "日志输出:"))
-        self.log_label.setStyleSheet('color:red;font:bold 15px;')
+        pix = QPixmap(os.path.join(STATIC_PATH, 'images', 'logg.png'))
+        self.log_label.setPixmap(pix)
+        self.log_label.setToolTip('日志输出')
 
         self.log_text = QTextEdit(self)
         self.log_text.setReadOnly(True)  # 只读

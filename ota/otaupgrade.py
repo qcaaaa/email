@@ -29,7 +29,7 @@ class OtaUpgrade:
 
     def __init__(self, obj_ui, git_url: str, str_ver: str, str_exe: str = ''):
         """
-        :param obj_ui: 主界面 UI读对象
+        :param obj_ui: 主界面 UI对象
         :param git_url: 仓库地址  ps: https://gitee.com/yypqc/email
         :param str_ver: 当前版本
         :param str_exe: 打包软件名称
@@ -42,7 +42,9 @@ class OtaUpgrade:
         self.__dest = ''
         self.__create = ''
         self.__url = ''
+        self.dialog = None
         self.progress_bar = None
+        self.is_close = False
 
     def get_ver(self):
         """获取软件最新版本
@@ -94,19 +96,19 @@ class OtaUpgrade:
         """
         try:
             if self.__url:
-                dialog = QDialog()  # 自定义一个dialog
-                dialog.setWindowTitle('版本更新')
-                dialog.setWindowIcon(QIcon(os.path.join(STATIC_PATH, 'images', 'update.png')))
-                dialog.resize(600, 400)
+                self.dialog = QDialog()  # 自定义一个dialog
+                self.dialog.setWindowTitle('版本更新')
+                self.dialog.setWindowIcon(QIcon(os.path.join(STATIC_PATH, 'images', 'update.png')))
+                self.dialog.resize(600, 400)
                 # 垂直布局
                 layout = QVBoxLayout()
 
-                label = QLabel("版本描述:", dialog)
+                label = QLabel("版本描述:", self.dialog)
                 label.setFont(QFont("黑体", 14, QFont.Bold))
                 layout.addWidget(label)
 
                 # QTextEdit
-                text_edit = QTextEdit(dialog)
+                text_edit = QTextEdit(self.dialog)
                 text_edit.setReadOnly(True)
                 text_edit.setFixedHeight(250)
                 str_info = f'<h2>{self.__str_ver}___<em>{self.__create}</em></h2>'
@@ -123,7 +125,7 @@ class OtaUpgrade:
                 layout.addStretch(1)
 
                 # 进度条，默认隐藏
-                self.progress_bar = QProgressBar(dialog)
+                self.progress_bar = QProgressBar(self.dialog)
                 self.progress_bar.setMaximum(100)
                 self.progress_bar.hide()
                 self.progress_bar.setStyleSheet("QProgressBar {border: 2px solid grey; border-radius: 5px; "
@@ -132,38 +134,43 @@ class OtaUpgrade:
 
                 # 按钮
                 button_layout = QHBoxLayout()
-                skip_button = QPushButton("跳过版本", dialog)
+                skip_button = QPushButton("跳过版本", self.dialog)
                 skip_button.setFixedSize(100, 30)
-                skip_button.clicked.connect(dialog.close)
-                upgrade_button = QPushButton("立即升级", dialog)
+                skip_button.clicked.connect(self.dialog.close)
+                upgrade_button = QPushButton("立即升级", self.dialog)
                 upgrade_button.setFixedSize(100, 30)
-                upgrade_button.clicked.connect(partial(self.download_page, dialog, upgrade_button, skip_button))
+                upgrade_button.clicked.connect(partial(self.download_page, upgrade_button, skip_button))
                 button_layout.addWidget(skip_button, alignment=Qt.AlignLeft)
                 button_layout.addWidget(upgrade_button, alignment=Qt.AlignRight)
                 # 将按钮放到底部
                 layout.addStretch(1)
                 layout.addLayout(button_layout)
 
-                dialog.setLayout(layout)
-                dialog.exec_()
+                self.dialog.setLayout(layout)
+                self.dialog.exec_()
             else:
                 self.obj_ui.show_message('错误', '未获取到最新版本下载地址')
         except Exception as e:
             logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
 
-    def download_page(self, obj_dialog, load_btu, skip_btu):
+    def download_page(self, load_btu, skip_btu):
         """下载安装包
         :return:
         """
         try:
+            # 显示进度条
             self.progress_bar.show()
+            # 升级包临时路径
             _, tmp_file = tempfile.mkstemp(suffix='.exe')
-            thread = Worker(obj_dialog, self.__url, tmp_file)
+            print(tmp_file)
+            thread = Worker(self.dialog, self.__url, tmp_file)
             thread.progress.connect(self.__set_progress)
-            thread.finished.connect(partial(self.install_page, obj_dialog, tmp_file))
+            # 线程结束后触发
+            thread.finished.connect(partial(self.install_page, tmp_file))
             thread.start()
             load_btu.setDisabled(True)
             skip_btu.setDisabled(True)
+            self.is_close = False
         except Exception as e:
             logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
 
@@ -171,12 +178,12 @@ class OtaUpgrade:
         """设置进度条"""
         self.progress_bar.setValue(value)
 
-    def install_page(self, obj_dialog, str_file):
+    def install_page(self, str_file):
         """安装升级包
         :return:
         """
         try:
-            msg_box = QMessageBox(obj_dialog)
+            msg_box = QMessageBox(self.dialog)
             msg_box.setWindowTitle('升级')
             msg_box.setText('下载完成是否立即重启升级!')
             yes_button = msg_box.addButton('确认', QMessageBox.YesRole)
@@ -189,8 +196,8 @@ class OtaUpgrade:
         except Exception as e:
             logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
         finally:
-            if obj_dialog:
-                obj_dialog.close()
+            if self.dialog:
+                self.dialog.close()
 
 
 class Worker(QThread):

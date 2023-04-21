@@ -35,11 +35,13 @@ from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QListWidget, QStackedWidget
 from PyQt5.QtWidgets import QHeaderView, QAbstractItemView
 from PyQt5.Qt import QTableWidgetItem
-from constant import FIRST_TAB, FONT_WEIGHT, DIT_LIST, INT_LIMIT, DIT_DATABASE, STATIC_PATH, GIT_URL, EXE_NAME
+from constant import FIRST_TAB, FONT_WEIGHT, DIT_LIST, INT_LIMIT, DIT_DATABASE, \
+    STATIC_PATH, GIT_URL, EXE_NAME, QSS_STYLE
 from tools.email_tool import EmailTools
 from tools.email_check import CheckTool
 from tools.email_google import GoogleTool
 from ota.otaupgrade import OtaUpgrade
+from .base_ui import BaseButton
 from version import VERSION
 
 
@@ -63,16 +65,9 @@ class EmailUi(QWidget):
         self.google_tool = GoogleTool(self)
         self.ota_tool = OtaUpgrade(self, GIT_URL, VERSION, EXE_NAME)
 
-        with open(os.path.join(STATIC_PATH, 'css', 'QSS.qss'), 'r', encoding='utf-8') as f:
-            self.file_style = f.read()
-
         # ################# 增加控件 开始.......########################################
-        self.add_button = QPushButton(self)
-        self.add_button.setGeometry(QtCore.QRect(120, 20, 100, 30))
-        self.add_button.setIcon(QIcon(os.path.join(STATIC_PATH, 'images', 'add.png')))
-        self.add_button.setToolTip('增加')
-        self.add_button.setStyleSheet(self.file_style)
-        self.add_button.clicked.connect(self.email_tool.add_table)
+        self.add_button = BaseButton(self, (120, 20, 100, 30), os.path.join(STATIC_PATH, 'images', 'add.png'), '增加',
+                                     QSS_STYLE, func=self.email_tool.add_table).btu
         # ################# 增加控件 结束.......########################################
 
         # ################# 导入联系人控件 开始.......########################################
@@ -80,7 +75,7 @@ class EmailUi(QWidget):
         self.import_button.setGeometry(QtCore.QRect(240, 20, 100, 30))
         self.import_button.setIcon(QIcon(os.path.join(STATIC_PATH, 'images', 'import.png')))
         self.import_button.setToolTip('导入客户')
-        self.import_button.setStyleSheet(self.file_style)
+        self.import_button.setStyleSheet(QSS_STYLE)
         self.import_button.clicked.connect(self.email_tool.import_user)
         # ################# 导入联系人控件 结束.......########################################
 
@@ -89,7 +84,7 @@ class EmailUi(QWidget):
         self.send_button.setGeometry(QtCore.QRect(360, 20, 100, 30))
         self.send_button.setIcon(QIcon(os.path.join(STATIC_PATH, 'images', 'email.png')))
         self.send_button.setToolTip('发送邮件')
-        self.send_button.setStyleSheet(self.file_style)
+        self.send_button.setStyleSheet(QSS_STYLE)
         # 最开始禁用
         self.send_button.setDisabled(True)
         self.send_button.clicked.connect(self.email_tool.select_account)
@@ -101,7 +96,7 @@ class EmailUi(QWidget):
         self.sleep_label.setText(QtCore.QCoreApplication.translate("Email-Tool", "发送间隔(s)"))
         self.sleep_edit = QLineEdit(self)
         self.sleep_edit.setGeometry(QtCore.QRect(565, 20, 80, 30))
-        self.sleep_edit.setStyleSheet(self.file_style)
+        self.sleep_edit.setStyleSheet(QSS_STYLE)
         # 设置默认值
         self.sleep_edit.setPlaceholderText('20')
         # 设置只能输入数字
@@ -120,7 +115,7 @@ class EmailUi(QWidget):
         self.interval_label.setText(QtCore.QCoreApplication.translate("Email-Tool", "最大发送"))
         self.interval_edit = QLineEdit(self)
         self.interval_edit.setGeometry(QtCore.QRect(820, 20, 80, 30))
-        self.interval_edit.setStyleSheet(self.file_style)
+        self.interval_edit.setStyleSheet(QSS_STYLE)
         # 设置默认值
         self.interval_edit.setPlaceholderText('50')
         # 设置只能输入数字
@@ -132,7 +127,7 @@ class EmailUi(QWidget):
         self.google_button.setGeometry(QtCore.QRect(940, 20, 100, 30))
         self.google_button.setIcon(QIcon(os.path.join(STATIC_PATH, 'images', 'search.png')))
         self.google_button.setToolTip('谷歌搜索')
-        self.google_button.setStyleSheet(self.file_style)
+        self.google_button.setStyleSheet(QSS_STYLE)
         self.google_button.clicked.connect(self.google_tool.google_search)
         # ################# 谷歌搜索控件 结束.......########################################
 
@@ -141,7 +136,7 @@ class EmailUi(QWidget):
         self.check_button.setGeometry(QtCore.QRect(1060, 20, 100, 30))
         self.check_button.setIcon(QIcon(os.path.join(STATIC_PATH, 'images', 'check.png')))
         self.check_button.setToolTip('邮箱账号检测')
-        self.check_button.setStyleSheet(self.file_style)
+        self.check_button.setStyleSheet(QSS_STYLE)
         self.check_button.clicked.connect(self.check_tool.check_email)
         # ################# 邮箱账号检查控件 结束.......########################################
 
@@ -150,7 +145,7 @@ class EmailUi(QWidget):
         self.upload_button.setGeometry(QtCore.QRect(1180, 20, 100, 30))
         self.upload_button.setIcon(QIcon(os.path.join(STATIC_PATH, 'images', 'fj.png')))
         self.upload_button.setToolTip('查看附件')
-        self.upload_button.setStyleSheet(self.file_style)
+        self.upload_button.setStyleSheet(QSS_STYLE)
         self.upload_button.clicked.connect(self.email_tool.get_aly)
         # ################# 上传附件控件 结束.......########################################
 
@@ -159,7 +154,7 @@ class EmailUi(QWidget):
         self.flush_button.setGeometry(QtCore.QRect(1300, 20, 100, 30))
         self.flush_button.setIcon(QIcon(os.path.join(STATIC_PATH, 'images', 'flush.png')))
         self.flush_button.setToolTip('刷新')
-        self.flush_button.setStyleSheet(self.file_style)
+        self.flush_button.setStyleSheet(QSS_STYLE)
         self.flush_button.clicked.connect(self.flush_table)
         # ################# 刷新控件 结束.......########################################
 
@@ -170,7 +165,7 @@ class EmailUi(QWidget):
         self.page_up.setToolTip('上一页')
         self.page_up.setObjectName('上一页')
         self.page_up.setDisabled(True)
-        self.page_up.setStyleSheet(self.file_style)
+        self.page_up.setStyleSheet(QSS_STYLE)
         self.page_up.clicked.connect(self.page_turning)
 
         self.page_text = QLabel(self)
@@ -184,13 +179,13 @@ class EmailUi(QWidget):
         self.page_down.setToolTip('下一页')
         self.page_down.setObjectName('下一页')
         self.page_down.setDisabled(True)
-        self.page_down.setStyleSheet(self.file_style)
+        self.page_down.setStyleSheet(QSS_STYLE)
         self.page_down.clicked.connect(self.page_turning)
 
         self.page_text_2 = QLineEdit(self)
         self.page_text_2.textChanged.connect(self.text_changed)
         self.page_text_2.setGeometry(QtCore.QRect(785, 760, 70, 30))
-        self.page_text_2.setStyleSheet(self.file_style)
+        self.page_text_2.setStyleSheet(QSS_STYLE)
 
         self.page_skip = QPushButton(self)
         self.page_skip.setGeometry(QtCore.QRect(875, 760, 80, 30))
@@ -198,7 +193,7 @@ class EmailUi(QWidget):
         self.page_skip.setToolTip('跳转')
         self.page_skip.setObjectName('跳转')
         self.page_skip.setDisabled(True)
-        self.page_skip.setStyleSheet(self.file_style)
+        self.page_skip.setStyleSheet(QSS_STYLE)
         self.page_skip.clicked.connect(self.page_turning)
         # ################# 分页 结束....########################################
 
@@ -207,7 +202,7 @@ class EmailUi(QWidget):
         self.main_layout.setContentsMargins(0, 60, 0, 250)
         # 左侧选项列表
         self.left_widget = QListWidget()
-        self.left_widget.setStyleSheet(self.file_style)
+        self.left_widget.setStyleSheet(QSS_STYLE)
         # 左侧绑定 点击事件
         self.left_widget.itemClicked.connect(self.display)
         self.main_layout.addWidget(self.left_widget)
@@ -218,7 +213,7 @@ class EmailUi(QWidget):
 
         # 滚动条
         text_scroll = QScrollBar()
-        text_scroll.setStyleSheet(self.file_style)
+        text_scroll.setStyleSheet(QSS_STYLE)
 
         # 下侧 日志框
         self.log_label = QLabel(self)
@@ -377,7 +372,7 @@ class EmailUi(QWidget):
                 button.setIcon(QIcon(os.path.join(STATIC_PATH, 'images', 'del.png')))
                 button.setToolTip('删除')
                 button.clicked.connect(self.del_info)
-                button.setStyleSheet(self.file_style)
+                button.setStyleSheet(QSS_STYLE)
                 self.dit_table_button.setdefault(str_table, []).append(button)
                 table.setCellWidget(index_, int_len, button)
             # 更新页数

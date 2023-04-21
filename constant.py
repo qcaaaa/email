@@ -13,6 +13,7 @@
 @Desc :
 """
 import os
+from utils.tools import get_qss_style
 
 BASE_PATH = os.path.abspath(os.path.dirname(__file__))
 
@@ -88,3 +89,6 @@ GIT_URL = 'https://gitee.com/yypqc/email'
 
 # 打包软件名称
 EXE_NAME = 'Email.exe'
+
+# qss 样式
+QSS_STYLE = get_qss_style()

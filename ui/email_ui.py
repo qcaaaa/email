@@ -41,7 +41,7 @@ from tools.email_tool import EmailTools
 from tools.email_check import CheckTool
 from tools.email_google import GoogleTool
 from ota.otaupgrade import OtaUpgrade
-from .base_ui import BaseButton
+from ui.base_ui import BaseButton
 from version import VERSION
 
 
@@ -71,23 +71,15 @@ class EmailUi(QWidget):
         # ################# 增加控件 结束.......########################################
 
         # ################# 导入联系人控件 开始.......########################################
-        self.import_button = QPushButton(self)
-        self.import_button.setGeometry(QtCore.QRect(240, 20, 100, 30))
-        self.import_button.setIcon(QIcon(os.path.join(STATIC_PATH, 'images', 'import.png')))
-        self.import_button.setToolTip('导入客户')
-        self.import_button.setStyleSheet(QSS_STYLE)
-        self.import_button.clicked.connect(self.email_tool.import_user)
+        self.import_button = BaseButton(self, (240, 20, 100, 30), os.path.join(STATIC_PATH, 'images', 'import.png'),
+                                        '导入客户', QSS_STYLE, func=self.email_tool.import_user).btu
         # ################# 导入联系人控件 结束.......########################################
 
         # ################# 发送邮件控件 开始.......########################################
-        self.send_button = QPushButton(self)
-        self.send_button.setGeometry(QtCore.QRect(360, 20, 100, 30))
-        self.send_button.setIcon(QIcon(os.path.join(STATIC_PATH, 'images', 'email.png')))
-        self.send_button.setToolTip('发送邮件')
-        self.send_button.setStyleSheet(QSS_STYLE)
+        self.send_button = BaseButton(self, (360, 20, 100, 30), os.path.join(STATIC_PATH, 'images', 'email.png'),
+                                      '发送邮件', QSS_STYLE, func=self.email_tool.select_account).btu
         # 最开始禁用
         self.send_button.setDisabled(True)
-        self.send_button.clicked.connect(self.email_tool.select_account)
         # ################# 发送邮件控件 结束.......########################################
 
         # ################# 发送间隔控件 开始.......########################################
@@ -123,78 +115,47 @@ class EmailUi(QWidget):
         # ################# 发送间隔控件 结束.......########################################
 
         # ################# 谷歌搜索控件 开始.......########################################
-        self.google_button = QPushButton(self)
-        self.google_button.setGeometry(QtCore.QRect(940, 20, 100, 30))
-        self.google_button.setIcon(QIcon(os.path.join(STATIC_PATH, 'images', 'search.png')))
-        self.google_button.setToolTip('谷歌搜索')
-        self.google_button.setStyleSheet(QSS_STYLE)
-        self.google_button.clicked.connect(self.google_tool.google_search)
+        self.google_button = BaseButton(self, (940, 20, 100, 30), os.path.join(STATIC_PATH, 'images', 'search.png'),
+                                        '谷歌搜索', QSS_STYLE, func=self.google_tool.google_search).btu
         # ################# 谷歌搜索控件 结束.......########################################
 
         # ################# 邮箱账号检查控件 开始.......########################################
-        self.check_button = QPushButton(self)
-        self.check_button.setGeometry(QtCore.QRect(1060, 20, 100, 30))
-        self.check_button.setIcon(QIcon(os.path.join(STATIC_PATH, 'images', 'check.png')))
-        self.check_button.setToolTip('邮箱账号检测')
-        self.check_button.setStyleSheet(QSS_STYLE)
-        self.check_button.clicked.connect(self.check_tool.check_email)
+        self.check_button = BaseButton(self, (1060, 20, 100, 30), os.path.join(STATIC_PATH, 'images', 'check.png'),
+                                       '邮箱账号检测', QSS_STYLE, func=self.check_tool.check_email).btu
         # ################# 邮箱账号检查控件 结束.......########################################
 
         # ################# 上传附件控件 开始.......########################################
-        self.upload_button = QPushButton(self)
-        self.upload_button.setGeometry(QtCore.QRect(1180, 20, 100, 30))
-        self.upload_button.setIcon(QIcon(os.path.join(STATIC_PATH, 'images', 'fj.png')))
-        self.upload_button.setToolTip('查看附件')
-        self.upload_button.setStyleSheet(QSS_STYLE)
-        self.upload_button.clicked.connect(self.email_tool.get_aly)
+        self.upload_button = BaseButton(self, (1180, 20, 100, 30), os.path.join(STATIC_PATH, 'images', 'fj.png'),
+                                        '查看附件', QSS_STYLE, func=self.email_tool.get_aly).btu
         # ################# 上传附件控件 结束.......########################################
 
         # ################# 刷新控件 开始.......########################################
-        self.flush_button = QPushButton(self)
-        self.flush_button.setGeometry(QtCore.QRect(1300, 20, 100, 30))
-        self.flush_button.setIcon(QIcon(os.path.join(STATIC_PATH, 'images', 'flush.png')))
-        self.flush_button.setToolTip('刷新')
-        self.flush_button.setStyleSheet(QSS_STYLE)
-        self.flush_button.clicked.connect(self.flush_table)
+        self.flush_button = BaseButton(self, (1300, 20, 100, 30), os.path.join(STATIC_PATH, 'images', 'flush.png'),
+                                       '刷新', QSS_STYLE, func=self.flush_table).btu
         # ################# 刷新控件 结束.......########################################
 
         # ################# 分页 开始....########################################
-        self.page_up = QPushButton(self)
-        self.page_up.setGeometry(QtCore.QRect(525, 760, 80, 30))
-        self.page_up.setIcon(QIcon(os.path.join(STATIC_PATH, 'images', 'up.png')))
-        self.page_up.setToolTip('上一页')
-        self.page_up.setObjectName('上一页')
+        self.page_up = BaseButton(self, (525, 760, 80, 30), os.path.join(STATIC_PATH, 'images', 'up.png'),
+                                  '上一页', QSS_STYLE, func=self.page_turning, str_name='上一页').btu
         self.page_up.setDisabled(True)
-        self.page_up.setStyleSheet(QSS_STYLE)
-        self.page_up.clicked.connect(self.page_turning)
 
         self.page_text = QLabel(self)
         self.page_text.setGeometry(QtCore.QRect(625, 760, 40, 30))
         self.page_text.setAlignment(Qt.AlignCenter)
         self.page_text.setText(QtCore.QCoreApplication.translate("Email-Tool", "1/1"))
 
-        self.page_down = QPushButton(self)
-        self.page_down.setGeometry(QtCore.QRect(685, 760, 80, 30))
-        self.page_down.setIcon(QIcon(os.path.join(STATIC_PATH, 'images', 'next.png')))
-        self.page_down.setToolTip('下一页')
-        self.page_down.setObjectName('下一页')
+        self.page_down = BaseButton(self, (685, 760, 80, 30), os.path.join(STATIC_PATH, 'images', 'next.png'),
+                                    '下一页', QSS_STYLE, func=self.page_turning, str_name='下一页').btu
         self.page_down.setDisabled(True)
-        self.page_down.setStyleSheet(QSS_STYLE)
-        self.page_down.clicked.connect(self.page_turning)
 
         self.page_text_2 = QLineEdit(self)
         self.page_text_2.textChanged.connect(self.text_changed)
         self.page_text_2.setGeometry(QtCore.QRect(785, 760, 70, 30))
         self.page_text_2.setStyleSheet(QSS_STYLE)
 
-        self.page_skip = QPushButton(self)
-        self.page_skip.setGeometry(QtCore.QRect(875, 760, 80, 30))
-        self.page_skip.setIcon(QIcon(os.path.join(STATIC_PATH, 'images', 'skip.png')))
-        self.page_skip.setToolTip('跳转')
-        self.page_skip.setObjectName('跳转')
+        self.page_skip = BaseButton(self, (875, 760, 80, 30), os.path.join(STATIC_PATH, 'images', 'skip.png'),
+                                    '跳转', QSS_STYLE, func=self.page_turning, str_name='跳转').btu
         self.page_skip.setDisabled(True)
-        self.page_skip.setStyleSheet(QSS_STYLE)
-        self.page_skip.clicked.connect(self.page_turning)
         # ################# 分页 结束....########################################
 
         self.main_layout = QHBoxLayout(self)  # 窗口的整体布局

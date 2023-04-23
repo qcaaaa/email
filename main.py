@@ -60,6 +60,7 @@ class MyTelegram(QMainWindow):
         self.setWindowIcon(QIcon(os.path.join(STATIC_PATH, 'images', 'login.png')))
         self.setObjectName('win')
         self.resize(400, 130)
+        self.setMaximumSize(400, 130)
         self.setStyleSheet('#win{border-image:url(./static/images/bj.png);}')
 
         user_label = BaseLabel(self, (100, 24, 20, 15), str_img=os.path.join(STATIC_PATH, 'images', 'user.png'),

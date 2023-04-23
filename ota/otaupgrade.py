@@ -27,17 +27,13 @@ from constant import STATIC_PATH
 
 class OtaUpgrade:
 
-    def __init__(self, obj_ui, git_url: str, str_ver: str, str_exe: str = ''):
+    def __init__(self, git_url: str, str_exe: str = ''):
         """
-        :param obj_ui: 主界面 UI对象
         :param git_url: 仓库地址  ps: https://gitee.com/yypqc/email
-        :param str_ver: 当前版本
         :param str_exe: 打包软件名称
         """
-        self.obj_ui = obj_ui
         self.git_url = git_url
         self.exe_name = str_exe
-        self.str_ver = str_ver
         self.__str_ver = '----'
         self.__dest = ''
         self.__create = ''
@@ -64,31 +60,7 @@ class OtaUpgrade:
                     break
         except Exception as e:
             logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
-        return
-
-    def set_ver(self):
-        """设置软件版本
-        :return:
-        """
-
-        def __do():
-            self.get_ver()
-            str_title = f'软件当前版本: {self.str_ver} 最新版本: {self.__str_ver}'
-            self.obj_ui.ver_label.setText(str_title)
-            try:
-                if self.__str_ver.count('.') == self.str_ver.count('.') == 3:
-                    lst_new_ver = [int(i) for i in self.__str_ver.lower().replace('v', '').split('.')]
-                    lst_old_ver = [int(i) for i in self.str_ver.lower().replace('v', '').split('.')]
-
-                    for index_ in range(4):
-                        if lst_new_ver[index_] > lst_old_ver[index_]:
-                            self.obj_ui.upd_btu.setText('立即查看')
-                            self.obj_ui.upd_btu.setEnabled(True)
-                            break
-            except Exception as e:
-                logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
-
-        threading.Thread(target=__do).start()
+        return self.__str_ver
 
     def show_page(self):
         """显示升级信息
@@ -149,7 +121,7 @@ class OtaUpgrade:
                 self.dialog.setLayout(layout)
                 self.dialog.exec_()
             else:
-                self.obj_ui.show_message('错误', '未获取到最新版本下载地址')
+                QMessageBox.warning(self.dialog, '错误', '未获取到最新版本下载地址', QMessageBox.Yes)
         except Exception as e:
             logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
 

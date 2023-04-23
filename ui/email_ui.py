@@ -14,6 +14,8 @@
 """
 
 import os
+import threading
+
 from loguru import logger
 from datetime import datetime
 from PyQt5.QtWidgets import QTextEdit, QScrollBar
@@ -47,7 +49,7 @@ class BaseClass:
         self.email_tool = EmailTools(self)
         self.check_tool = CheckTool(self)
         self.google_tool = GoogleTool(self)
-        self.ota_tool = OtaUpgrade(self, GIT_URL, VERSION, EXE_NAME)
+        self.ota_tool = OtaUpgrade(GIT_URL, EXE_NAME)
 
 
 class EmailUi(QWidget, BaseClass):
@@ -180,7 +182,6 @@ class EmailUi(QWidget, BaseClass):
         self.upd_btu = BaseButton(self, (280, 975, 80, 20), os.path.join(STATIC_PATH, 'images', 'download.png'),
                                   file_style=QSS_STYLE, str_name='upd_btu', func=self.ota_tool.show_page).btu
         self.upd_btu.setDisabled(True)
-        self.ota_tool.set_ver()
 
         self.page = FIRST_TAB
 
@@ -194,10 +195,12 @@ class EmailUi(QWidget, BaseClass):
 
     def _setup_ui(self):
         """加载界面ui"""
+
+        # 获取版本
+        self.set_ver()
+
         self.left_widget.currentRowChanged.connect(self.right_widget.setCurrentIndex)  # list和右侧窗口的index对应绑定
-
         self.left_widget.setFrameShape(QListWidget.NoFrame)  # 去掉边框
-
         self.left_widget.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)  # 隐藏滚动条
         self.left_widget.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
 
@@ -236,11 +239,11 @@ class EmailUi(QWidget, BaseClass):
         # 获取鼠标指向
         self.tool_tip = item.text()
 
-    def eventFilter(self, object, event):
+    def eventFilter(self, obj, event):
         try:
             if event.type() == QEvent.ToolTip and self.tool_tip is not None:
                 self.setToolTip(self.tool_tip)
-            return QWidget.eventFilter(self, object, event)
+            return QWidget.eventFilter(self, obj, event)
         except Exception as e:
             logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
 
@@ -262,7 +265,6 @@ class EmailUi(QWidget, BaseClass):
         if int_pag > 0:
             dit_info = self.email_tool.get_info(DIT_DATABASE[self.page], int_start=int_pag)
             self.show_table(dit_info.get('lst_ret', []), self.page, curr_pag=int_pag, count_pag=dit_info.get('count', 0))
-        self.show_message('', '', f'当前处于 {self.page}页面 第{int_pag}页')
 
     def text_changed(self, text):
         """跳转输入框 监听事件"""
@@ -366,3 +368,25 @@ class EmailUi(QWidget, BaseClass):
                 self.log_text.moveCursor(QTextCursor.End)
         except Exception as e:
             logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
+
+    def set_ver(self):
+
+        def __do():
+            str_ver = self.ota_tool.get_ver()
+            str_title = f'软件当前版本: {VERSION} 最新版本: {str_ver}'
+            self.ver_label.setText(str_title)
+            if VERSION.count('.') == str_ver.count('.') == 3:
+                lst_new_ver = [int(i) for i in str_ver.lower().replace('v', '').split('.')]
+                lst_old_ver = [int(i) for i in VERSION.lower().replace('v', '').split('.')]
+
+                for index_ in range(4):
+                    if lst_new_ver[index_] > lst_old_ver[index_]:
+                        self.upd_btu.setText('立即查看')
+                        self.upd_btu.setEnabled(True)
+                        break
+        try:
+
+            threading.Thread(target=__do).start()
+        except Exception as e:
+            logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
+        return

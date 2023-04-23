@@ -25,7 +25,6 @@ from PyQt5.QtWidgets import QWidget
 from PyQt5.QtWidgets import QHBoxLayout
 from PyQt5.QtWidgets import QTableWidget
 from PyQt5.QtWidgets import QDesktopWidget
-from PyQt5.QtWidgets import QRadioButton
 from PyQt5.QtCore import QSize, Qt, QEvent
 from PyQt5 import QtCore, QtGui
 from PyQt5.QtGui import QIcon
@@ -69,61 +68,32 @@ class EmailUi(QWidget, BaseClass):
         self.setWindowTitle('Email-Tool')
 
         # ################# 增加控件 开始.......########################################
-        self.add_button = BaseButton(self, (120, 20, 100, 30), os.path.join(STATIC_PATH, 'images', 'add.png'), '增加',
+        self.add_button = BaseButton(self, (120, 20, 40, 30), os.path.join(STATIC_PATH, 'images', 'add.png'), '增加',
                                      QSS_STYLE, func=self.email_tool.add_table).btu
         # ################# 增加控件 结束.......########################################
 
-        # ################# 导入联系人控件 开始.......########################################
-        self.import_button = BaseButton(self, (240, 20, 100, 30), os.path.join(STATIC_PATH, 'images', 'import.png'),
-                                        '导入客户', QSS_STYLE, func=self.email_tool.import_user).btu
-        # ################# 导入联系人控件 结束.......########################################
-
         # ################# 发送邮件控件 开始.......########################################
-        self.send_button = BaseButton(self, (360, 20, 100, 30), os.path.join(STATIC_PATH, 'images', 'email.png'),
-                                      '发送邮件', QSS_STYLE, func=self.email_tool.select_account).btu
-        # 最开始禁用
-        self.send_button.setDisabled(True)
+        self.send_button = BaseButton(self, (170, 20, 40, 30), os.path.join(STATIC_PATH, 'images', 'email.png'),
+                                      '发送邮件', QSS_STYLE, func=self.email_tool.select_user).btu
         # ################# 发送邮件控件 结束.......########################################
 
-        # ################# 发送间隔控件 开始.......########################################
-        self.sleep_label = BaseLabel(self, (480, 20, 80, 30), str_text='发送间隔(s)').label
-
-        self.sleep_edit = BaseLineEdit(self, (565, 20, 80, 30), QSS_STYLE, '20').lineedit
-        # 设置只能输入数字
-        self.sleep_edit.setValidator(QtGui.QIntValidator())
-        # ################# 发送间隔控件 结束.......########################################
-
-        # ################# 发送方式控件 开始.......########################################
-        self.radio_button = QRadioButton("带网页", self)
-        self.radio_button.setChecked(False)
-        self.radio_button.setGeometry(665, 20, 60, 30)
-        # ################# 发送方式控件 结束.......########################################
-
-        # ################# 发送间隔控件 开始.......########################################
-        self.interval_label = BaseLabel(self, (745, 20, 50, 30), str_text='最大发送')
-
-        self.interval_edit = BaseLineEdit(self, (820, 20, 80, 30), QSS_STYLE, '50').lineedit
-        # 设置只能输入数字
-        self.interval_edit.setValidator(QtGui.QIntValidator())
-        # ################# 发送间隔控件 结束.......########################################
-
         # ################# 谷歌搜索控件 开始.......########################################
-        self.google_button = BaseButton(self, (940, 20, 100, 30), os.path.join(STATIC_PATH, 'images', 'search.png'),
+        self.google_button = BaseButton(self, (220, 20, 40, 30), os.path.join(STATIC_PATH, 'images', 'search.png'),
                                         '谷歌搜索', QSS_STYLE, func=self.google_tool.google_search).btu
         # ################# 谷歌搜索控件 结束.......########################################
 
         # ################# 邮箱账号检查控件 开始.......########################################
-        self.check_button = BaseButton(self, (1060, 20, 100, 30), os.path.join(STATIC_PATH, 'images', 'check.png'),
+        self.check_button = BaseButton(self, (270, 20, 40, 30), os.path.join(STATIC_PATH, 'images', 'check.png'),
                                        '邮箱账号检测', QSS_STYLE, func=self.check_tool.check_email).btu
         # ################# 邮箱账号检查控件 结束.......########################################
 
         # ################# 上传附件控件 开始.......########################################
-        self.upload_button = BaseButton(self, (1180, 20, 100, 30), os.path.join(STATIC_PATH, 'images', 'fj.png'),
+        self.upload_button = BaseButton(self, (320, 20, 40, 30), os.path.join(STATIC_PATH, 'images', 'fj.png'),
                                         '查看附件', QSS_STYLE, func=self.email_tool.get_aly).btu
         # ################# 上传附件控件 结束.......########################################
 
         # ################# 刷新控件 开始.......########################################
-        self.flush_button = BaseButton(self, (1300, 20, 100, 30), os.path.join(STATIC_PATH, 'images', 'flush.png'),
+        self.flush_button = BaseButton(self, (370, 20, 40, 30), os.path.join(STATIC_PATH, 'images', 'flush.png'),
                                        '刷新', QSS_STYLE, func=self.flush_table).btu
         # ################# 刷新控件 结束.......########################################
 

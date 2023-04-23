@@ -18,6 +18,7 @@ import time
 import smtplib
 import threading
 from json import load
+from PyQt5 import QtCore, QtGui
 from tools.aly_s3 import AlyS3
 from sql.sql_db import MySql
 from loguru import logger
@@ -29,9 +30,10 @@ from email.utils import formatdate
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from utils.tools import sub_html, word_2_html, load_file
-from constant import INT_LIMIT, BASE_PATH, DIT_DATABASE, CONFIG_PATH, DIT_EMAIL, FILTER_TABLE, FILTER_LANG
+from constant import INT_LIMIT, BASE_PATH, DIT_DATABASE, CONFIG_PATH, DIT_EMAIL, FILTER_TABLE, FILTER_LANG, QSS_STYLE
 from PyQt5.QtWidgets import QDialog, QFormLayout, QLineEdit, QDialogButtonBox, QComboBox, \
-    QTextEdit, QFileDialog, QCheckBox, QGridLayout, QPushButton
+    QTextEdit, QFileDialog, QCheckBox, QGridLayout, QPushButton, QVBoxLayout, QRadioButton, QHBoxLayout
+from ui.base_ui import BaseButton, BaseLabel, BaseLineEdit
 
 
 class EmailTools:
@@ -429,6 +431,54 @@ class EmailTools:
         except Exception as err:
             logger.error(f"{err.__traceback__.tb_lineno}:--:{err}--{table}")
         return dialog
+
+    def select_user(self):
+        """导入用户以及选择配置"""
+        dialog = None
+        try:
+            dialog = QDialog(self.obj_ui)
+            dialog.setWindowTitle('导入用户以及设置基本配置')
+            dialog.resize(500, 300)
+            # 横向布局
+            h_layout_1 = QHBoxLayout()
+            label_user = BaseLabel(dialog, str_text='导入联系人').label
+            btu_user = BaseButton(dialog, str_text='选择联系人文件', func=self.import_user).btu
+            h_layout_1.addWidget(label_user)
+            h_layout_1.addWidget(btu_user)
+
+            h_layout_2 = QHBoxLayout()
+            label_interval = BaseLabel(dialog, str_text='最大发送').label
+            interval_edit = BaseLineEdit(dialog, (820, 20, 80, 30), QSS_STYLE, '50').lineedit
+            interval_edit.setValidator(QtGui.QIntValidator())
+            h_layout_2.addWidget(label_interval)
+            h_layout_2.addWidget(interval_edit)
+
+            h_layout_3 = QHBoxLayout()
+            label_sleep = BaseLabel(dialog, str_text='发送间隔(s)').label
+            sleep_edit = BaseLineEdit(dialog, (565, 20, 80, 30), QSS_STYLE, '20').lineedit
+            sleep_edit.setValidator(QtGui.QIntValidator())
+            h_layout_3.addWidget(label_sleep)
+            h_layout_3.addWidget(sleep_edit)
+
+            radio_button = QRadioButton("带网页", dialog)
+            radio_button.setChecked(False)
+
+            # 垂直布局
+            v_layout = QVBoxLayout()
+            v_layout.addLayout(h_layout_1)
+            v_layout.addLayout(h_layout_2)
+            v_layout.addLayout(h_layout_3)
+            v_layout.addWidget(radio_button)
+
+            dialog.setLayout(v_layout)
+
+            dialog.show()
+            dialog.exec_()
+
+        except Exception as err:
+            logger.error(f"{err.__traceback__.tb_lineno}:--:{err}")
+        return
+
 
     def select_account(self):
         """选择账号"""

@@ -15,13 +15,12 @@
 import sys
 import os
 
-from PyQt5 import QtCore
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QIcon, QPixmap
+from PyQt5.QtGui import QIcon
 from loguru import logger
-from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QLineEdit, QMessageBox
+from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox, QLineEdit
 
-from ui.base_ui import BaseButton
+from ui.base_ui import BaseButton, BaseLabel, BaseLineEdit
 from ui.email_ui import EmailUi
 
 
@@ -62,30 +61,24 @@ class MyTelegram(QMainWindow):
         self.setObjectName('win')
         self.resize(400, 130)
         self.setStyleSheet('#win{border-image:url(./static/images/bj.png);}')
-        user_label = QLabel(self)
-        user_label.setGeometry(QtCore.QRect(100, 24, 20, 15))
-        user_pix = QPixmap(os.path.join(STATIC_PATH, 'images', 'user.png'))
-        user_label.setPixmap(user_pix)
-        user_label.setToolTip('用户名')
-        self.user_line = QLineEdit(self)
-        self.user_line.setGeometry(QtCore.QRect(150, 20, 120, 20))
-        pwd_label = QLabel(self)
-        pwd_label.setGeometry(QtCore.QRect(100, 54, 20, 15))
-        pwd_pix = QPixmap(os.path.join(STATIC_PATH, 'images', 'pwd.png'))
-        pwd_label.setPixmap(pwd_pix)
-        pwd_label.setToolTip('密码')
-        self.pwd_line = QLineEdit(self)
+
+        user_label = BaseLabel(self, (100, 24, 20, 15), str_img=os.path.join(STATIC_PATH, 'images', 'user.png'),
+                               str_tip='用户名').label
+
+        self.user_line = BaseLineEdit(self, (150, 20, 120, 20)).lineedit
+
+        pwd_label = BaseLabel(self, (100, 54, 20, 15), str_img=os.path.join(STATIC_PATH, 'images', 'pwd.png'),
+                              str_tip='密码').label
+
+        self.pwd_line = BaseLineEdit(self, (150, 50, 120, 20)).lineedit
         self.pwd_line.setEchoMode(QLineEdit.Password)
-        self.pwd_line.setGeometry(QtCore.QRect(150, 50, 120, 20))
         self.pwd_line.textChanged.connect(self.text_changed)
 
-        self.login_btu = BaseButton(self, (200, 90, 75, 23), func=self.login).btu
-        self.login_btu.setText('登录')
+        self.login_btu = BaseButton(self, (200, 90, 75, 23), func=self.login, str_text='登录').btu
         self.login_btu.setDisabled(True)
         self.login_btu.setShortcut(Qt.Key_Return)  # 绑定快捷键
 
-        quit_btu = BaseButton(self, (100, 90, 75, 23), func=self.close).btu
-        quit_btu.setText('取消')
+        quit_btu = BaseButton(self, (100, 90, 75, 23), func=self.close, str_text='取消').btu
 
     def text_changed(self, text):
         if text and self.user_line.text():
@@ -99,10 +92,7 @@ class MyTelegram(QMainWindow):
             main_wnd.show()
             self.close()
         else:
-            try:
-                QMessageBox.warning(self, '错误', '账号或者密码不对！', QMessageBox.Yes)
-            except Exception as e:
-                print(e)
+            QMessageBox.warning(self, '错误', '账号或者密码不对！', QMessageBox.Yes)
 
 
 if __name__ == '__main__':

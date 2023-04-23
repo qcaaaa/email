@@ -10,8 +10,9 @@ QPushButton#xxx
 #xx
 都表示通过设置的objectName来指定
 */
-QPushButton#add_button {
-    background-color: #f44336; /*背景颜色*/
+QPushButton#upd_btu {
+    border: none;
+    color: blue;
 }
 QPushButton:hover {
     background-color: #e57373; /*鼠标悬停时背景颜色*/

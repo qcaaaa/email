@@ -22,16 +22,12 @@ from PyQt5.QtWidgets import QListWidgetItem
 from PyQt5.QtWidgets import QWidget
 from PyQt5.QtWidgets import QHBoxLayout
 from PyQt5.QtWidgets import QTableWidget
-from PyQt5.QtWidgets import QPushButton
-from PyQt5.QtWidgets import QLineEdit
-from PyQt5.QtWidgets import QLabel
 from PyQt5.QtWidgets import QDesktopWidget
 from PyQt5.QtWidgets import QRadioButton
 from PyQt5.QtCore import QSize, Qt, QEvent
 from PyQt5 import QtCore, QtGui
 from PyQt5.QtGui import QIcon
 from PyQt5.QtGui import QTextCursor
-from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QListWidget, QStackedWidget
 from PyQt5.QtWidgets import QHeaderView, QAbstractItemView
 from PyQt5.Qt import QTableWidgetItem
@@ -41,11 +37,20 @@ from tools.email_tool import EmailTools
 from tools.email_check import CheckTool
 from tools.email_google import GoogleTool
 from ota.otaupgrade import OtaUpgrade
-from ui.base_ui import BaseButton
+from ui.base_ui import BaseButton, BaseLabel, BaseLineEdit
 from version import VERSION
 
 
-class EmailUi(QWidget):
+class BaseClass:
+
+    def __init__(self):
+        self.email_tool = EmailTools(self)
+        self.check_tool = CheckTool(self)
+        self.google_tool = GoogleTool(self)
+        self.ota_tool = OtaUpgrade(self, GIT_URL, VERSION, EXE_NAME)
+
+
+class EmailUi(QWidget, BaseClass):
     def __init__(self):
         super(EmailUi, self).__init__()
         self.setWindowIcon(QIcon(os.path.join(STATIC_PATH, 'images', 'logo.png')))
@@ -60,10 +65,6 @@ class EmailUi(QWidget):
         new_top = (screen.height() - size.height()) / 2
         self.move(int(new_left), int(new_top) if int(new_top) > 60 else 0)
         self.setWindowTitle('Email-Tool')
-        self.email_tool = EmailTools(self)
-        self.check_tool = CheckTool(self)
-        self.google_tool = GoogleTool(self)
-        self.ota_tool = OtaUpgrade(self, GIT_URL, VERSION, EXE_NAME)
 
         # ################# 增加控件 开始.......########################################
         self.add_button = BaseButton(self, (120, 20, 100, 30), os.path.join(STATIC_PATH, 'images', 'add.png'), '增加',
@@ -83,14 +84,9 @@ class EmailUi(QWidget):
         # ################# 发送邮件控件 结束.......########################################
 
         # ################# 发送间隔控件 开始.......########################################
-        self.sleep_label = QLabel(self)
-        self.sleep_label.setGeometry(QtCore.QRect(480, 20, 80, 30))
-        self.sleep_label.setText(QtCore.QCoreApplication.translate("Email-Tool", "发送间隔(s)"))
-        self.sleep_edit = QLineEdit(self)
-        self.sleep_edit.setGeometry(QtCore.QRect(565, 20, 80, 30))
-        self.sleep_edit.setStyleSheet(QSS_STYLE)
-        # 设置默认值
-        self.sleep_edit.setPlaceholderText('20')
+        self.sleep_label = BaseLabel(self, (480, 20, 80, 30), str_text='发送间隔(s)').label
+
+        self.sleep_edit = BaseLineEdit(self, (565, 20, 80, 30), QSS_STYLE, '20').lineedit
         # 设置只能输入数字
         self.sleep_edit.setValidator(QtGui.QIntValidator())
         # ################# 发送间隔控件 结束.......########################################
@@ -102,14 +98,9 @@ class EmailUi(QWidget):
         # ################# 发送方式控件 结束.......########################################
 
         # ################# 发送间隔控件 开始.......########################################
-        self.interval_label = QLabel(self)
-        self.interval_label.setGeometry(QtCore.QRect(745, 20, 50, 30))
-        self.interval_label.setText(QtCore.QCoreApplication.translate("Email-Tool", "最大发送"))
-        self.interval_edit = QLineEdit(self)
-        self.interval_edit.setGeometry(QtCore.QRect(820, 20, 80, 30))
-        self.interval_edit.setStyleSheet(QSS_STYLE)
-        # 设置默认值
-        self.interval_edit.setPlaceholderText('50')
+        self.interval_label = BaseLabel(self, (745, 20, 50, 30), str_text='最大发送')
+
+        self.interval_edit = BaseLineEdit(self, (820, 20, 80, 30), QSS_STYLE, '50').lineedit
         # 设置只能输入数字
         self.interval_edit.setValidator(QtGui.QIntValidator())
         # ################# 发送间隔控件 结束.......########################################
@@ -139,19 +130,15 @@ class EmailUi(QWidget):
                                   '上一页', QSS_STYLE, func=self.page_turning, str_name='上一页').btu
         self.page_up.setDisabled(True)
 
-        self.page_text = QLabel(self)
-        self.page_text.setGeometry(QtCore.QRect(625, 760, 40, 30))
+        self.page_text = BaseLabel(self, (625, 760, 40, 30), str_text="1/1").label
         self.page_text.setAlignment(Qt.AlignCenter)
-        self.page_text.setText(QtCore.QCoreApplication.translate("Email-Tool", "1/1"))
 
         self.page_down = BaseButton(self, (685, 760, 80, 30), os.path.join(STATIC_PATH, 'images', 'next.png'),
                                     '下一页', QSS_STYLE, func=self.page_turning, str_name='下一页').btu
         self.page_down.setDisabled(True)
 
-        self.page_text_2 = QLineEdit(self)
+        self.page_text_2 = BaseLineEdit(self, (785, 760, 70, 30), QSS_STYLE).lineedit
         self.page_text_2.textChanged.connect(self.text_changed)
-        self.page_text_2.setGeometry(QtCore.QRect(785, 760, 70, 30))
-        self.page_text_2.setStyleSheet(QSS_STYLE)
 
         self.page_skip = BaseButton(self, (875, 760, 80, 30), os.path.join(STATIC_PATH, 'images', 'skip.png'),
                                     '跳转', QSS_STYLE, func=self.page_turning, str_name='跳转').btu
@@ -177,12 +164,9 @@ class EmailUi(QWidget):
         text_scroll.setStyleSheet(QSS_STYLE)
 
         # 下侧 日志框
-        self.log_label = QLabel(self)
-        self.log_label.setGeometry(QtCore.QRect(10, 760, 100, 35))
+        self.log_label = BaseLabel(self, (10, 760, 100, 35), str_img=os.path.join(STATIC_PATH, 'images', 'log.png'),
+                                   str_tip='日志输出').label
         self.log_label.setAlignment(Qt.AlignLeft)
-        self.pix = QPixmap(os.path.join(STATIC_PATH, 'images', 'log.png'))
-        self.log_label.setPixmap(self.pix)
-        self.log_label.setToolTip('日志输出')
 
         self.log_text = QTextEdit(self)
         self.log_text.setReadOnly(True)  # 只读
@@ -191,14 +175,11 @@ class EmailUi(QWidget):
         self.log_text.setVerticalScrollBar(text_scroll)
 
         # 版本
-        self.ver_label = QLabel(self)
-        self.ver_label.setGeometry(QtCore.QRect(10, 975, 270, 20))
-        self.upd_btu = QPushButton(self)
-        self.upd_btu.setGeometry(QtCore.QRect(280, 975, 80, 20))
-        self.upd_btu.setIcon(QIcon(os.path.join(STATIC_PATH, 'images', 'download.png')))
-        self.upd_btu.setStyleSheet("QPushButton { border: none; color: blue;}")
+        self.ver_label = BaseLabel(self, (10, 975, 270, 20)).label
+
+        self.upd_btu = BaseButton(self, (280, 975, 80, 20), os.path.join(STATIC_PATH, 'images', 'download.png'),
+                                  file_style=QSS_STYLE, str_name='upd_btu', func=self.ota_tool.show_page).btu
         self.upd_btu.setDisabled(True)
-        self.upd_btu.clicked.connect(self.ota_tool.show_page)
         self.ota_tool.set_ver()
 
         self.page = FIRST_TAB
@@ -327,13 +308,9 @@ class EmailUi(QWidget):
                     item = QTableWidgetItem(str(value or ''))
                     item.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
                     table.setItem(index_, index_j, item)  # 转换后可插入表格
-                button = QPushButton()
                 # 设置 objname 值为 该行数据库唯一索引
-                button.setObjectName(str(dit_info['id']))
-                button.setIcon(QIcon(os.path.join(STATIC_PATH, 'images', 'del.png')))
-                button.setToolTip('删除')
-                button.clicked.connect(self.del_info)
-                button.setStyleSheet(QSS_STYLE)
+                button = BaseButton(None, str_img=os.path.join(STATIC_PATH, 'images', 'del.png'), str_tip='删除',
+                                    str_name=str(dit_info['id']), func=self.del_info, file_style=QSS_STYLE).btu
                 self.dit_table_button.setdefault(str_table, []).append(button)
                 table.setCellWidget(index_, int_len, button)
             # 更新页数

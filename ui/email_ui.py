@@ -15,8 +15,8 @@
 
 import os
 import threading
-
 from loguru import logger
+from sql.sql_db import MySql
 from datetime import datetime
 from PyQt5.QtWidgets import QTextEdit, QScrollBar
 from PyQt5.QtWidgets import QMessageBox
@@ -45,11 +45,12 @@ from version import VERSION
 class BaseClass:
 
     def __init__(self):
+        super(BaseClass).__init__()
         self.email_tool = EmailTools(self)
         self.check_tool = CheckTool(self)
         self.google_tool = GoogleTool(self)
         self.ota_tool = OtaUpgrade(GIT_URL, EXE_NAME)
-
+        
 
 class EmailUi(QWidget, BaseClass):
     def __init__(self):
@@ -216,7 +217,7 @@ class EmailUi(QWidget, BaseClass):
                 int_pag = int(to_page)
                 self.page_text_2.setText('')
         if int_pag > 0:
-            dit_info = self.email_tool.get_info(DIT_DATABASE[self.page], int_start=int_pag)
+            dit_info = MySql().select_sql(DIT_DATABASE[self.page], int_start=int_pag)
             self.show_table(dit_info.get('lst_ret', []), self.page, curr_pag=int_pag, count_pag=dit_info.get('count', 0))
 
     def text_changed(self, text):
@@ -241,7 +242,7 @@ class EmailUi(QWidget, BaseClass):
             if self.page != str_items:
                 self.page = str_items  # 记住当前在哪个页面
                 # 填充表格
-                dit_info = self.email_tool.get_info(DIT_DATABASE[self.page])
+                dit_info = MySql().select_sql(DIT_DATABASE[self.page])
                 self.show_table(dit_info.get('lst_ret', []), str_items, count_pag=dit_info.get('count', ''))
         except Exception as e:
             logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
@@ -309,7 +310,7 @@ class EmailUi(QWidget, BaseClass):
             no_button = msg_box.addButton('取消', QMessageBox.NoRole)
             msg_box.exec_()
             if msg_box.clickedButton() == yes_button:
-                int_ret = self.email_tool.del_info(DIT_DATABASE[self.page], db_id)
+                int_ret = MySql().del_sql(DIT_DATABASE[self.page], db_id)
                 self.show_message('删除', f'删除成功' if int_ret else '删除失败')
                 if int_ret == 1:
                     self.flush_table(True)
@@ -319,7 +320,7 @@ class EmailUi(QWidget, BaseClass):
             sender.setEnabled(True)
 
     def flush_table(self, is_show: bool = False):
-        dit_info = self.email_tool.get_info(DIT_DATABASE[self.page])
+        dit_info = MySql().select_sql(DIT_DATABASE[self.page])
         self.show_table(dit_info.get('lst_ret', []), self.page, count_pag=dit_info.get('count', ''))
         if not is_show:
             self.show_message('刷新', '刷新当前页面成功')

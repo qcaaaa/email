@@ -77,15 +77,16 @@ class MySql:
                 str_sql = f"select * from {table} limit {int_limit} offset {(int_start - 1) * int_limit}"
             else:
                 str_sql = f"select * from {table}"
-            self.__exec_sql('select', str_sql)
-            lst_ret = self.curr.fetchall()
-            if lst_ret and int_start != -1:
-                str_sql = f"select count(*) as num from {table}"
+            with self:
                 self.__exec_sql('select', str_sql)
-                int_count = self.curr.fetchone().get('num', 0)
-                lst_divmod = divmod(int_count, INT_LIMIT)
-                int_mun = lst_divmod[0]
-                int_mun = lst_divmod[0] + (1 if lst_divmod[-1] > 0 else 0)
+                lst_ret = self.curr.fetchall()
+                if lst_ret and int_start != -1:
+                    str_sql = f"select count(*) as num from {table}"
+                    self.__exec_sql('select', str_sql)
+                    int_count = self.curr.fetchone().get('num', 0)
+                    lst_divmod = divmod(int_count, INT_LIMIT)
+                    int_mun = lst_divmod[0]
+                    int_mun = lst_divmod[0] + (1 if lst_divmod[-1] > 0 else 0)
         except Exception as e:
             logger.debug(f"{e.__traceback__.tb_lineno}:--{e}:{str_sql}")
         return {'lst_ret': lst_ret, 'count': int_mun, 'int_count': int_count}
@@ -114,7 +115,8 @@ class MySql:
                 str_sql = f"insert into {table} (url, language) values (?, ?)"
             elif table == 'end':
                 str_sql = f"insert into {table} (name, content, url) values (?, ?, ?)"
-            int_ret = self.__exec_sql('add', str_sql, lst_info)
+            with self:
+                int_ret = self.__exec_sql('add', str_sql, lst_info)
         except Exception as e:
             logger.debug(f"{e.__traceback__.tb_lineno}:--{e}:{str_sql}")
         return int_ret
@@ -129,8 +131,9 @@ class MySql:
                 str_sql = "select distinct language from info"
             elif str_type == 'title':
                 str_sql = "select distinct language from title"
-            self.__exec_sql('select', str_sql)
-            lst_ret = [dit_info['language'] for dit_info in self.curr.fetchall() if 'language' in dit_info]
+            with self:
+                self.__exec_sql('select', str_sql)
+                lst_ret = [dit_info['language'] for dit_info in self.curr.fetchall() if 'language' in dit_info]
         except Exception as e:
             logger.debug(f"{e.__traceback__.tb_lineno}:--{e}:{str_sql}")
         return lst_ret

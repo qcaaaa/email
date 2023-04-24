@@ -22,7 +22,7 @@ from PyQt5.QtCore import Qt, QThread, pyqtSignal
 from PyQt5.QtGui import QIcon, QFont
 from PyQt5.QtWidgets import QLabel, QDialog, QVBoxLayout, QPushButton, QTextEdit, QHBoxLayout, QProgressBar, QMessageBox
 from functools import partial
-from constant import STATIC_PATH, EXE_NAME
+from constant import STATIC_PATH, EXE_NAME, BASE_PATH
 
 
 class OtaUpgrade:
@@ -134,7 +134,6 @@ class OtaUpgrade:
             self.progress_bar.show()
             # 升级包临时路径
             _, tmp_file = tempfile.mkstemp(suffix='.exe')
-            print(tmp_file)
             thread = Worker(self.dialog, self.__url, tmp_file)
             thread.progress.connect(self.__set_progress)
             # 线程结束后触发
@@ -165,7 +164,8 @@ class OtaUpgrade:
                 si = subprocess.STARTUPINFO()
                 si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
                 # 执行安装程序
-                subprocess.call(['cmd.exe', '/C', './upgrade.exe', EXE_NAME, str_file], startupinfo=si)
+                subprocess.call(['cmd.exe', '/C', f'{os.path.join(BASE_PATH, "upgrade.exe")}', EXE_NAME, str_file],
+                                startupinfo=si)
         except Exception as e:
             logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
         finally:

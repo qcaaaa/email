@@ -20,7 +20,6 @@ from threading import Lock
 
 from constant import INT_LIMIT, DB_PATH
 
-conn = sqlite3.connect('data.sql')
 
 LOOK = Lock()
 

@@ -157,7 +157,7 @@ class EmailUi(QWidget, BaseClass):
 
         self.tool_tip = ''
 
-        self.table = {}
+        self.table = None  # type: QTableWidget
 
         self.dit_table_button = {}
 
@@ -181,27 +181,10 @@ class EmailUi(QWidget, BaseClass):
         font.setWeight(FONT_WEIGHT)
         font.setKerning(True)
 
-        for keys, values in DIT_LIST.items():
+        for keys in DIT_LIST.keys():
             self.item = QListWidgetItem(keys, self.left_widget)  # 左侧选项的添加
             self.item.setSizeHint(QSize(30, 60))
             self.item.setTextAlignment(Qt.AlignCenter)  # 居中显示
-            int_len = len(values)
-            # 渲染表格数据
-            table = QTableWidget()
-            table.setColumnCount(int_len)
-            table.setRowCount(INT_LIMIT)
-            table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)  # 铺满
-            table.horizontalHeader().setSectionResizeMode(int_len - 1, QHeaderView.Interactive)  # 最后一列可调整
-            table.setColumnWidth(0, 100)
-            table.setHorizontalHeaderLabels(values)
-            table.setEditTriggers(QAbstractItemView.NoEditTriggers)  # 禁止修改
-            table.setAlternatingRowColors(True)  # 交替行颜色
-            # 表格 tip 显示
-            table.installEventFilter(self)
-            table.setMouseTracking(True)
-            table.itemEntered.connect(self.enter_item_slot)
-            self.table[keys] = table
-            self.right_widget.addWidget(table)
         # 首页自动刷新
         self.flush_table(True)
 
@@ -257,7 +240,6 @@ class EmailUi(QWidget, BaseClass):
             str_items = str(item.text())
             if self.page != str_items:
                 self.page = str_items  # 记住当前在哪个页面
-                self.show_message('', '', f'切换到 {str_items}页面')
                 # 填充表格
                 dit_info = self.email_tool.get_info(DIT_DATABASE[self.page])
                 self.show_table(dit_info.get('lst_ret', []), str_items, count_pag=dit_info.get('count', ''))
@@ -267,10 +249,27 @@ class EmailUi(QWidget, BaseClass):
     def show_table(self, lst_data: list, str_table: str, curr_pag: int = 1, count_pag: int = 1):
         """表格填充数据"""
         try:
+            self.dit_table_button.clear()  # 清空页面 按钮对象
             # 清空表格数据
-            table = self.table[str_table]
-            table.clearContents()  # 清空现有数据
-            self.dit_table_button[str_table] = []  # 清空页面 按钮对象
+            if self.table:
+                self.table.clearContents()  # 清空现有数据
+            else:
+                self.table = QTableWidget()
+                self.right_widget.addWidget(self.table)
+            int_len = len(DIT_LIST[str_table])
+            # 渲染表格数据
+            self.table.setColumnCount(int_len)
+            self.table.setRowCount(INT_LIMIT)
+            self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)  # 铺满
+            self.table.horizontalHeader().setSectionResizeMode(int_len - 1, QHeaderView.Interactive)  # 最后一列可调整
+            self.table.setColumnWidth(0, 100)
+            self.table.setHorizontalHeaderLabels(DIT_LIST[str_table])
+            self.table.setEditTriggers(QAbstractItemView.NoEditTriggers)  # 禁止修改
+            self.table.setAlternatingRowColors(True)  # 交替行颜色
+            # 表格 tip 显示
+            self.table.installEventFilter(self)
+            self.table.setMouseTracking(True)
+            self.table.itemEntered.connect(self.enter_item_slot)
             for index_, dit_info in enumerate(lst_data):
                 int_len = len(dit_info)
                 # 设置数据
@@ -279,12 +278,12 @@ class EmailUi(QWidget, BaseClass):
                         value = self.email_tool.email_dict.get(str(value), {}).get('name_cn')
                     item = QTableWidgetItem(str(value or ''))
                     item.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
-                    table.setItem(index_, index_j, item)  # 转换后可插入表格
+                    self.table.setItem(index_, index_j, item)  # 转换后可插入表格
                 # 设置 objname 值为 该行数据库唯一索引
                 button = BaseButton(None, str_img=os.path.join(STATIC_PATH, 'images', 'del.png'), str_tip='删除',
                                     str_name=str(dit_info['id']), func=self.del_info, file_style=QSS_STYLE).btu
                 self.dit_table_button.setdefault(str_table, []).append(button)
-                table.setCellWidget(index_, int_len, button)
+                self.table.setCellWidget(index_, int_len, button)
             # 更新页数
             self.page_text.setText(f'{curr_pag}/{count_pag}')
             if curr_pag > 1:

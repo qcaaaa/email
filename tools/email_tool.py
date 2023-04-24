@@ -91,16 +91,6 @@ class EmailTools:
             int_ret = obj_sql.add_sql(table, lst_data)
         return int_ret
 
-    @staticmethod
-    def load_file(str_file: str = 'email.json'):
-        dit_info = {}
-        try:
-            with open(os.path.join(CONFIG_PATH, str_file), 'r', encoding='utf-8') as f:
-                dit_info = load(f)
-        except Exception as err_msg:
-            logger.error(f"{err_msg.__traceback__.tb_lineno}:--:{err_msg}")
-        return dit_info
-
     def import_user(self):
         """导入客户"""
         try:

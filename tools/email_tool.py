@@ -17,10 +17,8 @@ import os
 import time
 import smtplib
 import threading
-from json import load
-from PyQt5 import QtCore, QtGui
+from PyQt5 import QtGui
 from tools.aly_s3 import AlyS3
-from sql.sql_db import MySql
 from loguru import logger
 from random import choice
 from functools import partial
@@ -30,15 +28,17 @@ from email.utils import formatdate
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from utils.tools import sub_html, word_2_html, load_file
-from constant import INT_LIMIT, BASE_PATH, DIT_DATABASE, CONFIG_PATH, DIT_EMAIL, FILTER_TABLE, FILTER_LANG, QSS_STYLE
+from sql.sql_db import MySql
+from constant import BASE_PATH, DIT_DATABASE, DIT_EMAIL, FILTER_TABLE, FILTER_LANG, QSS_STYLE
 from PyQt5.QtWidgets import QDialog, QFormLayout, QLineEdit, QDialogButtonBox, QComboBox, \
-    QTextEdit, QFileDialog, QCheckBox, QGridLayout, QPushButton, QVBoxLayout, QRadioButton, QHBoxLayout
+    QTextEdit, QFileDialog, QCheckBox, QGridLayout, QPushButton, QVBoxLayout, QRadioButton, QHBoxLayout, QMessageBox
 from ui.base_ui import BaseButton, BaseLabel, BaseLineEdit
 
 
 class EmailTools:
 
     def __init__(self, obj_ui):
+        super(EmailTools).__init__()
         self.obj_ui = obj_ui
         self.email_dict = load_file()
         self.to_list = []
@@ -70,36 +70,6 @@ class EmailTools:
             obj_smtp = None
         return obj_smtp
 
-    @staticmethod
-    def get_info(table: str, where: str = '', int_start: int = 1, int_limit: int = INT_LIMIT):
-        """获取数据库信息"""
-        with MySql() as obj_sql:
-            dit_info = obj_sql.select_sql(table, int_start=int_start, int_limit=int_limit)
-        return dit_info
-
-    @staticmethod
-    def del_info(table: str, int_id: int) -> int:
-        """删除数据库信息"""
-        with MySql() as obj_sql:
-            int_ret = obj_sql.del_sql(table, int_id)
-        return int_ret
-
-    @staticmethod
-    def add_info(table: str, lst_data: list):
-        """增加数据库信息"""
-        with MySql() as obj_sql:
-            int_ret = obj_sql.add_sql(table, lst_data)
-        return int_ret
-
-    @staticmethod
-    def load_file(str_file: str = 'email.json'):
-        dit_info = {}
-        try:
-            with open(os.path.join(CONFIG_PATH, str_file), 'r', encoding='utf-8') as f:
-                dit_info = load(f)
-        except Exception as err_msg:
-            logger.error(f"{err_msg.__traceback__.tb_lineno}:--:{err_msg}")
-        return dit_info
 
     def import_user(self):
         """导入客户"""
@@ -154,7 +124,7 @@ class EmailTools:
             str_type = DIT_EMAIL.get(serve_box.currentText(), '腾讯邮箱')
             str_1, str_2 = user_input.text().strip(), pwd_input.text().strip()
             if all([str_1, str_2, str_type]):
-                return self.add_info(DIT_DATABASE[self.obj_ui.page], [str_1, str_2, str_type])
+                return MySql().add_sql(DIT_DATABASE[self.obj_ui.page], [str_1, str_2, str_type])
             return -1
 
     def __add_title(self):
@@ -176,7 +146,7 @@ class EmailTools:
                     if str_txt:
                         for str_t in str_txt.toPlainText().split('\n'):
                             if str_t.strip() and ' ' in str_t:
-                                self.add_info(DIT_DATABASE[self.obj_ui.page], str_t.rsplit(maxsplit=1))
+                                MySql().add_sql(DIT_DATABASE[self.obj_ui.page], str_t.rsplit(maxsplit=1))
                         return 1
                     else:
                         return -1
@@ -206,7 +176,7 @@ class EmailTools:
                 if dialog.exec() == QDialog.Accepted:
                     str_2, str_3 = sub_html(str_txt.toHtml()), str_box.currentText().strip()
                     if all([str_2, str_3]):
-                        return self.add_info(DIT_DATABASE[self.obj_ui.page], [str_2, str_3])
+                        return MySql().add_sql(DIT_DATABASE[self.obj_ui.page], [str_2, str_3])
                     return -1
             else:
                 self.obj_ui.show_message('错误', 'Word未获取到内容')
@@ -236,7 +206,7 @@ class EmailTools:
         if dialog.exec() == QDialog.Accepted:
             str_1, str_2 = file_path.text().strip(), str_box.currentText().strip()
             if all([str_1, str_2]):
-                return self.add_info(DIT_DATABASE[self.obj_ui.page], [str_1, str_2])
+                return MySql().add_sql(DIT_DATABASE[self.obj_ui.page], [str_1, str_2])
             return -1
 
     def __add_end(self):
@@ -260,7 +230,7 @@ class EmailTools:
         if dialog.exec() == QDialog.Accepted:
             str_1, str_2, str_3 = temp_name.text(), sub_html(temp_txt.toHtml()), url_path.text().strip()
             if any([str_1, str_2, str_3]):
-                return self.add_info(DIT_DATABASE[self.obj_ui.page], [str_1, str_2, str_3])
+                return MySql().add_sql(DIT_DATABASE[self.obj_ui.page], [str_1, str_2, str_3])
             return -1
 
     def add_table(self):
@@ -291,7 +261,7 @@ class EmailTools:
             elif int_ret == 0:
                 self.obj_ui.show_message('失败', '添加失败')
 
-    def __upload_aly(self, obj_file_line = None):
+    def __upload_aly(self, obj_file_line=None):
         """上传文件至阿里云"""
         title = 'Text File(*.pdf);;JPG File(*.jpg);;PNG File(*.png)'
         str_file, _ = QFileDialog.getOpenFileName(self.obj_ui, '选择本地附件上传', os.getcwd(), title)
@@ -398,7 +368,7 @@ class EmailTools:
             else:
                 int_count = 0 if table not in ['body', 'title'] else 1
                 # 数据源
-                lst_user = self.get_info(table, int_start=-1).get('lst_ret', [])
+                lst_user = MySql().select_sql(table, int_start=-1).get('lst_ret', [])
                 if table in FILTER_TABLE and self.lang:
                     str_lang = self.lang.currentText()
                     if str_lang and str_lang != '全部':
@@ -478,7 +448,6 @@ class EmailTools:
         except Exception as err:
             logger.error(f"{err.__traceback__.tb_lineno}:--:{err}")
         return
-
 
     def select_account(self):
         """选择账号"""

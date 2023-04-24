@@ -16,13 +16,13 @@
 import os
 import tempfile
 import requests
-import threading
+import subprocess
 from loguru import logger
 from PyQt5.QtCore import Qt, QThread, pyqtSignal
 from PyQt5.QtGui import QIcon, QFont
 from PyQt5.QtWidgets import QLabel, QDialog, QVBoxLayout, QPushButton, QTextEdit, QHBoxLayout, QProgressBar, QMessageBox
 from functools import partial
-from constant import STATIC_PATH
+from constant import STATIC_PATH, EXE_NAME
 
 
 class OtaUpgrade:
@@ -162,9 +162,10 @@ class OtaUpgrade:
             msg_box.addButton('取消', QMessageBox.NoRole)
             msg_box.exec_()
             if msg_box.clickedButton() == yes_button:
-                print('升级成功')
-            else:
-                print('取消升级')
+                si = subprocess.STARTUPINFO()
+                si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+                # 执行安装程序
+                subprocess.call(['cmd.exe', '/C', './upgrade.exe', EXE_NAME, str_file], startupinfo=si)
         except Exception as e:
             logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
         finally:

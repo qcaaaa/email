@@ -17,8 +17,7 @@ import os
 import time
 import smtplib
 import threading
-from json import load
-from PyQt5 import QtCore, QtGui
+from PyQt5 import QtGui
 from tools.aly_s3 import AlyS3
 from sql.sql_db import MySql
 from loguru import logger
@@ -30,7 +29,7 @@ from email.utils import formatdate
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from utils.tools import sub_html, word_2_html, load_file
-from constant import INT_LIMIT, BASE_PATH, DIT_DATABASE, CONFIG_PATH, DIT_EMAIL, FILTER_TABLE, FILTER_LANG, QSS_STYLE
+from constant import INT_LIMIT, BASE_PATH, DIT_DATABASE, DIT_EMAIL, FILTER_TABLE, FILTER_LANG, QSS_STYLE
 from PyQt5.QtWidgets import QDialog, QFormLayout, QLineEdit, QDialogButtonBox, QComboBox, \
     QTextEdit, QFileDialog, QCheckBox, QGridLayout, QPushButton, QVBoxLayout, QRadioButton, QHBoxLayout
 from ui.base_ui import BaseButton, BaseLabel, BaseLineEdit
@@ -109,11 +108,6 @@ class EmailTools:
                 self.obj_ui.show_message('错误提示', '收件人文件不存在', '收件人文件不存在')
         except Exception as e:
             logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
-        finally:
-            if self.to_list:
-                self.obj_ui.send_button.setEnabled(True)
-            else:
-                self.obj_ui.send_button.setDisabled(True)
 
     @staticmethod
     def __get_language(str_type: str):
@@ -424,7 +418,6 @@ class EmailTools:
 
     def select_user(self):
         """导入用户以及选择配置"""
-        dialog = None
         try:
             dialog = QDialog(self.obj_ui)
             dialog.setWindowTitle('导入用户以及设置基本配置')
@@ -460,15 +453,19 @@ class EmailTools:
             v_layout.addLayout(h_layout_3)
             v_layout.addWidget(radio_button)
 
+            button = QDialogButtonBox(QDialogButtonBox.Ok)
+            v_layout.addWidget(button)
+            button.clicked.connect(dialog.accept)
+
             dialog.setLayout(v_layout)
 
             dialog.show()
-            dialog.exec_()
 
+            if dialog.exec() == QDialog.Accepted:
+                print(self.to_list)
         except Exception as err:
             logger.error(f"{err.__traceback__.tb_lineno}:--:{err}")
         return
-
 
     def select_account(self):
         """选择账号"""

@@ -77,3 +77,11 @@ def get_qss_style():
     except Exception as err_msg:
         logger.error(f"{err_msg.__traceback__.tb_lineno}:--:{err_msg}")
     return file_style
+
+
+def str_2_int(str_num: str, int_def: int = -1):
+    try:
+        int_num = str(str_num)
+    except:
+        int_num = int_def
+    return int_num

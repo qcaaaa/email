@@ -28,7 +28,7 @@ from email.header import Header
 from email.utils import formatdate
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from utils.tools import sub_html, word_2_html, load_file
+from utils.tools import sub_html, word_2_html, load_file, str_2_int
 from constant import INT_LIMIT, BASE_PATH, DIT_DATABASE, DIT_EMAIL, FILTER_TABLE, FILTER_LANG, QSS_STYLE
 from PyQt5.QtWidgets import QDialog, QFormLayout, QLineEdit, QDialogButtonBox, QComboBox, \
     QTextEdit, QFileDialog, QCheckBox, QGridLayout, QPushButton, QVBoxLayout, QRadioButton, QHBoxLayout
@@ -55,6 +55,7 @@ class EmailTools:
         self.dialog = None  # 下一步之前的页面 用于下一步后 关闭上一个页面
         self.button = None  # 每个页面的下一步按钮
         self.send_mun = 50  # 一个账号一次发50封
+        self.sleep_mun = 20  # 发送间隔
         self.lang = None
         self.str_url = ''
 
@@ -275,7 +276,7 @@ class EmailTools:
             elif int_ret == 0:
                 self.obj_ui.show_message('失败', '添加失败')
 
-    def __upload_aly(self, obj_file_line = None):
+    def __upload_aly(self, obj_file_line=None):
         """上传文件至阿里云"""
         title = 'Text File(*.pdf);;JPG File(*.jpg);;PNG File(*.png)'
         str_file, _ = QFileDialog.getOpenFileName(self.obj_ui, '选择本地附件上传', os.getcwd(), title)
@@ -431,14 +432,14 @@ class EmailTools:
 
             h_layout_2 = QHBoxLayout()
             label_interval = BaseLabel(dialog, str_text='最大发送').label
-            interval_edit = BaseLineEdit(dialog, (820, 20, 80, 30), QSS_STYLE, '50').lineedit
+            interval_edit = BaseLineEdit(dialog, file_style=QSS_STYLE, str_default=str(self.send_mun)).lineedit
             interval_edit.setValidator(QtGui.QIntValidator())
             h_layout_2.addWidget(label_interval)
             h_layout_2.addWidget(interval_edit)
 
             h_layout_3 = QHBoxLayout()
             label_sleep = BaseLabel(dialog, str_text='发送间隔(s)').label
-            sleep_edit = BaseLineEdit(dialog, (565, 20, 80, 30), QSS_STYLE, '20').lineedit
+            sleep_edit = BaseLineEdit(dialog, file_style=QSS_STYLE, str_default=str(self.sleep_mun)).lineedit
             sleep_edit.setValidator(QtGui.QIntValidator())
             h_layout_3.addWidget(label_sleep)
             h_layout_3.addWidget(sleep_edit)
@@ -462,7 +463,11 @@ class EmailTools:
             dialog.show()
 
             if dialog.exec() == QDialog.Accepted:
+                self.send_mun = str_2_int(interval_edit.text(), self.send_mun)
+                self.sleep_mun = str_2_int(sleep_edit.text(), self.sleep_mun)
+                print(self.sleep_mun)
                 print(self.to_list)
+                print(self.send_mun)
         except Exception as err:
             logger.error(f"{err.__traceback__.tb_lineno}:--:{err}")
         return

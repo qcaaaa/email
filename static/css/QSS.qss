@@ -1,7 +1,7 @@
 /*按钮样式*/
 
 QPushButton {
-    border: none; /*去掉边框*/;
+    border: none; /*去掉边框*/
     border-radius: 5px; /*圆角*/
 }
 /*

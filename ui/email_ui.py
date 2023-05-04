@@ -156,18 +156,25 @@ class EmailUi(QMainWindow, BaseClass):
         self.page_skip.setDisabled(True)
         # ################# 分页 结束....########################################
 
-        # 上面留60 下面留250
         # 左侧选项列表
         self.left_widget = QListWidget()
         self.left_widget.setStyleSheet(QSS_STYLE)
         # 左侧绑定 点击事件
         self.left_widget.itemClicked.connect(self.display)
-        self.setCentralWidget(self.left_widget)
 
         # 右侧
-        self.right_widget = QStackedWidget()
         self.table = QTableWidget()  # type: QTableWidget
+        self.right_widget = QStackedWidget()
         self.right_widget.addWidget(self.table)
+
+        central_widget = QWidget()
+        self.setCentralWidget(central_widget)
+        # 窗口的整体布局
+        main_layout = QHBoxLayout(central_widget)
+        # 下面留250
+        main_layout.setContentsMargins(0, 0, 0, 250)
+        main_layout.addWidget(self.left_widget)
+        main_layout.addWidget(self.right_widget)
 
         # 下侧 日志框
         self.log_label = BaseLabel(self, (10, 760, 100, 35), str_img=os.path.join(STATIC_PATH, 'images', 'log.png'),
@@ -183,8 +190,6 @@ class EmailUi(QMainWindow, BaseClass):
         self.page = FIRST_TAB
 
         self.tool_tip = ''
-
-
 
         self.dit_table_button = {}
 
@@ -215,17 +220,17 @@ class EmailUi(QMainWindow, BaseClass):
         # 首页自动刷新
         self.flush_table(True)
 
-    # def enter_item_slot(self, item):
-    #     # 获取鼠标指向
-    #     self.tool_tip = item.text()
-    #
-    # def eventFilter(self, obj, event):
-    #     try:
-    #         if event.type() == QEvent.ToolTip and self.tool_tip is not None:
-    #             self.setToolTip(self.tool_tip)
-    #         return QWidget.eventFilter(self, obj, event)
-    #     except Exception as e:
-    #         logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
+    def enter_item_slot(self, item):
+        # 获取鼠标指向
+        self.tool_tip = item.text()
+
+    def eventFilter(self, obj, event):
+        try:
+            if event.type() == QEvent.ToolTip and self.tool_tip is not None:
+                self.setToolTip(self.tool_tip)
+            return QWidget.eventFilter(self, obj, event)
+        except Exception as e:
+            logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
 
     def page_turning(self):
         """翻页操作"""
@@ -291,9 +296,9 @@ class EmailUi(QMainWindow, BaseClass):
             self.table.setEditTriggers(QAbstractItemView.NoEditTriggers)  # 禁止修改
             self.table.setAlternatingRowColors(True)  # 交替行颜色
             # 表格 tip 显示
-            # self.table.installEventFilter(self)
-            # self.table.setMouseTracking(True)
-            # self.table.itemEntered.connect(self.enter_item_slot)
+            self.table.installEventFilter(self)
+            self.table.setMouseTracking(True)
+            self.table.itemEntered.connect(self.enter_item_slot)
             for index_, dit_info in enumerate(lst_data):
                 # 设置数据
                 for index_j, value in enumerate(dit_info.values()):

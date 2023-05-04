@@ -16,7 +16,8 @@ class BaseButton:
     """QPushButton 基类"""
 
     def __init__(self, parent: object, tuple_size: Tuple[int, ...] = None, str_img: str = '',
-                 str_tip: str = '', file_style: str = '', str_name: str = '', func: Callable = None, str_text: str = ''):
+                 str_tip: str = '', file_style: str = '', str_name: str = '', func: Callable = None,
+                 str_text: str = ''):
         """为 '' 表示不设置
         :param parent: 继承父类
         :param tuple_size: 按钮 放置位置、大小元组
@@ -160,3 +161,18 @@ class BaseAction:
         if self.func:
             obj_action.triggered.connect(self.func)
         return obj_action
+
+
+class BaseBar:
+    """QScrollBar 基类"""
+
+    def __init__(self, file_style: str = ''):
+        # 滚动条
+        self.file_style = file_style
+
+    @property
+    def bar(self) -> QScrollBar:
+        obj_bar = QScrollBar()
+        if self.file_style:
+            obj_bar.setStyleSheet(self.file_style)
+        return obj_bar

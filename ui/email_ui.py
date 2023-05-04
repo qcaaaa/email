@@ -37,7 +37,7 @@ from tools.email_tool import EmailTools
 from tools.email_check import CheckTool
 from tools.email_google import GoogleTool
 from ota.otaupgrade import OtaUpgrade
-from ui.base_ui import BaseButton, BaseLabel, BaseLineEdit, BaseAction
+from ui.base_ui import BaseButton, BaseLabel, BaseLineEdit, BaseAction, BaseBar
 from version import VERSION
 
 
@@ -162,10 +162,6 @@ class EmailUi(QMainWindow, BaseClass):
         self.right_widget = QStackedWidget()
         self.main_layout.addWidget(self.right_widget)
 
-        # 滚动条
-        text_scroll = QScrollBar()
-        text_scroll.setStyleSheet(QSS_STYLE)
-
         # 下侧 日志框
         self.log_label = BaseLabel(self, (10, 760, 100, 35), str_img=os.path.join(STATIC_PATH, 'images', 'log.png'),
                                    str_tip='日志输出').label
@@ -175,7 +171,7 @@ class EmailUi(QMainWindow, BaseClass):
         self.log_text.setReadOnly(True)  # 只读
         self.log_text.setGeometry(QtCore.QRect(10, 800, 1380, 175))
         # 加载滚动条
-        self.log_text.setVerticalScrollBar(text_scroll)
+        self.log_text.setVerticalScrollBar(BaseBar(QSS_STYLE).bar)
 
         self.page = FIRST_TAB
 

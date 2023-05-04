@@ -73,7 +73,7 @@ class EmailUi(QMainWindow, BaseClass):
         toolbar.setMovable(False)
         self.addToolBar(toolbar)
 
-        # 状态栏
+        # ################# 状态栏 开始.......########################################
         self.statusBar().showMessage("正在检查版本信息...")
         self.upd_btu = BaseButton(self, (80, 20), os.path.join(STATIC_PATH, 'images', 'download.png'),
                                   file_style=QSS_STYLE, str_name='upd_btu', func=self.ota_tool.show_page).btu
@@ -125,6 +125,8 @@ class EmailUi(QMainWindow, BaseClass):
                                        func=self.flush_table).action
         toolbar.addAction(self.flush_button)
         # ################# 刷新控件 结束.......########################################
+
+        # ################# 状态栏 结束.......########################################
 
         # ################# 分页 开始....########################################
         self.page_up = BaseButton(self, (525, 760, 80, 30), os.path.join(STATIC_PATH, 'images', 'up.png'),

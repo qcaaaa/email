@@ -17,10 +17,10 @@ import os
 import threading
 from loguru import logger
 from datetime import datetime
-from PyQt5.QtWidgets import QTextEdit, QScrollBar
+from PyQt5.QtWidgets import QTextEdit, QScrollBar, QToolBar
 from PyQt5.QtWidgets import QMessageBox
 from PyQt5.QtWidgets import QListWidgetItem
-from PyQt5.QtWidgets import QWidget
+from PyQt5.QtWidgets import QMainWindow
 from PyQt5.QtWidgets import QHBoxLayout
 from PyQt5.QtWidgets import QTableWidget
 from PyQt5.QtWidgets import QDesktopWidget
@@ -37,7 +37,7 @@ from tools.email_tool import EmailTools
 from tools.email_check import CheckTool
 from tools.email_google import GoogleTool
 from ota.otaupgrade import OtaUpgrade
-from ui.base_ui import BaseButton, BaseLabel, BaseLineEdit
+from ui.base_ui import BaseButton, BaseLabel, BaseLineEdit, BaseAction
 from version import VERSION
 
 
@@ -51,7 +51,7 @@ class BaseClass:
         self.ota_tool = OtaUpgrade(GIT_URL, EXE_NAME)
         
 
-class EmailUi(QWidget, BaseClass):
+class EmailUi(QMainWindow, BaseClass):
     def __init__(self):
         super(EmailUi, self).__init__()
         self.setWindowIcon(QIcon(os.path.join(STATIC_PATH, 'images', 'logo.png')))
@@ -67,34 +67,63 @@ class EmailUi(QWidget, BaseClass):
         self.move(int(new_left), int(new_top) if int(new_top) > 60 else 0)
         self.setWindowTitle('Email-Tool')
 
+        # 工具栏 不可移动
+        toolbar = QToolBar()
+        toolbar.setFixedHeight(30)
+        toolbar.setMovable(False)
+        self.addToolBar(toolbar)
+
+        # 状态栏
+        self.statusBar().showMessage("正在检查版本信息...")
+        self.upd_btu = BaseButton(self, (80, 20), os.path.join(STATIC_PATH, 'images', 'download.png'),
+                                  file_style=QSS_STYLE, str_name='upd_btu', func=self.ota_tool.show_page).btu
+        self.upd_btu.setDisabled(True)
+        self.statusBar().addPermanentWidget(self.upd_btu)
+
         # ################# 增加控件 开始.......########################################
-        self.add_button = BaseButton(self, (120, 20, 40, 30), os.path.join(STATIC_PATH, 'images', 'add.png'), '增加',
-                                     QSS_STYLE, func=self.email_tool.add_table).btu
+        self.add_button = BaseAction(self, os.path.join(STATIC_PATH, 'images', 'add.png'), '增加',
+                                     func=self.email_tool.add_table).action
+        toolbar.addAction(self.add_button)
         # ################# 增加控件 结束.......########################################
 
+        toolbar.addSeparator()  # 分隔符
+
         # ################# 发送邮件控件 开始.......########################################
-        self.send_button = BaseButton(self, (170, 20, 40, 30), os.path.join(STATIC_PATH, 'images', 'email.png'),
-                                      '发送邮件', QSS_STYLE, func=self.email_tool.select_user).btu
+        self.send_button = BaseAction(self, os.path.join(STATIC_PATH, 'images', 'email.png'), '发送邮件',
+                                      func=self.email_tool.select_user).action
+        toolbar.addAction(self.send_button)
         # ################# 发送邮件控件 结束.......########################################
 
+        toolbar.addSeparator()  # 分隔符
+
         # ################# 谷歌搜索控件 开始.......########################################
-        self.google_button = BaseButton(self, (220, 20, 40, 30), os.path.join(STATIC_PATH, 'images', 'search.png'),
-                                        '谷歌搜索', QSS_STYLE, func=self.google_tool.google_search).btu
+        self.google_button = BaseAction(self, os.path.join(STATIC_PATH, 'images', 'search.png'), '谷歌搜索',
+                                        func=self.google_tool.google_search).action
+        toolbar.addAction(self.google_button)
         # ################# 谷歌搜索控件 结束.......########################################
 
+        toolbar.addSeparator()  # 分隔符
+
         # ################# 邮箱账号检查控件 开始.......########################################
-        self.check_button = BaseButton(self, (270, 20, 40, 30), os.path.join(STATIC_PATH, 'images', 'check.png'),
-                                       '邮箱账号检测', QSS_STYLE, func=self.check_tool.check_email).btu
+        self.check_button = BaseAction(self, os.path.join(STATIC_PATH, 'images', 'check.png'), '邮箱账号检测',
+                                       func=self.check_tool.check_email).action
+        toolbar.addAction(self.check_button)
         # ################# 邮箱账号检查控件 结束.......########################################
 
+        toolbar.addSeparator()  # 分隔符
+
         # ################# 上传附件控件 开始.......########################################
-        self.upload_button = BaseButton(self, (320, 20, 40, 30), os.path.join(STATIC_PATH, 'images', 'fj.png'),
-                                        '查看附件', QSS_STYLE, func=self.email_tool.get_aly).btu
+        self.upload_button = BaseAction(self, os.path.join(STATIC_PATH, 'images', 'fj.png'), '查看附件',
+                                        func=self.email_tool.get_aly).action
+        toolbar.addAction(self.upload_button)
         # ################# 上传附件控件 结束.......########################################
 
+        toolbar.addSeparator()  # 分隔符
+
         # ################# 刷新控件 开始.......########################################
-        self.flush_button = BaseButton(self, (370, 20, 40, 30), os.path.join(STATIC_PATH, 'images', 'flush.png'),
-                                       '刷新', QSS_STYLE, func=self.flush_table).btu
+        self.flush_button = BaseAction(self, os.path.join(STATIC_PATH, 'images', 'flush.png'), '刷新',
+                                       func=self.flush_table).action
+        toolbar.addAction(self.flush_button)
         # ################# 刷新控件 结束.......########################################
 
         # ################# 分页 开始....########################################
@@ -146,18 +175,11 @@ class EmailUi(QWidget, BaseClass):
         # 加载滚动条
         self.log_text.setVerticalScrollBar(text_scroll)
 
-        # 版本
-        self.ver_label = BaseLabel(self, (10, 975, 270, 20)).label
-
-        self.upd_btu = BaseButton(self, (280, 975, 80, 20), os.path.join(STATIC_PATH, 'images', 'download.png'),
-                                  file_style=QSS_STYLE, str_name='upd_btu', func=self.ota_tool.show_page).btu
-        self.upd_btu.setDisabled(True)
-
         self.page = FIRST_TAB
 
         self.tool_tip = ''
 
-        self.table = None  # type: QTableWidget
+        self.table = QTableWidget()  # type: QTableWidget
 
         self.dit_table_button = {}
 
@@ -188,17 +210,17 @@ class EmailUi(QWidget, BaseClass):
         # 首页自动刷新
         self.flush_table(True)
 
-    def enter_item_slot(self, item):
-        # 获取鼠标指向
-        self.tool_tip = item.text()
-
-    def eventFilter(self, obj, event):
-        try:
-            if event.type() == QEvent.ToolTip and self.tool_tip is not None:
-                self.setToolTip(self.tool_tip)
-            return QWidget.eventFilter(self, obj, event)
-        except Exception as e:
-            logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
+    # def enter_item_slot(self, item):
+    #     # 获取鼠标指向
+    #     self.tool_tip = item.text()
+    #
+    # def eventFilter(self, obj, event):
+    #     try:
+    #         if event.type() == QEvent.ToolTip and self.tool_tip is not None:
+    #             self.setToolTip(self.tool_tip)
+    #         return QWidget.eventFilter(self, obj, event)
+    #     except Exception as e:
+    #         logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
 
     def page_turning(self):
         """翻页操作"""
@@ -267,9 +289,9 @@ class EmailUi(QWidget, BaseClass):
             self.table.setEditTriggers(QAbstractItemView.NoEditTriggers)  # 禁止修改
             self.table.setAlternatingRowColors(True)  # 交替行颜色
             # 表格 tip 显示
-            self.table.installEventFilter(self)
-            self.table.setMouseTracking(True)
-            self.table.itemEntered.connect(self.enter_item_slot)
+            # self.table.installEventFilter(self)
+            # self.table.setMouseTracking(True)
+            # self.table.itemEntered.connect(self.enter_item_slot)
             for index_, dit_info in enumerate(lst_data):
                 int_len = len(dit_info)
                 # 设置数据
@@ -343,7 +365,8 @@ class EmailUi(QWidget, BaseClass):
         def __do():
             str_ver = self.ota_tool.get_ver()
             str_title = f'软件当前版本: {VERSION} 最新版本: {str_ver}'
-            self.ver_label.setText(str_title)
+            # 版本
+            self.statusBar().showMessage(str_title)
             if VERSION.count('.') == str_ver.count('.') == 3:
                 lst_new_ver = [int(i) for i in str_ver.lower().replace('v', '').split('.')]
                 lst_old_ver = [int(i) for i in VERSION.lower().replace('v', '').split('.')]

@@ -17,7 +17,7 @@ import os
 import threading
 from loguru import logger
 from datetime import datetime
-from PyQt5.QtWidgets import QTextEdit, QScrollBar, QToolBar
+from PyQt5.QtWidgets import QTextEdit, QScrollBar, QToolBar, QWidget
 from PyQt5.QtWidgets import QMessageBox
 from PyQt5.QtWidgets import QListWidgetItem
 from PyQt5.QtWidgets import QMainWindow
@@ -49,7 +49,7 @@ class BaseClass:
         self.check_tool = CheckTool(self)
         self.google_tool = GoogleTool(self)
         self.ota_tool = OtaUpgrade(GIT_URL, EXE_NAME)
-        
+
 
 class EmailUi(QMainWindow, BaseClass):
     def __init__(self):
@@ -85,6 +85,14 @@ class EmailUi(QMainWindow, BaseClass):
                                      func=self.email_tool.add_table).action
         toolbar.addAction(self.add_button)
         # ################# 增加控件 结束.......########################################
+
+        toolbar.addSeparator()  # 分隔符
+
+        # ################# 删除控件 开始.......########################################
+        self.del_button = BaseAction(self, str_img=os.path.join(STATIC_PATH, 'images', 'del.png'), str_tip='删除',
+                                     func=self.del_info, file_style=QSS_STYLE).action
+        toolbar.addAction(self.del_button)
+        # ################# 删除控件 结束.......########################################
 
         toolbar.addSeparator()  # 分隔符
 
@@ -148,19 +156,18 @@ class EmailUi(QMainWindow, BaseClass):
         self.page_skip.setDisabled(True)
         # ################# 分页 结束....########################################
 
-        self.main_layout = QHBoxLayout(self)  # 窗口的整体布局
         # 上面留60 下面留250
-        self.main_layout.setContentsMargins(0, 60, 0, 250)
         # 左侧选项列表
         self.left_widget = QListWidget()
         self.left_widget.setStyleSheet(QSS_STYLE)
         # 左侧绑定 点击事件
         self.left_widget.itemClicked.connect(self.display)
-        self.main_layout.addWidget(self.left_widget)
+        self.setCentralWidget(self.left_widget)
 
         # 右侧
         self.right_widget = QStackedWidget()
-        self.main_layout.addWidget(self.right_widget)
+        self.table = QTableWidget()  # type: QTableWidget
+        self.right_widget.addWidget(self.table)
 
         # 下侧 日志框
         self.log_label = BaseLabel(self, (10, 760, 100, 35), str_img=os.path.join(STATIC_PATH, 'images', 'log.png'),
@@ -177,7 +184,7 @@ class EmailUi(QMainWindow, BaseClass):
 
         self.tool_tip = ''
 
-        self.table = QTableWidget()  # type: QTableWidget
+
 
         self.dit_table_button = {}
 
@@ -237,7 +244,8 @@ class EmailUi(QMainWindow, BaseClass):
                 self.page_text_2.setText('')
         if int_pag > 0:
             dit_info = self.email_tool.get_info(DIT_DATABASE[self.page], int_start=int_pag)
-            self.show_table(dit_info.get('lst_ret', []), self.page, curr_pag=int_pag, count_pag=dit_info.get('count', 0))
+            self.show_table(dit_info.get('lst_ret', []), self.page, curr_pag=int_pag,
+                            count_pag=dit_info.get('count', 0))
 
     def text_changed(self, text):
         """跳转输入框 监听事件"""
@@ -271,11 +279,7 @@ class EmailUi(QMainWindow, BaseClass):
         try:
             self.dit_table_button.clear()  # 清空页面 按钮对象
             # 清空表格数据
-            if self.table:
-                self.table.clearContents()  # 清空现有数据
-            else:
-                self.table = QTableWidget()
-                self.right_widget.addWidget(self.table)
+            self.table.clearContents()  # 清空现有数据
             int_len = len(DIT_LIST[str_table])
             # 渲染表格数据
             self.table.setColumnCount(int_len)
@@ -291,7 +295,6 @@ class EmailUi(QMainWindow, BaseClass):
             # self.table.setMouseTracking(True)
             # self.table.itemEntered.connect(self.enter_item_slot)
             for index_, dit_info in enumerate(lst_data):
-                int_len = len(dit_info)
                 # 设置数据
                 for index_j, value in enumerate(dit_info.values()):
                     if str_table == FIRST_TAB and index_j == 3:
@@ -299,11 +302,6 @@ class EmailUi(QMainWindow, BaseClass):
                     item = QTableWidgetItem(str(value or ''))
                     item.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
                     self.table.setItem(index_, index_j, item)  # 转换后可插入表格
-                # 设置 objname 值为 该行数据库唯一索引
-                button = BaseButton(None, str_img=os.path.join(STATIC_PATH, 'images', 'del.png'), str_tip='删除',
-                                    str_name=str(dit_info['id']), func=self.del_info, file_style=QSS_STYLE).btu
-                self.dit_table_button.setdefault(str_table, []).append(button)
-                self.table.setCellWidget(index_, int_len, button)
             # 更新页数
             self.page_text.setText(f'{curr_pag}/{count_pag}')
             if curr_pag > 1:
@@ -374,6 +372,7 @@ class EmailUi(QMainWindow, BaseClass):
                         self.upd_btu.setText('立即查看')
                         self.upd_btu.setEnabled(True)
                         break
+
         try:
 
             threading.Thread(target=__do).start()

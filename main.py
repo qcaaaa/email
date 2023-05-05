@@ -53,5 +53,4 @@ class MyTelegram:
 if __name__ == '__main__':
     app = QApplication([])
     obj_a = EmailUi()
-    obj_a.show()
     sys.exit(app.exec_())

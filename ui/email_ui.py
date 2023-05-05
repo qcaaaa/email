@@ -17,7 +17,7 @@ import os
 import threading
 from loguru import logger
 from datetime import datetime
-from PyQt5.QtWidgets import QTextEdit, QScrollBar, QToolBar, QWidget
+from PyQt5.QtWidgets import QTextEdit, QScrollBar, QToolBar, QWidget, QCheckBox
 from PyQt5.QtWidgets import QMessageBox
 from PyQt5.QtWidgets import QListWidgetItem
 from PyQt5.QtWidgets import QMainWindow
@@ -195,6 +195,8 @@ class EmailUi(QMainWindow, BaseClass):
 
         self._setup_ui()
 
+        self.show()
+
     def _setup_ui(self):
         """加载界面ui"""
 
@@ -205,13 +207,6 @@ class EmailUi(QMainWindow, BaseClass):
         self.left_widget.setFrameShape(QListWidget.NoFrame)  # 去掉边框
         self.left_widget.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)  # 隐藏滚动条
         self.left_widget.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-
-        font = QtGui.QFont()
-        font.setFamily("Agency FB")
-        font.setBold(True)
-        font.setItalic(False)
-        font.setWeight(FONT_WEIGHT)
-        font.setKerning(True)
 
         for keys in DIT_LIST.keys():
             self.item = QListWidgetItem(keys, self.left_widget)  # 左侧选项的添加
@@ -290,19 +285,24 @@ class EmailUi(QMainWindow, BaseClass):
             self.table.setColumnCount(int_len)
             self.table.setRowCount(INT_LIMIT)
             self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)  # 铺满
-            self.table.horizontalHeader().setSectionResizeMode(int_len - 1, QHeaderView.Interactive)  # 最后一列可调整
-            self.table.setColumnWidth(0, 100)
-            self.table.setHorizontalHeaderLabels(DIT_LIST[str_table])
+            self.table.setColumnWidth(0, 50)
+            self.table.setColumnWidth(1, 50)
+            self.table.setHorizontalHeaderLabels(DIT_LIST[str_table])  # 表头
             self.table.setEditTriggers(QAbstractItemView.NoEditTriggers)  # 禁止修改
             self.table.setAlternatingRowColors(True)  # 交替行颜色
             # 表格 tip 显示
             self.table.installEventFilter(self)
             self.table.setMouseTracking(True)
             self.table.itemEntered.connect(self.enter_item_slot)
+            # 填充数据
             for index_, dit_info in enumerate(lst_data):
+                # 创建单选框
+                checkbox = QCheckBox()
+                checkbox.setChecked(False)
+                self.table.setCellWidget(index_, 0, checkbox)
                 # 设置数据
-                for index_j, value in enumerate(dit_info.values()):
-                    if str_table == FIRST_TAB and index_j == 3:
+                for index_j, value in enumerate(dit_info.values(), 1):
+                    if str_table == FIRST_TAB and index_j == 4:
                         value = self.email_tool.email_dict.get(str(value), {}).get('name_cn')
                     item = QTableWidgetItem(str(value or ''))
                     item.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)

@@ -17,7 +17,7 @@ import os
 import threading
 from loguru import logger
 from datetime import datetime
-from PyQt5.QtWidgets import QTextEdit, QScrollBar, QToolBar, QWidget, QCheckBox
+from PyQt5.QtWidgets import QTextEdit, QComboBox, QToolBar, QWidget, QCheckBox
 from PyQt5.QtWidgets import QMessageBox
 from PyQt5.QtWidgets import QListWidgetItem
 from PyQt5.QtWidgets import QMainWindow
@@ -25,14 +25,13 @@ from PyQt5.QtWidgets import QHBoxLayout
 from PyQt5.QtWidgets import QTableWidget
 from PyQt5.QtWidgets import QDesktopWidget
 from PyQt5.QtCore import QSize, Qt, QEvent
-from PyQt5 import QtCore, QtGui
+from PyQt5 import QtCore
 from PyQt5.QtGui import QIcon
 from PyQt5.QtGui import QTextCursor
 from PyQt5.QtWidgets import QListWidget, QStackedWidget
 from PyQt5.QtWidgets import QHeaderView, QAbstractItemView
 from PyQt5.Qt import QTableWidgetItem
-from constant import FIRST_TAB, FONT_WEIGHT, DIT_LIST, INT_LIMIT, DIT_DATABASE, \
-    STATIC_PATH, GIT_URL, EXE_NAME, QSS_STYLE
+from constant import FIRST_TAB, DIT_LIST, DIT_DATABASE, STATIC_PATH, GIT_URL, EXE_NAME, QSS_STYLE
 from tools.email_tool import EmailTools
 from tools.email_check import CheckTool
 from tools.email_google import GoogleTool
@@ -154,6 +153,10 @@ class EmailUi(QMainWindow, BaseClass):
         self.page_skip = BaseButton(self, (875, 760, 80, 30), os.path.join(STATIC_PATH, 'images', 'skip.png'),
                                     '跳转', QSS_STYLE, func=self.page_turning, str_name='跳转').btu
         self.page_skip.setDisabled(True)
+
+        self.page_num = QComboBox(self)
+        self.page_num.addItems(['3', '30', '50'])
+        self.page_num.setGeometry(975, 760, 80, 30)
         # ################# 分页 结束....########################################
 
         # 左侧选项列表
@@ -171,7 +174,7 @@ class EmailUi(QMainWindow, BaseClass):
         self.setCentralWidget(central_widget)
         # 窗口的整体布局
         main_layout = QHBoxLayout(central_widget)
-        # 下面留250
+        # # 下面留250
         main_layout.setContentsMargins(0, 0, 0, 250)
         main_layout.addWidget(self.left_widget)
         main_layout.addWidget(self.right_widget)
@@ -283,7 +286,7 @@ class EmailUi(QMainWindow, BaseClass):
             int_len = len(DIT_LIST[str_table])
             # 渲染表格数据
             self.table.setColumnCount(int_len)
-            self.table.setRowCount(INT_LIMIT)
+            self.table.setRowCount(int(self.page_num.currentText()))
             self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)  # 铺满
             self.table.setColumnWidth(0, 50)
             self.table.setColumnWidth(1, 50)

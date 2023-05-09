@@ -18,7 +18,7 @@ import sqlite3
 from loguru import logger
 from threading import Lock
 
-from constant import INT_LIMIT, DB_PATH
+from constant import DB_PATH
 
 
 LOOK = Lock()
@@ -67,7 +67,7 @@ class MySql:
             LOOK.release()
         return int_ret
 
-    def select_sql(self, table: str, int_start: int = 1, int_limit: int = INT_LIMIT) -> dict:
+    def select_sql(self, table: str, int_start: int, int_limit: int) -> dict:
         lst_ret = []
         int_mun = 1
         str_sql = ''
@@ -83,7 +83,7 @@ class MySql:
                 str_sql = f"select count(*) as num from {table}"
                 self.__exec_sql('select', str_sql)
                 int_count = self.curr.fetchone().get('num', 0)
-                lst_divmod = divmod(int_count, INT_LIMIT)
+                lst_divmod = divmod(int_count, int_limit)
                 int_mun = lst_divmod[0]
                 int_mun = lst_divmod[0] + (1 if lst_divmod[-1] > 0 else 0)
         except Exception as e:

@@ -29,7 +29,7 @@ from email.utils import formatdate
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from utils.tools import sub_html, word_2_html, load_file, str_2_int
-from constant import INT_LIMIT, BASE_PATH, DIT_DATABASE, DIT_EMAIL, FILTER_TABLE, FILTER_LANG, QSS_STYLE
+from constant import BASE_PATH, DIT_DATABASE, DIT_EMAIL, FILTER_TABLE, FILTER_LANG, QSS_STYLE
 from PyQt5.QtWidgets import QDialog, QFormLayout, QLineEdit, QDialogButtonBox, QComboBox, \
     QTextEdit, QFileDialog, QCheckBox, QGridLayout, QPushButton, QVBoxLayout, QRadioButton, QHBoxLayout
 from ui.base_ui import BaseButton, BaseLabel, BaseLineEdit
@@ -70,9 +70,9 @@ class EmailTools:
             obj_smtp = None
         return obj_smtp
 
-    @staticmethod
-    def get_info(table: str, where: str = '', int_start: int = 1, int_limit: int = INT_LIMIT):
+    def get_info(self, table: str, where: str = '', int_start: int = 1, int_limit: int = None):
         """获取数据库信息"""
+        int_limit = int_limit or int(self.obj_ui.page_num.currentText())
         with MySql() as obj_sql:
             dit_info = obj_sql.select_sql(table, int_start=int_start, int_limit=int_limit)
         return dit_info

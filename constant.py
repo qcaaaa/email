@@ -31,14 +31,9 @@ DB_PATH = os.path.join(BASE_PATH, 'sql')
 
 DRIVER_PATH = os.path.join(BASE_PATH, 'driver', 'chromedriver')
 
-# 表格行数,数据库一次查询数量
-INT_LIMIT = 22
-
 # 表格字体大小
 FONT_SIZE = 9
 
-# 表格字体高度
-FONT_WEIGHT = 73
 
 # 采集超时时间
 INT_TIMEOUT = 60

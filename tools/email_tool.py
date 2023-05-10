@@ -92,30 +92,6 @@ class EmailTools:
             int_ret = obj_sql.add_sql(table, lst_data)
         return int_ret
 
-    def import_user(self, obj_edit: QTextEdit, obj_btu: QDialogButtonBox):
-        """导入客户"""
-        try:
-            obj_edit.clear()
-            file_name, _ = QFileDialog.getOpenFileName(self.obj_ui, '选取文件', os.getcwd(), 'Text File(*.txt)')
-            if os.path.isfile(file_name):
-                with open(file_name, 'r', encoding='utf-8') as f:
-                    for str_line in f.readlines():
-                        lst_line = [i for i in str_line.strip().rsplit(maxsplit=1) if i.strip()]
-                        if len(lst_line) == 2 and '@' in lst_line[1]:
-                            self.to_list.append({'firm': lst_line[0], 'email': lst_line[1]})
-                if not self.to_list:
-                    self.obj_ui.show_message('错误提示', '收件人文件格式错误', '收件人文件格式错误')
-                else:
-                    self.obj_ui.show_message('提示', '上传收件人文件成功', f'上传收件人文件成功, 此次导入收件人: {len(self.to_list)}个')
-                    obj_edit.append('\n'.join([f"{dit_u['firm']}--{dit_u['email']}" for dit_u in self.to_list]))
-            else:
-                self.obj_ui.show_message('错误提示', '收件人文件不存在', '收件人文件不存在')
-        except Exception as e:
-            logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
-        finally:
-            if self.to_list:
-                obj_btu.setEnabled(True)
-
     @staticmethod
     def __get_language(str_type: str):
         with MySql() as obj_sql:
@@ -149,30 +125,56 @@ class EmailTools:
             return -1
 
     def __add_title(self):
-        str_file, _ = QFileDialog.getOpenFileName(self.obj_ui, '选取邮件标题文件', os.getcwd(), 'Text File(*.txt)')
-        if os.path.isfile(str_file):
-            with open(str_file, 'r', encoding='utf-8') as f:
-                dialog = QDialog(self.obj_ui)  # 自定义一个dialog
-                dialog.resize(500, 200)
-                form_layout = QFormLayout(dialog)  # 配置layout
-                dialog.setWindowTitle('增加邮件标题')
-                str_txt = QTextEdit(self.obj_ui)
-                str_txt.setText(f.read())
-                form_layout.addRow('邮件标题:', str_txt)
-                button = QDialogButtonBox(QDialogButtonBox.Ok)
-                form_layout.addRow(button)
-                button.clicked.connect(dialog.accept)
-                dialog.show()
-                if dialog.exec() == QDialog.Accepted:
-                    if str_txt:
-                        for str_t in str_txt.toPlainText().split('\n'):
-                            if str_t.strip() and ' ' in str_t:
-                                self.add_info(DIT_DATABASE[self.obj_ui.page], str_t.rsplit(maxsplit=1))
-                        return 1
-                    else:
-                        return -1
-        else:
-            self.obj_ui.show_message('错误', '未选择文件')
+        """批量增加邮件标题"""
+        int_ret = 0
+        try:
+
+            def __import_file():
+                text_title.clear()
+                str_file, _ = QFileDialog.getOpenFileName(self.obj_ui, '选取邮件标题文件', os.getcwd(), 'Text File(*.txt)')
+                if os.path.isfile(str_file):
+                    with open(str_file, 'r', encoding='utf-8') as f:
+                        str_data = f.read()
+                        if str_data:
+                            text_title.append(str_data)
+                            button.setEnabled(True)
+                else:
+                    self.obj_ui.show_message('错误', '未选择文件')
+
+            dialog = QDialog(self.obj_ui)
+            dialog.setWindowTitle('增加邮件标题')
+            dialog.resize(500, 300)
+
+            grid = QGridLayout()
+            grid.setSpacing(10)
+
+            title_label = BaseLabel(dialog, str_text='标题文件').label
+            grid.addWidget(title_label, 1, 0)
+            title_btu = BaseButton(dialog, str_text='选择文件', func=__import_file).btu
+            grid.addWidget(title_btu, 1, 1)
+
+            title_lst_label = BaseLabel(dialog, str_text='标题列表').label
+            grid.addWidget(title_lst_label, 2, 0)
+            text_title = QTextEdit(dialog)
+            text_title.setVerticalScrollBar(BaseBar(QSS_STYLE).bar)
+            grid.addWidget(text_title, 2, 1, 5, 3)
+
+            button = QDialogButtonBox(QDialogButtonBox.Ok)
+            button.clicked.connect(dialog.accept)
+            button.setDisabled(True)
+            grid.addWidget(button, 7, 3)
+
+            dialog.setLayout(grid)
+
+            dialog.show()
+            if dialog.exec() == QDialog.Accepted:
+                for str_t in text_title.toPlainText().split('\n'):
+                    if str_t.strip() and ' ' in str_t:
+                        self.add_info(DIT_DATABASE[self.obj_ui.page], [i.strip() for i in str_t.rsplit(maxsplit=1)])
+                int_ret = 1
+        except Exception as err:
+            logger.error(f"{err.__traceback__.tb_lineno}:--:{err}")
+        return int_ret
 
     def __add_body(self):
         str_file, _ = QFileDialog.getOpenFileName(self.obj_ui, '选取邮件正文文件', os.getcwd(), 'Text File(*.docx)')
@@ -426,6 +428,32 @@ class EmailTools:
     def select_user(self):
         """导入用户以及选择配置"""
         try:
+
+            def __import_user():
+                """导入客户"""
+                try:
+                    text_user.clear()
+                    file_name, _ = QFileDialog.getOpenFileName(self.obj_ui, '选取文件', os.getcwd(), 'Text File(*.txt)')
+                    if os.path.isfile(file_name):
+                        with open(file_name, 'r', encoding='utf-8') as f:
+                            for str_line in f.readlines():
+                                lst_line = [i for i in str_line.strip().rsplit(maxsplit=1) if i.strip()]
+                                if len(lst_line) == 2 and '@' in lst_line[1]:
+                                    self.to_list.append({'firm': lst_line[0], 'email': lst_line[1]})
+                        if not self.to_list:
+                            self.obj_ui.show_message('错误提示', '收件人文件格式错误', '收件人文件格式错误')
+                        else:
+                            self.obj_ui.show_message('提示', '上传收件人文件成功',
+                                                     f'上传收件人文件成功, 此次导入收件人: {len(self.to_list)}个')
+                            text_user.append('\n'.join([f"{dit_u['firm']}--{dit_u['email']}" for dit_u in self.to_list]))
+                    else:
+                        self.obj_ui.show_message('错误提示', '收件人文件不存在', '收件人文件不存在')
+                except Exception as e:
+                    logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
+                finally:
+                    if self.to_list:
+                        button.setEnabled(True)
+
             dialog = QDialog(self.obj_ui)
             dialog.setWindowTitle('导入用户以及设置基本配置')
             dialog.resize(500, 300)
@@ -436,6 +464,9 @@ class EmailTools:
             label_user_1 = BaseLabel(dialog, str_text='导入联系人').label
             grid.addWidget(label_user_1, 1, 0)
 
+            btu_user = BaseButton(dialog, str_text='导入联系人', func=__import_user).btu
+            grid.addWidget(btu_user, 1, 1)
+
             label_user_2 = BaseLabel(dialog, str_text='联系人列表').label
             grid.addWidget(label_user_2, 2, 0)
 
@@ -443,14 +474,6 @@ class EmailTools:
             text_user.setReadOnly(True)
             text_user.setVerticalScrollBar(BaseBar(QSS_STYLE).bar)
             grid.addWidget(text_user, 2, 1, 3, 5)
-
-            button = QDialogButtonBox(QDialogButtonBox.Ok)
-            button.clicked.connect(dialog.accept)
-            button.setDisabled(True)
-
-            btu_user = BaseButton(dialog, str_text='导入联系人').btu
-            btu_user.clicked.connect(partial(self.import_user, text_user, button))
-            grid.addWidget(btu_user, 1, 1)
 
             label_interval = BaseLabel(dialog, str_text='最大发送').label
             grid.addWidget(label_interval, 5, 0)
@@ -470,6 +493,9 @@ class EmailTools:
             radio_button.setChecked(False)
             grid.addWidget(radio_button, 5, 4)
 
+            button = QDialogButtonBox(QDialogButtonBox.Ok)
+            button.clicked.connect(dialog.accept)
+            button.setDisabled(True)
             grid.addWidget(button, 6, 4)
 
             dialog.setLayout(grid)

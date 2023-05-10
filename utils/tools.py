@@ -41,17 +41,17 @@ def word_2_html(str_file: str) -> str:
         doc.SaveAs(f"{str_file}.html", 10)
         with open(f"{str_file}.html", 'r') as f:
             str_html = f.read()
-        try:
-            os.remove(f"{str_file}.html")
-        except:
-            pass
-    except Exception as e:
-        logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
-    finally:
         if doc:
             doc.Close()
         if word:
             word.Quit()
+    except Exception as e:
+        logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
+    finally:
+        try:
+            os.remove(f"{str_file}.html")
+        except:
+            pass
         return str_html
 
 

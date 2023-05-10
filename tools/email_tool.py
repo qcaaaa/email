@@ -130,16 +130,19 @@ class EmailTools:
         try:
 
             def __import_file():
-                text_title.clear()
-                str_file, _ = QFileDialog.getOpenFileName(self.obj_ui, '选取邮件标题文件', os.getcwd(), 'Text File(*.txt)')
-                if os.path.isfile(str_file):
-                    with open(str_file, 'r', encoding='utf-8') as f:
-                        str_data = f.read()
-                        if str_data:
-                            text_title.append(str_data)
-                            button.setEnabled(True)
-                else:
-                    self.obj_ui.show_message('错误', '未选择文件')
+                try:
+                    text_title.clear()
+                    str_file, _ = QFileDialog.getOpenFileName(self.obj_ui, '选取邮件标题文件', os.getcwd(), 'Text File(*.txt)')
+                    if os.path.isfile(str_file):
+                        with open(str_file, 'r', encoding='utf-8') as f:
+                            str_data = f.read()
+                            if str_data:
+                                text_title.append(str_data)
+                                button.setEnabled(True)
+                    else:
+                        self.obj_ui.show_message('错误', '未选择文件')
+                except Exception as e:
+                    logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
 
             dialog = QDialog(self.obj_ui)
             dialog.setWindowTitle('增加邮件标题')
@@ -150,11 +153,13 @@ class EmailTools:
 
             title_label = BaseLabel(dialog, str_text='标题文件').label
             grid.addWidget(title_label, 1, 0)
+
             title_btu = BaseButton(dialog, str_text='选择文件', func=__import_file).btu
             grid.addWidget(title_btu, 1, 1)
 
             title_lst_label = BaseLabel(dialog, str_text='标题列表').label
             grid.addWidget(title_lst_label, 2, 0)
+
             text_title = QTextEdit(dialog)
             text_title.setVerticalScrollBar(BaseBar(QSS_STYLE).bar)
             grid.addWidget(text_title, 2, 1, 5, 3)
@@ -177,34 +182,75 @@ class EmailTools:
         return int_ret
 
     def __add_body(self):
-        str_file, _ = QFileDialog.getOpenFileName(self.obj_ui, '选取邮件正文文件', os.getcwd(), 'Text File(*.docx)')
-        if os.path.isfile(str_file):
-            result = word_2_html(str_file)
-            if result:
-                dialog = QDialog(self.obj_ui)  # 自定义一个dialog
-                form_layout = QFormLayout(dialog)  # 配置layout
-                dialog.setWindowTitle('增加邮件正文')
-                dialog.resize(1000, 500)
-                str_txt = QTextEdit(self.obj_ui)
-                str_txt.setHtml(result)
-                form_layout.addRow('邮件正文:', str_txt)
-                str_box = QComboBox(self.obj_ui)
-                str_box.addItems(self.__get_language('body'))
-                str_box.setEditable(True)
-                form_layout.addRow('模板语种:', str_box)
-                button = QDialogButtonBox(QDialogButtonBox.Ok)
-                form_layout.addRow(button)
-                button.clicked.connect(dialog.accept)
-                dialog.show()
-                if dialog.exec() == QDialog.Accepted:
-                    str_2, str_3 = sub_html(str_txt.toHtml()), str_box.currentText().strip()
-                    if all([str_2, str_3]):
-                        return self.add_info(DIT_DATABASE[self.obj_ui.page], [str_2, str_3])
-                    return -1
-            else:
-                self.obj_ui.show_message('错误', 'Word未获取到内容')
-        else:
-            self.obj_ui.show_message('错误', '未选择文件')
+        """添加邮件正文"""
+        int_ret = 0
+        try:
+
+            def __import_file():
+                try:
+                    body_title.clear()
+                    # doc文件名包含中文处理
+                    options = QFileDialog.Options()
+                    options |= QFileDialog.DontUseNativeDialog
+                    str_file, _ = QFileDialog.getOpenFileName(self.obj_ui, '选取邮件正文文件', os.getcwd(), 'Text File(*.docx)', options=options)
+                    if os.path.isfile(str_file):
+                        result = word_2_html(str_file)
+                        if result:
+                            body_title.setHtml(result)
+                            button.setEnabled(True)
+                        else:
+                            self.obj_ui.show_message('错误', 'Word未获取到内容')
+                    else:
+                        self.obj_ui.show_message('错误', '未选择文件')
+                except Exception as e:
+                    logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
+
+            dialog = QDialog(self.obj_ui)
+            dialog.setWindowTitle('增加邮件标题')
+            dialog.resize(500, 300)
+
+            grid = QGridLayout()
+            grid.setSpacing(10)
+
+            body_label = BaseLabel(dialog, str_text='正文文件').label
+            grid.addWidget(body_label, 1, 0)
+
+            body_btu = BaseButton(dialog, str_text='选择文件', func=__import_file).btu
+            grid.addWidget(body_btu, 1, 1)
+
+            body_lst_label = BaseLabel(dialog, str_text='正文内容').label
+            grid.addWidget(body_lst_label, 2, 0)
+
+            body_title = QTextEdit(dialog)
+            body_title.setReadOnly(True)
+            body_title.setVerticalScrollBar(BaseBar(QSS_STYLE).bar)
+            grid.addWidget(body_title, 2, 1, 6, 5)
+
+            box_label = BaseLabel(dialog, str_text='模板语种').label
+            grid.addWidget(box_label, 8, 0)
+
+            str_box = QComboBox(self.obj_ui)
+            str_box.addItems(self.__get_language('body'))
+            str_box.setEditable(True)
+            str_box.setStyleSheet(QSS_STYLE)
+            grid.addWidget(str_box, 8, 1)
+
+            button = QDialogButtonBox(QDialogButtonBox.Ok)
+            button.clicked.connect(dialog.accept)
+            grid.addWidget(button, 9, 5)
+            button.setDisabled(True)
+
+            dialog.setLayout(grid)
+            dialog.show()
+            if dialog.exec() == QDialog.Accepted:
+                str_2, str_3 = sub_html(body_title.toHtml()), str_box.currentText().strip()
+                if all([str_2, str_3]):
+                    int_ret = self.add_info(DIT_DATABASE[self.obj_ui.page], [str_2, str_3])
+                else:
+                    int_ret = -1
+        except Exception as err:
+            logger.error(f"{err.__traceback__.tb_lineno}:--:{err}")
+        return int_ret
 
     def __add_info(self):
         dialog = QDialog(self.obj_ui)  # 自定义一个dialog
@@ -261,6 +307,7 @@ class EmailTools:
         """
         int_ret = 0
         try:
+            self.obj_ui.add_button.setDisabled(True)
             # 当前页面
             str_page = self.obj_ui.page
             if str_page == '账号配置':
@@ -276,13 +323,14 @@ class EmailTools:
         except Exception as e:
             logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
         finally:
+            self.obj_ui.add_button.setEnabled(True)
             if int_ret == 1:
                 self.obj_ui.show_message('成功', '添加成功')
                 self.obj_ui.flush_table(True)
             elif int_ret == -1:
                 self.obj_ui.show_message('错误', '未正确填写')
             elif int_ret == 0:
-                self.obj_ui.show_message('失败', '添加失败')
+                self.obj_ui.show_message('失败', '添加失败, 检查是否重复数据')
 
     def __upload_aly(self, obj_file_line=None):
         """上传文件至阿里云"""

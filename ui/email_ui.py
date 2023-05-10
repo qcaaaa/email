@@ -37,7 +37,7 @@ from tools.email_tool import EmailTools
 from tools.email_check import CheckTool
 from tools.email_google import GoogleTool
 from ota.otaupgrade import OtaUpgrade
-from ui.base_ui import BaseButton, BaseLabel, BaseLineEdit, BaseAction, BaseBar
+from ui.base_ui import BaseButton, BaseLabel, BaseLineEdit, BaseAction, BaseBar, BaseComboBox
 from version import VERSION
 
 
@@ -166,11 +166,8 @@ class EmailUi(QMainWindow, BaseClass):
                                     '跳转', QSS_STYLE, func=self.page_turning, str_name='跳转').btu
         self.page_skip.setDisabled(True)
 
-        self.page_num = QComboBox(central_widget)
-        self.page_num.addItems(['20', '30', '50'])
-        self.page_num.setGeometry(975, 720, 80, 30)
-        self.page_num.setStyleSheet(QSS_STYLE)
-        self.page_num.currentTextChanged[str].connect(self.on_combo_box_changed)
+        self.page_num = BaseComboBox(central_widget, QSS_STYLE, lst_data=['20', '30', '50'],
+                                     tuple_size=(975, 720, 80, 30), func=self.on_combo_box_changed).box
         # ################# 分页 结束....########################################
 
         # 窗口的整体布局

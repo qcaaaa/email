@@ -1,5 +1,5 @@
 from typing import Tuple, Callable
-from PyQt5.QtWidgets import QRadioButton, QAction
+from PyQt5.QtWidgets import QRadioButton, QAction, QComboBox
 from PyQt5.QtCore import QSize, Qt, QEvent
 from PyQt5 import QtCore, QtGui
 from PyQt5.QtGui import QIcon
@@ -179,3 +179,42 @@ class BaseBar:
         if self.file_style:
             obj_bar.setStyleSheet(self.file_style)
         return obj_bar
+
+
+class BaseComboBox:
+    """QComboBox 基类"""
+
+    def __init__(self, parent, file_style: str = '', is_readonly: bool = True, lst_data: list = None,
+                 tuple_size: Tuple[int, ...] = None, func: Callable = None):
+        """
+        :param parent: 父类
+        :param file_style: 样式文件
+        :param is_readonly: 是否只读
+        :param lst_data: 数据源
+        :param tuple_size: 大小位置
+        :param func: 切换事件
+        """
+        self.parent = parent
+        self.file_style = file_style
+        self.is_readonly = is_readonly
+        self.lst_data = lst_data
+        self.tuple_size = tuple_size
+        self.func = func
+
+    @property
+    def box(self) -> QComboBox:
+        obj_box = QComboBox(self.parent)
+        if not self.is_readonly:
+            obj_box.setEnabled(True)
+        if self.lst_data:
+            obj_box.addItems(self.lst_data or [])
+        if self.file_style:
+            obj_box.setStyleSheet(self.file_style)
+        if self.tuple_size:
+            if len(self.tuple_size) == 4:
+                obj_box.setGeometry(*self.tuple_size)
+            elif len(self.tuple_size) == 2:
+                obj_box.setFixedSize(*self.tuple_size)
+        if self.func:
+            obj_box.currentTextChanged[str].connect(self.func)
+        return obj_box

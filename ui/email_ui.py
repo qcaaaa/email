@@ -28,10 +28,10 @@ from PyQt5.QtCore import QSize, Qt, QEvent
 from PyQt5 import QtCore
 from PyQt5.QtGui import QIcon
 from PyQt5.QtGui import QTextCursor
-from PyQt5.QtWidgets import QListWidget, QStackedWidget
+from PyQt5.QtWidgets import QListWidget
 from PyQt5.QtWidgets import QHeaderView, QAbstractItemView
 from PyQt5.Qt import QTableWidgetItem
-from constant import FIRST_TAB, DIT_LIST, DIT_DATABASE, STATIC_PATH, GIT_URL, EXE_NAME, QSS_STYLE
+from constant import DIT_LIST, DIT_DATABASE, STATIC_PATH, GIT_URL, EXE_NAME, QSS_STYLE
 from utils.tools import str_2_int
 from tools.email_tool import EmailTools
 from tools.email_check import CheckTool
@@ -165,8 +165,6 @@ class EmailUi(QMainWindow, BaseClass):
 
         # 右侧
         self.table = QTableWidget()  # type: QTableWidget
-        self.right_widget = QStackedWidget()
-        self.right_widget.addWidget(self.table)
 
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
@@ -175,7 +173,7 @@ class EmailUi(QMainWindow, BaseClass):
         # # 下面留250
         main_layout.setContentsMargins(0, 0, 0, 250)
         main_layout.addWidget(self.left_widget)
-        main_layout.addWidget(self.right_widget)
+        main_layout.addWidget(self.table)
 
         # 下侧 日志框
         self.log_label = BaseLabel(self, (10, 760, 100, 35), str_img=os.path.join(STATIC_PATH, 'images', 'log.png'),
@@ -188,7 +186,7 @@ class EmailUi(QMainWindow, BaseClass):
         # 加载滚动条
         self.log_text.setVerticalScrollBar(BaseBar(QSS_STYLE).bar)
 
-        self.page = FIRST_TAB
+        self.page = ''
 
         self.tool_tip = ''
 
@@ -204,12 +202,13 @@ class EmailUi(QMainWindow, BaseClass):
         # 获取版本
         self.set_ver()
 
-        self.left_widget.currentRowChanged.connect(self.right_widget.setCurrentIndex)  # list和右侧窗口的index对应绑定
         self.left_widget.setFrameShape(QListWidget.NoFrame)  # 去掉边框
         self.left_widget.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)  # 隐藏滚动条
         self.left_widget.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
 
-        for keys in DIT_LIST.keys():
+        for index_, keys in enumerate(DIT_LIST.keys()):
+            if index_ == 0:
+                self.page = keys
             self.item = QListWidgetItem(keys, self.left_widget)  # 左侧选项的添加
             self.item.setSizeHint(QSize(30, 60))
             self.item.setTextAlignment(Qt.AlignCenter)  # 居中显示
@@ -287,8 +286,8 @@ class EmailUi(QMainWindow, BaseClass):
             self.table.setColumnCount(int_len)
             self.table.setRowCount(int(self.page_num.currentText()))
             self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)  # 铺满
-            self.table.setColumnWidth(0, 50)
-            self.table.setColumnWidth(1, 50)
+            self.table.setColumnWidth(0, 10)
+            self.table.setColumnWidth(1, 10)
             self.table.setHorizontalHeaderLabels(DIT_LIST[str_table])  # 表头
             self.table.setEditTriggers(QAbstractItemView.NoEditTriggers)  # 禁止修改
             self.table.setAlternatingRowColors(True)  # 交替行颜色
@@ -300,11 +299,10 @@ class EmailUi(QMainWindow, BaseClass):
             for index_, dit_info in enumerate(lst_data):
                 # 创建单选框
                 checkbox = QCheckBox()
-                checkbox.setChecked(False)
                 self.table.setCellWidget(index_, 0, checkbox)
                 # 设置数据
                 for index_j, value in enumerate(dit_info.values(), 1):
-                    if str_table == FIRST_TAB and index_j == 4:
+                    if str_table == '账号配置' and index_j == 4:
                         value = self.email_tool.email_dict.get(str(value), {}).get('name_cn')
                     item = QTableWidgetItem(str(value or ''))
                     item.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)

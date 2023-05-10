@@ -48,7 +48,6 @@ DIT_LIST = {
 }
 
 # 表格对应的数据库
-
 DIT_DATABASE = {
     '账号配置': 'user',
     '邮件标题': 'title',
@@ -57,12 +56,7 @@ DIT_DATABASE = {
     '邮件结尾': 'end'
 }
 
-# 第一个菜单栏
-
-FIRST_TAB = list(DIT_LIST.keys())[0]
-
 # 邮箱服务器
-
 DIT_EMAIL = {
     '阿里企业邮箱': '1',
     '网易邮箱': '3',

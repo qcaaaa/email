@@ -32,6 +32,7 @@ from PyQt5.QtWidgets import QListWidget, QStackedWidget
 from PyQt5.QtWidgets import QHeaderView, QAbstractItemView
 from PyQt5.Qt import QTableWidgetItem
 from constant import FIRST_TAB, DIT_LIST, DIT_DATABASE, STATIC_PATH, GIT_URL, EXE_NAME, QSS_STYLE
+from utils.tools import str_2_int
 from tools.email_tool import EmailTools
 from tools.email_check import CheckTool
 from tools.email_google import GoogleTool
@@ -138,21 +139,18 @@ class EmailUi(QMainWindow, BaseClass):
         # ################# 分页 开始....########################################
         self.page_up = BaseButton(self, (525, 760, 80, 30), os.path.join(STATIC_PATH, 'images', 'up.png'),
                                   '上一页', QSS_STYLE, func=self.page_turning, str_name='上一页').btu
-        self.page_up.setDisabled(True)
 
         self.page_text = BaseLabel(self, (625, 760, 40, 30), str_text="1/1").label
         self.page_text.setAlignment(Qt.AlignCenter)
 
         self.page_down = BaseButton(self, (685, 760, 80, 30), os.path.join(STATIC_PATH, 'images', 'next.png'),
                                     '下一页', QSS_STYLE, func=self.page_turning, str_name='下一页').btu
-        self.page_down.setDisabled(True)
 
         self.page_text_2 = BaseLineEdit(self, (785, 760, 70, 30), QSS_STYLE).lineedit
         self.page_text_2.textChanged.connect(self.text_changed)
 
         self.page_skip = BaseButton(self, (875, 760, 80, 30), os.path.join(STATIC_PATH, 'images', 'skip.png'),
                                     '跳转', QSS_STYLE, func=self.page_turning, str_name='跳转').btu
-        self.page_skip.setDisabled(True)
 
         self.page_num = QComboBox(self)
         self.page_num.addItems(['3', '30', '50'])
@@ -253,14 +251,15 @@ class EmailUi(QMainWindow, BaseClass):
     def text_changed(self, text):
         """跳转输入框 监听事件"""
         try:
-            int_page = int(text)
-            curr_pag, count_pag = self.page_text.text().split('/')
-            if int_page == int(curr_pag):
-                self.page_skip.setDisabled(True)
-            elif 1 <= int_page <= int(count_pag):
-                self.page_skip.setEnabled(True)
-            else:
-                self.page_skip.setDisabled(True)
+            int_page = str_2_int(text)
+            if int_page > 0:
+                curr_pag, count_pag = self.page_text.text().split('/')
+                if int_page == int(curr_pag):
+                    self.page_skip.setDisabled(True)
+                elif 1 <= int_page <= int(count_pag):
+                    self.page_skip.setEnabled(True)
+                else:
+                    self.page_skip.setDisabled(True)
         except Exception as e:
             logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
             self.page_skip.setDisabled(True)

@@ -32,7 +32,7 @@ from utils.tools import sub_html, word_2_html, load_file, str_2_int
 from constant import BASE_PATH, DIT_DATABASE, DIT_EMAIL, FILTER_TABLE, FILTER_LANG, QSS_STYLE
 from PyQt5.QtWidgets import QDialog, QFormLayout, QLineEdit, QDialogButtonBox, QComboBox, \
     QTextEdit, QFileDialog, QCheckBox, QGridLayout, QPushButton, QVBoxLayout, QRadioButton, QHBoxLayout
-from ui.base_ui import BaseButton, BaseLabel, BaseLineEdit
+from ui.base_ui import BaseButton, BaseLabel, BaseLineEdit, BaseBar
 
 
 class EmailTools:
@@ -56,6 +56,7 @@ class EmailTools:
         self.button = None  # 每个页面的下一步按钮
         self.send_mun = 50  # 一个账号一次发50封
         self.sleep_mun = 20  # 发送间隔
+        self.send_model = False  # 发送模式(不带网页)
         self.lang = None
         self.str_url = ''
 
@@ -91,9 +92,10 @@ class EmailTools:
             int_ret = obj_sql.add_sql(table, lst_data)
         return int_ret
 
-    def import_user(self):
+    def import_user(self, obj_edit: QTextEdit, obj_btu: QDialogButtonBox):
         """导入客户"""
         try:
+            obj_edit.clear()
             file_name, _ = QFileDialog.getOpenFileName(self.obj_ui, '选取文件', os.getcwd(), 'Text File(*.txt)')
             if os.path.isfile(file_name):
                 with open(file_name, 'r', encoding='utf-8') as f:
@@ -105,10 +107,14 @@ class EmailTools:
                     self.obj_ui.show_message('错误提示', '收件人文件格式错误', '收件人文件格式错误')
                 else:
                     self.obj_ui.show_message('提示', '上传收件人文件成功', f'上传收件人文件成功, 此次导入收件人: {len(self.to_list)}个')
+                    obj_edit.append('\n'.join([f"{dit_u['firm']}--{dit_u['email']}" for dit_u in self.to_list]))
             else:
                 self.obj_ui.show_message('错误提示', '收件人文件不存在', '收件人文件不存在')
         except Exception as e:
             logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
+        finally:
+            if self.to_list:
+                obj_btu.setEnabled(True)
 
     @staticmethod
     def __get_language(str_type: str):
@@ -423,48 +429,60 @@ class EmailTools:
             dialog = QDialog(self.obj_ui)
             dialog.setWindowTitle('导入用户以及设置基本配置')
             dialog.resize(500, 300)
-            # 横向布局
-            h_layout_1 = QHBoxLayout()
-            label_user = BaseLabel(dialog, str_text='导入联系人').label
-            btu_user = BaseButton(dialog, str_text='选择联系人文件', func=self.import_user).btu
-            h_layout_1.addWidget(label_user)
-            h_layout_1.addWidget(btu_user)
 
-            h_layout_2 = QHBoxLayout()
+            grid = QGridLayout()
+            grid.setSpacing(10)
+
+            label_user_1 = BaseLabel(dialog, str_text='导入联系人').label
+            grid.addWidget(label_user_1, 1, 0)
+
+            label_user_2 = BaseLabel(dialog, str_text='联系人列表').label
+            grid.addWidget(label_user_2, 2, 0)
+
+            text_user = QTextEdit(dialog)
+            text_user.setReadOnly(True)
+            text_user.setVerticalScrollBar(BaseBar(QSS_STYLE).bar)
+            grid.addWidget(text_user, 2, 1, 3, 5)
+
+            button = QDialogButtonBox(QDialogButtonBox.Ok)
+            button.clicked.connect(dialog.accept)
+            button.setDisabled(True)
+
+            btu_user = BaseButton(dialog, str_text='导入联系人').btu
+            btu_user.clicked.connect(partial(self.import_user, text_user, button))
+            grid.addWidget(btu_user, 1, 1)
+
             label_interval = BaseLabel(dialog, str_text='最大发送').label
+            grid.addWidget(label_interval, 5, 0)
+
             interval_edit = BaseLineEdit(dialog, file_style=QSS_STYLE, str_default=str(self.send_mun)).lineedit
             interval_edit.setValidator(QtGui.QIntValidator())
-            h_layout_2.addWidget(label_interval)
-            h_layout_2.addWidget(interval_edit)
+            grid.addWidget(interval_edit, 5, 1)
 
-            h_layout_3 = QHBoxLayout()
             label_sleep = BaseLabel(dialog, str_text='发送间隔(s)').label
+            grid.addWidget(label_sleep, 5, 2)
+
             sleep_edit = BaseLineEdit(dialog, file_style=QSS_STYLE, str_default=str(self.sleep_mun)).lineedit
             sleep_edit.setValidator(QtGui.QIntValidator())
-            h_layout_3.addWidget(label_sleep)
-            h_layout_3.addWidget(sleep_edit)
+            grid.addWidget(sleep_edit, 5, 3)
 
             radio_button = QRadioButton("带网页", dialog)
             radio_button.setChecked(False)
+            grid.addWidget(radio_button, 5, 4)
 
-            # 垂直布局
-            v_layout = QVBoxLayout()
-            v_layout.addLayout(h_layout_1)
-            v_layout.addLayout(h_layout_2)
-            v_layout.addLayout(h_layout_3)
-            v_layout.addWidget(radio_button)
+            grid.addWidget(button, 6, 4)
 
-            button = QDialogButtonBox(QDialogButtonBox.Ok)
-            v_layout.addWidget(button)
-            button.clicked.connect(dialog.accept)
-
-            dialog.setLayout(v_layout)
+            dialog.setLayout(grid)
 
             dialog.show()
 
             if dialog.exec() == QDialog.Accepted:
+                # 会记录上次使用的值(软件不重启的情况下)
                 self.send_mun = str_2_int(interval_edit.text(), self.send_mun)
                 self.sleep_mun = str_2_int(sleep_edit.text(), self.sleep_mun)
+                self.send_model = radio_button.isChecked()
+                dialog.close()
+                self.select_account()
         except Exception as err:
             logger.error(f"{err.__traceback__.tb_lineno}:--:{err}")
         return

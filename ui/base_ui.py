@@ -63,7 +63,7 @@ class BaseButton:
 class BaseLabel:
     """label 基类"""
 
-    def __init__(self, parent: object, tuple_size: Tuple[int, int, int, int] = None, str_img: str = '',
+    def __init__(self, parent: object, tuple_size: Tuple[int, ...] = None, str_img: str = '',
                  str_text: str = '', str_tip: str = '', str_name: str = ''):
         """为 '' 表示不设置
         :param parent: 继承父类
@@ -84,7 +84,10 @@ class BaseLabel:
     def label(self) -> QLabel:
         obj_lab = QLabel(self.parent)
         if self.tuple_size:
-            obj_lab.setGeometry(QtCore.QRect(*self.tuple_size))
+            if len(self.tuple_size) == 4:
+                obj_lab.setGeometry(QtCore.QRect(*self.tuple_size))
+            elif len(self.tuple_size) == 2:
+                obj_lab.setFixedSize(*self.tuple_size)
         if self.str_text:
             obj_lab.setText(self.str_text)
         if self.str_tip:
@@ -125,7 +128,7 @@ class BaseLineEdit:
         if self.str_name:
             obj_line.setObjectName(self.str_name)
         if self.str_default:
-            obj_line.setPlaceholderText(self.str_default)
+            obj_line.setText(self.str_default)
         return obj_line
 
 

@@ -91,6 +91,7 @@ class EmailUi(QMainWindow, BaseClass):
         # ################# 删除控件 开始.......########################################
         self.del_button = BaseAction(self, str_img=os.path.join(STATIC_PATH, 'images', 'del.png'), str_tip='删除',
                                      func=self.del_info, file_style=QSS_STYLE).action
+        self.del_button.setDisabled(True)
         toolbar.addAction(self.del_button)
         # ################# 删除控件 结束.......########################################
 
@@ -186,11 +187,11 @@ class EmailUi(QMainWindow, BaseClass):
         # 加载滚动条
         self.log_text.setVerticalScrollBar(BaseBar(QSS_STYLE).bar)
 
-        self.page = ''
+        self.page = ''  # 页面
 
         self.tool_tip = ''
 
-        self.dit_table_button = {}
+        self.select_table = set()  # 当前页面选中的单选框数据库唯一标识
 
         self._setup_ui()
 
@@ -278,16 +279,17 @@ class EmailUi(QMainWindow, BaseClass):
     def show_table(self, lst_data: list, str_table: str, curr_pag: int = 1, count_pag: int = 1):
         """表格填充数据"""
         try:
-            self.dit_table_button.clear()  # 清空页面 按钮对象
+            # 清空所有勾选
+            self.select_table.clear()
             # 清空表格数据
             self.table.clearContents()  # 清空现有数据
             int_len = len(DIT_LIST[str_table])
             # 渲染表格数据
             self.table.setColumnCount(int_len)
             self.table.setRowCount(int(self.page_num.currentText()))
+            self.table.setColumnWidth(0, 20)
+            self.table.setColumnWidth(1, 20)
             self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)  # 铺满
-            self.table.setColumnWidth(0, 10)
-            self.table.setColumnWidth(1, 10)
             self.table.setHorizontalHeaderLabels(DIT_LIST[str_table])  # 表头
             self.table.setEditTriggers(QAbstractItemView.NoEditTriggers)  # 禁止修改
             self.table.setAlternatingRowColors(True)  # 交替行颜色
@@ -299,6 +301,8 @@ class EmailUi(QMainWindow, BaseClass):
             for index_, dit_info in enumerate(lst_data):
                 # 创建单选框
                 checkbox = QCheckBox()
+                checkbox.setObjectName(str(dit_info['id']))
+                checkbox.clicked.connect(self.__on_checkbox_changed)
                 self.table.setCellWidget(index_, 0, checkbox)
                 # 设置数据
                 for index_j, value in enumerate(dit_info.values(), 1):
@@ -320,26 +324,50 @@ class EmailUi(QMainWindow, BaseClass):
         except Exception as e:
             logger.debug(f"{e.__traceback__.tb_lineno}:--:{e}")
 
-    def del_info(self):
-        sender = self.sender()
+    def __on_checkbox_changed(self, state):
         try:
-            sender.setDisabled(True)
-            db_id = int(sender.objectName())
-            msg_box = QMessageBox(self)
-            msg_box.setWindowTitle('确认')
-            msg_box.setText('确认删除该条记录吗?')
-            yes_button = msg_box.addButton('确认', QMessageBox.YesRole)
-            no_button = msg_box.addButton('取消', QMessageBox.NoRole)
-            msg_box.exec_()
-            if msg_box.clickedButton() == yes_button:
-                int_ret = self.email_tool.del_info(DIT_DATABASE[self.page], db_id)
-                self.show_message('删除', f'删除成功' if int_ret else '删除失败')
-                if int_ret == 1:
-                    self.flush_table(True)
+            int_id = str_2_int(self.sender().objectName())
+            if int_id >= 0 and state:
+                self.select_table.add(int_id)
+            elif int_id >= 0 and not state:
+                self.select_table.remove(int_id)
         except Exception as e:
             logger.debug(f"{e.__traceback__.tb_lineno}:--:{e}")
         finally:
-            sender.setEnabled(True)
+            if self.select_table:
+                self.del_button.setEnabled(True)
+            else:
+                self.del_button.setDisabled(True)
+        return
+
+    def del_info(self):
+        int_succ = 0
+        int_len = len(self.select_table)
+        try:
+            if int_len:
+                msg_box = QMessageBox(self)
+                msg_box.setWindowTitle('确认')
+                msg_box.setText(f'确认删除{len(self.select_table)}条记录吗?')
+                yes_button = msg_box.addButton('确认', QMessageBox.YesRole)
+                no_button = msg_box.addButton('取消', QMessageBox.NoRole)
+                msg_box.exec_()
+                if msg_box.clickedButton() == yes_button:
+                    for int_id in self.select_table:
+                        int_ret = self.email_tool.del_info(DIT_DATABASE[self.page], int_id)
+                        if int_ret == 1:
+                            int_succ += 1
+                    if int_succ == int_len:
+                        self.show_message('删除', f'{int_succ}条记录被删除')
+                    elif 0 < int_succ < int_len:
+                        self.show_message('删除', f'{int_succ}条记录删除成功,{int_len - int_succ}条记录删除失败')
+                    else:
+                        self.show_message('删除', f'删除失败')
+        except Exception as e:
+            logger.debug(f"{e.__traceback__.tb_lineno}:--:{e}")
+        else:
+            self.flush_table(True)
+        finally:
+            self.del_button.setDisabled(True)
 
     def flush_table(self, is_show: bool = False):
         dit_info = self.email_tool.get_info(DIT_DATABASE[self.page])

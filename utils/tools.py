@@ -81,7 +81,7 @@ def get_qss_style():
 
 def str_2_int(str_num: str, int_def: int = -1):
     try:
-        int_num = str(str_num)
+        int_num = int(str_num)
     except:
         int_num = int_def
     return int_num

@@ -465,9 +465,6 @@ class EmailTools:
             if dialog.exec() == QDialog.Accepted:
                 self.send_mun = str_2_int(interval_edit.text(), self.send_mun)
                 self.sleep_mun = str_2_int(sleep_edit.text(), self.sleep_mun)
-                print(self.sleep_mun)
-                print(self.to_list)
-                print(self.send_mun)
         except Exception as err:
             logger.error(f"{err.__traceback__.tb_lineno}:--:{err}")
         return

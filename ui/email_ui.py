@@ -297,6 +297,7 @@ class EmailUi(QMainWindow, BaseClass):
             self.table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)  # 前两列自适应
             self.table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeToContents)
             self.table.setHorizontalHeaderLabels(table_header)  # 表头
+            self.table.horizontalHeader().sectionClicked.connect(self.on_all_checkbox_changed)  # 表头点击事件
             self.table.setEditTriggers(QAbstractItemView.NoEditTriggers)  # 禁止修改
             self.table.setAlternatingRowColors(True)  # 交替行颜色
             # 表格 tip 显示
@@ -330,7 +331,36 @@ class EmailUi(QMainWindow, BaseClass):
         except Exception as e:
             logger.debug(f"{e.__traceback__.tb_lineno}:--:{e}")
 
+    def on_all_checkbox_changed(self, logical_index):
+        """表格全选
+        :param logical_index: 列索引
+        :return:
+        """
+        is_clear = False
+        lst_radio = []
+        try:
+            if logical_index == 0:
+                lst_radio = [self.table.cellWidget(i, 0) for i in range(self.table.rowCount())]
+                # 已经全选
+                if 0 < len(lst_radio) == len(self.select_table):
+                    is_clear = True
+                for obj_radio in lst_radio:
+                    obj_radio.setChecked(not is_clear)
+        except Exception as e:
+            logger.debug(f"{e.__traceback__.tb_lineno}:--:{e}")
+        finally:
+            if is_clear:
+                self.select_table.clear()
+            else:
+                self.select_table = {str_2_int(obj_radio.objectName()) for obj_radio in lst_radio}
+            if self.select_table:
+                self.del_button.setEnabled(True)
+            else:
+                self.del_button.setDisabled(True)
+        return
+
     def on_checkbox_changed(self, state):
+        """表格内容单选"""
         try:
             int_id = str_2_int(self.sender().objectName())
             if int_id >= 0 and state:

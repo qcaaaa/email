@@ -137,27 +137,6 @@ class EmailUi(QMainWindow, BaseClass):
 
         # ################# 状态栏 结束.......########################################
 
-        # ################# 分页 开始....########################################
-        self.page_up = BaseButton(self, (525, 760, 80, 30), os.path.join(STATIC_PATH, 'images', 'up.png'),
-                                  '上一页', QSS_STYLE, func=self.page_turning, str_name='上一页').btu
-
-        self.page_text = BaseLabel(self, (625, 760, 40, 30), str_text="1/1").label
-        self.page_text.setAlignment(Qt.AlignCenter)
-
-        self.page_down = BaseButton(self, (685, 760, 80, 30), os.path.join(STATIC_PATH, 'images', 'next.png'),
-                                    '下一页', QSS_STYLE, func=self.page_turning, str_name='下一页').btu
-
-        self.page_text_2 = BaseLineEdit(self, (785, 760, 70, 30), QSS_STYLE).lineedit
-        self.page_text_2.textChanged.connect(self.text_changed)
-
-        self.page_skip = BaseButton(self, (875, 760, 80, 30), os.path.join(STATIC_PATH, 'images', 'skip.png'),
-                                    '跳转', QSS_STYLE, func=self.page_turning, str_name='跳转').btu
-
-        self.page_num = QComboBox(self)
-        self.page_num.addItems(['3', '30', '50'])
-        self.page_num.setGeometry(975, 760, 80, 30)
-        # ################# 分页 结束....########################################
-
         # 左侧选项列表
         self.left_widget = QListWidget()
         self.left_widget.setStyleSheet(QSS_STYLE)
@@ -169,6 +148,29 @@ class EmailUi(QMainWindow, BaseClass):
 
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
+
+        # ################# 分页 开始....########################################
+        self.page_up = BaseButton(central_widget, (525, 720, 80, 30), os.path.join(STATIC_PATH, 'images', 'up.png'),
+                                  '上一页', QSS_STYLE, func=self.page_turning, str_name='上一页').btu
+
+        self.page_text = BaseLabel(central_widget, (625, 720, 40, 30), str_text="1/1").label
+        self.page_text.setAlignment(Qt.AlignCenter)
+
+        self.page_down = BaseButton(central_widget, (685, 720, 80, 30), os.path.join(STATIC_PATH, 'images', 'next.png'),
+                                    '下一页', QSS_STYLE, func=self.page_turning, str_name='下一页').btu
+
+        self.page_text_2 = BaseLineEdit(central_widget, (785, 720, 70, 30), QSS_STYLE).lineedit
+        self.page_text_2.textChanged.connect(self.text_changed)
+
+        self.page_skip = BaseButton(central_widget, (875, 720, 80, 30), os.path.join(STATIC_PATH, 'images', 'skip.png'),
+                                    '跳转', QSS_STYLE, func=self.page_turning, str_name='跳转').btu
+
+        self.page_num = QComboBox(central_widget)
+        self.page_num.addItems(['2', '30', '50', '1'])
+        self.page_num.setGeometry(975, 720, 80, 30)
+        self.page_num.currentTextChanged.connect(self.on_combo_box_changed)
+        # ################# 分页 结束....########################################
+
         # 窗口的整体布局
         main_layout = QHBoxLayout(central_widget)
         # # 下面留250
@@ -283,14 +285,16 @@ class EmailUi(QMainWindow, BaseClass):
             self.select_table.clear()
             # 清空表格数据
             self.table.clearContents()  # 清空现有数据
-            int_len = len(DIT_LIST[str_table])
+            table_header = DIT_LIST[str_table]
+            int_len = len(table_header)
+            page_name = str_2_int(self.page_num.currentText())
             # 渲染表格数据
             self.table.setColumnCount(int_len)
-            self.table.setRowCount(int(self.page_num.currentText()))
+            self.table.setRowCount(len(lst_data) if len(lst_data) <= page_name else page_name)
             self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)  # 铺满
             self.table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)  # 前两列自适应
             self.table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeToContents)
-            self.table.setHorizontalHeaderLabels(DIT_LIST[str_table])  # 表头
+            self.table.setHorizontalHeaderLabels(table_header)  # 表头
             self.table.setEditTriggers(QAbstractItemView.NoEditTriggers)  # 禁止修改
             self.table.setAlternatingRowColors(True)  # 交替行颜色
             # 表格 tip 显示
@@ -302,7 +306,7 @@ class EmailUi(QMainWindow, BaseClass):
                 # 创建单选框
                 checkbox = QCheckBox()
                 checkbox.setObjectName(str(dit_info['id']))
-                checkbox.clicked.connect(self.__on_checkbox_changed)
+                checkbox.clicked.connect(self.on_checkbox_changed)
                 self.table.setCellWidget(index_, 0, checkbox)
                 # 设置数据
                 for index_j, value in enumerate(dit_info.values(), 1):
@@ -324,7 +328,7 @@ class EmailUi(QMainWindow, BaseClass):
         except Exception as e:
             logger.debug(f"{e.__traceback__.tb_lineno}:--:{e}")
 
-    def __on_checkbox_changed(self, state):
+    def on_checkbox_changed(self, state):
         try:
             int_id = str_2_int(self.sender().objectName())
             if int_id >= 0 and state:
@@ -338,6 +342,16 @@ class EmailUi(QMainWindow, BaseClass):
                 self.del_button.setEnabled(True)
             else:
                 self.del_button.setDisabled(True)
+        return
+
+    def on_combo_box_changed(self):
+        try:
+            curr_row = str_2_int(self.table.rowCount())
+            page_num = str_2_int(self.page_num.currentText())
+            if curr_row > 0 and page_num > 0:
+                self.flush_table(True)
+        except Exception as e:
+            logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
         return
 
     def del_info(self):

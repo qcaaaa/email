@@ -164,11 +164,13 @@ class EmailUi(QMainWindow, BaseClass):
 
         self.page_skip = BaseButton(central_widget, (875, 720, 80, 30), os.path.join(STATIC_PATH, 'images', 'skip.png'),
                                     '跳转', QSS_STYLE, func=self.page_turning, str_name='跳转').btu
+        self.page_skip.setDisabled(True)
 
         self.page_num = QComboBox(central_widget)
-        self.page_num.addItems(['2', '30', '50', '1'])
+        self.page_num.addItems(['20', '30', '50'])
         self.page_num.setGeometry(975, 720, 80, 30)
-        self.page_num.currentTextChanged.connect(self.on_combo_box_changed)
+        self.page_num.setStyleSheet(QSS_STYLE)
+        self.page_num.currentTextChanged[str].connect(self.on_combo_box_changed)
         # ################# 分页 结束....########################################
 
         # 窗口的整体布局
@@ -344,10 +346,10 @@ class EmailUi(QMainWindow, BaseClass):
                 self.del_button.setDisabled(True)
         return
 
-    def on_combo_box_changed(self):
+    def on_combo_box_changed(self, page_num):
         try:
             curr_row = str_2_int(self.table.rowCount())
-            page_num = str_2_int(self.page_num.currentText())
+            page_num = str_2_int(page_num)
             if curr_row > 0 and page_num > 0:
                 self.flush_table(True)
         except Exception as e:

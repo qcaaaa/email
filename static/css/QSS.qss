@@ -24,14 +24,10 @@ QPushButton:hover {
 
 /*左侧菜单样式*/
 
-QListWidget, QListView, QTreeWidget, QTreeView {
-    outline: 0px;
-}
-
 QListWidget {
     min-width: 120px;
     max-width: 120px;
-    color: Black;
+    color: black;
     background: #F5F5F5;
 }
 
@@ -104,4 +100,15 @@ QScrollBar::sub-page:vertical {
 
 QScrollBar::add-page:vertical {
     background: rgba(64, 65, 79, 0);
+}
+
+/*单选框样式*/
+/* 未下拉时，QComboBox的样式 */
+QComboBox {
+    border: 1px solid gray;   /* 边框 */
+    border-radius: 3px;   /* 圆角 */
+    padding: 1px 18px 1px 3px;   /* 字体填衬 */
+    color: #000;
+    font: normal normal 15px "Microsoft YaHei";
+    background: transparent;
 }

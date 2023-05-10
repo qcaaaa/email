@@ -287,9 +287,9 @@ class EmailUi(QMainWindow, BaseClass):
             # 渲染表格数据
             self.table.setColumnCount(int_len)
             self.table.setRowCount(int(self.page_num.currentText()))
-            self.table.setColumnWidth(0, 20)
-            self.table.setColumnWidth(1, 20)
             self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)  # 铺满
+            self.table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)  # 前两列自适应
+            self.table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeToContents)
             self.table.setHorizontalHeaderLabels(DIT_LIST[str_table])  # 表头
             self.table.setEditTriggers(QAbstractItemView.NoEditTriggers)  # 禁止修改
             self.table.setAlternatingRowColors(True)  # 交替行颜色

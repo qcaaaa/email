@@ -31,10 +31,6 @@ DB_PATH = os.path.join(BASE_PATH, 'sql')
 
 DRIVER_PATH = os.path.join(BASE_PATH, 'driver', 'chromedriver')
 
-# 表格字体大小
-FONT_SIZE = 9
-
-
 # 采集超时时间
 INT_TIMEOUT = 60
 

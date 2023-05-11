@@ -35,28 +35,16 @@ def install(name: str, file_path: str, str_db: str):
         si = subprocess.STARTUPINFO()
         si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
 
-        db_tmp = tempfile.mkdtemp()
-        # 复制数据库文件
-        try:
-            shutil.copy(str_db, db_tmp)
-        except:
-            pass
-
         # 执行安装程序
         subprocess.call(['cmd.exe', '/C', file_path], startupinfo=si)
 
         # 删除安装包, 删除升级后生成的db
         for str_f in [file_path, str_db]:
             try:
-                os.remove(str_f)
+                if os.path.isfile(str_f):
+                    os.remove(str_f)
             except:
                 pass
-
-        # 复制旧db
-        try:
-            shutil.copy(db_tmp, str_db)
-        except:
-            pass
 
     else:
         win32api.MessageBox(0, '升级文件丢失', '错误', win32con.MB_ICONWARNING)

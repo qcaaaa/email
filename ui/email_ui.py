@@ -78,7 +78,7 @@ class EmailUi(QMainWindow, BaseClass):
         self.upd_btu = BaseButton(self, (80, 20), os.path.join(STATIC_PATH, 'images', 'download.png'),
                                   file_style=QSS_STYLE, str_name='upd_btu', func=self.ota_tool.show_page).btu
         self.upd_btu.setDisabled(True)
-        self.statusBar().addWidget(self.upd_btu)
+        self.statusBar().addPermanentWidget(self.upd_btu)
         # ################# 状态栏 结束.......########################################
 
         # ################# 增加控件 开始.......########################################

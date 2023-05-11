@@ -47,7 +47,7 @@ class GoogleTool:
         """
         dialog = QDialog(self.obj_ui)  # 自定义一个dialog
         form_layout = QFormLayout(dialog)  # 配置layout
-        dialog.setWindowTitle('谷歌定位搜索(一行一个,当前仅支持谷歌浏览器)')
+        dialog.setWindowTitle('谷歌定位搜索(一行一个,当前仅支持谷歌浏览器111版本)')
         dialog.resize(500, 100)
         city_input = QLineEdit(self.obj_ui)
         city_input.setStyleSheet("height: 30px")

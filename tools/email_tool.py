@@ -413,6 +413,7 @@ class EmailTools:
                 dialog.setWindowTitle('查看阿里云S3附件列表')
                 dialog.resize(800, 400)
                 str_txt = QTextEdit(self.obj_ui)
+                str_txt.setVerticalScrollBar(BaseBar(QSS_STYLE).bar)
                 str_txt.setReadOnly(True)
                 str_txt.setText('\n'.join([dit_file['url'] for dit_file in lst_file]))
                 form_layout.addRow('附件列表:', str_txt)

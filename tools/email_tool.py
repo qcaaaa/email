@@ -176,6 +176,8 @@ class EmailTools:
                     if str_t.strip() and ' ' in str_t:
                         self.add_info(DIT_DATABASE[self.obj_ui.page], [i.strip() for i in str_t.rsplit(maxsplit=1)])
                 int_ret = 1
+            else:
+                int_ret = -2
         except Exception as err:
             logger.error(f"{err.__traceback__.tb_lineno}:--:{err}")
         return int_ret
@@ -221,7 +223,6 @@ class EmailTools:
             grid.addWidget(body_lst_label, 2, 0)
 
             body_title = QTextEdit(dialog)
-            body_title.setReadOnly(True)
             body_title.setVerticalScrollBar(BaseBar(QSS_STYLE).bar)
             grid.addWidget(body_title, 2, 1, 6, 5)
 
@@ -244,6 +245,8 @@ class EmailTools:
                     int_ret = self.add_info(DIT_DATABASE[self.obj_ui.page], [str_2, str_3])
                 else:
                     int_ret = -1
+            else:
+                int_ret = -2
         except Exception as err:
             logger.error(f"{err.__traceback__.tb_lineno}:--:{err}")
         return int_ret
@@ -272,8 +275,7 @@ class EmailTools:
                         except Exception as e:
                             self.obj_ui.show_message('', '', f"{e.__traceback__.tb_lineno}:{e}")
                     else:
-                        self.obj_ui.show_message('错误提示', '上阿里云OSS连接失败,请检查配置',
-                                                 '上阿里云OSS连接失败,请检查配置')
+                        self.obj_ui.show_message('错误提示', '上阿里云OSS连接失败,请检查配置', '上阿里云OSS连接失败,请检查配置')
                 else:
                     self.obj_ui.show_message('错误', '未选择文件')
 
@@ -307,39 +309,67 @@ class EmailTools:
             grid.addWidget(button, 4, 3)
 
             dialog.setLayout(grid)
+            dialog.show()
             if dialog.exec() == QDialog.Accepted:
                 str_1, str_2 = file_path.text().strip(), str_box.currentText().strip()
                 if all([str_1, str_2]):
                     int_ret = self.add_info(DIT_DATABASE[self.obj_ui.page], [str_1, str_2])
+                else:
+                    int_ret = -1
             else:
-                int_ret = -1
+                int_ret = -2
         except Exception as err:
             logger.error(f"{err.__traceback__.tb_lineno}:--:{err}")
         return int_ret
 
     def __add_end(self):
-        dialog = QDialog(self.obj_ui)  # 自定义一个dialog
-        form_layout = QFormLayout(dialog)  # 配置layout
-        dialog.setWindowTitle('增加邮件结尾')
-        dialog.resize(1000, 500)
-        temp_name = QLineEdit(self.obj_ui)
-        temp_name.setStyleSheet("height: 20px")
-        form_layout.addRow('模板名称:', temp_name)
-        temp_txt = QTextEdit(self.obj_ui)
-        form_layout.addRow('结尾内容', temp_txt)
-        url_path = QLineEdit(self.obj_ui)
-        url_path.setStyleSheet("height: 20px")
-        form_layout.addRow('图片地址:', url_path)
-        form_layout.addRow(url_path)
-        button = QDialogButtonBox(QDialogButtonBox.Ok)
-        form_layout.addRow(button)
-        button.clicked.connect(dialog.accept)
-        dialog.show()
-        if dialog.exec() == QDialog.Accepted:
-            str_1, str_2, str_3 = temp_name.text(), sub_html(temp_txt.toHtml()), url_path.text().strip()
-            if any([str_1, str_2, str_3]):
-                return self.add_info(DIT_DATABASE[self.obj_ui.page], [str_1, str_2, str_3])
-            return -1
+        """增加邮件结尾"""
+        int_ret = 0
+        try:
+            dialog = QDialog(self.obj_ui)  # 自定义一个dialog
+            dialog.setWindowTitle('增加邮件结尾')
+            dialog.resize(600, 300)
+
+            grid = QGridLayout()
+            grid.setSpacing(10)
+
+            end_label = BaseLabel(dialog, str_text='模板名称').label
+            grid.addWidget(end_label, 1, 0)
+
+            end_line = BaseLineEdit(dialog, file_style=QSS_STYLE).lineedit
+            grid.addWidget(end_line, 1, 1, 1, 2)
+
+            end_label_1 = BaseLabel(dialog, str_text='结尾内容').label
+            grid.addWidget(end_label_1, 2, 0)
+
+            end_title = QTextEdit(dialog)
+            end_title.setVerticalScrollBar(BaseBar(QSS_STYLE).bar)
+            grid.addWidget(end_title, 2, 1, 6, 3)
+
+            url_label = BaseLabel(dialog, str_text='图片地址').label
+            grid.addWidget(url_label, 8, 0)
+
+            url_line = BaseLineEdit(dialog, file_style=QSS_STYLE).lineedit
+            grid.addWidget(url_line, 8, 1, 1, 3)
+
+            button = QDialogButtonBox(QDialogButtonBox.Ok)
+            button.setDisabled(True)
+            grid.addWidget(button, 9, 3)
+            button.clicked.connect(dialog.accept)
+
+            dialog.setLayout(grid)
+            dialog.show()
+            if dialog.exec() == QDialog.Accepted:
+                str_1, str_2, str_3 = end_line.text(), sub_html(end_title.toHtml()), url_line.text().strip()
+                if any([str_1, str_2, str_3]):
+                    int_ret = self.add_info(DIT_DATABASE[self.obj_ui.page], [str_1, str_2, str_3])
+                else:
+                    int_ret = -1
+            else:
+                int_ret = -2
+        except Exception as err:
+            logger.error(f"{err.__traceback__.tb_lineno}:--:{err}")
+        return int_ret
 
     def add_table(self):
         """增加页面
@@ -703,7 +733,6 @@ class EmailTools:
         int_title = len(lst_text)
         # 账号数量
         int_user = len(lst_user)
-        self.send_mun = int(self.obj_ui.interval_edit.text() or self.send_mun)
         try:
             # 分配任务
             lst_task = []
@@ -717,13 +746,11 @@ class EmailTools:
                 })
                 k += 1
 
-            # 是否携带网页
-            contain_html = self.obj_ui.radio_button.isChecked()
-            # 间隔时间
-            int_sleep = int(self.obj_ui.sleep_edit.text() or 20)
-            self.obj_ui.show_message('', '', f"当前发送策略: {'携带网页' if contain_html else '不携带网页'}, 间隔时间: {int_sleep}s, 轮询数量: {self.send_mun}")
+            self.obj_ui.show_message('', '', f"当前发送策略: {'携带网页' if self.send_model else '不携带网页'}, "
+                                             f"间隔时间: {self.sleep_mun}s, 轮询数量: {self.send_mun}")
 
-            if contain_html:
+            # 是否携带网页
+            if self.send_model:
                 with open(os.path.join(BASE_PATH, 'body', 'templates.html'), 'r', encoding='utf-8') as f:
                     str_html = f.read()
             else:
@@ -782,7 +809,7 @@ class EmailTools:
                         obj_smtp.sendmail(dit_user['name'], [dit_send['email']], obj_email.as_string())
                         int_num += 1
                         self.obj_ui.show_message('', '', f"{dit_user['name']} --> {dit_send['email']} 成功")
-                        time.sleep(int_sleep)
+                        time.sleep(self.sleep_mun)
                     except Exception as err:
                         logger.error(f"{err.__traceback__.tb_lineno}:--:{err}")
                     finally:

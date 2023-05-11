@@ -15,12 +15,9 @@
 import sys
 import os
 
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QIcon
 from loguru import logger
-from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox, QLineEdit
+from PyQt5.QtWidgets import QApplication
 
-from ui.base_ui import BaseButton, BaseLabel, BaseLineEdit
 from ui.email_ui import EmailUi
 
 

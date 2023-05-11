@@ -29,9 +29,9 @@ from email.utils import formatdate
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from utils.tools import sub_html, word_2_html, load_file, str_2_int
-from constant import BASE_PATH, DIT_DATABASE, DIT_EMAIL, FILTER_TABLE, FILTER_LANG, QSS_STYLE
+from constant import DIT_DATABASE, DIT_EMAIL, FILTER_TABLE, FILTER_LANG, QSS_STYLE, STATIC_PATH
 from PyQt5.QtWidgets import QDialog, QFormLayout, QLineEdit, QDialogButtonBox, QComboBox, \
-    QTextEdit, QFileDialog, QCheckBox, QGridLayout, QPushButton, QVBoxLayout, QRadioButton, QHBoxLayout
+    QTextEdit, QFileDialog, QCheckBox, QGridLayout, QPushButton, QRadioButton
 from ui.base_ui import BaseButton, BaseLabel, BaseLineEdit, BaseBar, BaseComboBox
 
 
@@ -757,12 +757,13 @@ class EmailTools:
                                              f"间隔时间: {self.sleep_mun}s, 轮询数量: {self.send_mun}")
 
             # 是否携带网页
+            str_html = ''
             if self.send_model:
-                with open(os.path.join(BASE_PATH, 'body', 'templates.html'), 'r', encoding='utf-8') as f:
-                    str_html = f.read()
-            else:
-                str_html = ''
-
+                try:
+                    with open(os.path.join(STATIC_PATH, 'templates', 'templates.html'), 'r', encoding='utf-8') as f:
+                        str_html = f.read()
+                except Exception as er:
+                    logger.error(f"{er.__traceback__.tb_lineno}:--:{er}")
             # 附件
             if lst_info:
                 # 附件图标

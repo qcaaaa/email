@@ -205,7 +205,7 @@ class BaseComboBox:
     def box(self) -> QComboBox:
         obj_box = QComboBox(self.parent)
         if not self.is_readonly:
-            obj_box.setEnabled(True)
+            obj_box.setEditable(True)
         if self.lst_data:
             obj_box.addItems(self.lst_data or [])
         if self.file_style:

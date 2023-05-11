@@ -17,7 +17,7 @@ import os
 import threading
 from loguru import logger
 from datetime import datetime
-from PyQt5.QtWidgets import QTextEdit, QComboBox, QToolBar, QWidget, QCheckBox
+from PyQt5.QtWidgets import QTextEdit, QToolBar, QWidget, QCheckBox
 from PyQt5.QtWidgets import QMessageBox
 from PyQt5.QtWidgets import QListWidgetItem
 from PyQt5.QtWidgets import QMainWindow
@@ -26,7 +26,7 @@ from PyQt5.QtWidgets import QTableWidget
 from PyQt5.QtWidgets import QDesktopWidget
 from PyQt5.QtCore import QSize, Qt, QEvent
 from PyQt5 import QtCore
-from PyQt5.QtGui import QIcon
+from PyQt5.QtGui import QIcon, QIntValidator
 from PyQt5.QtGui import QTextCursor
 from PyQt5.QtWidgets import QListWidget
 from PyQt5.QtWidgets import QHeaderView, QAbstractItemView
@@ -166,8 +166,11 @@ class EmailUi(QMainWindow, BaseClass):
                                     '跳转', QSS_STYLE, func=self.page_turning, str_name='跳转').btu
         self.page_skip.setDisabled(True)
 
-        self.page_num = BaseComboBox(central_widget, QSS_STYLE, lst_data=['20', '30', '50'],
+        self.page_num = BaseComboBox(central_widget, QSS_STYLE, lst_data=['20', '30', '50'], is_readonly=False,
                                      tuple_size=(975, 720, 80, 30), func=self.on_combo_box_changed).box
+        validator = QIntValidator()
+        validator.setRange(1, 300)
+        self.page_num.setValidator(validator)
         # ################# 分页 结束....########################################
 
         # 窗口的整体布局

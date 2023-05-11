@@ -39,7 +39,7 @@ def install(name: str, file_path: str, str_db: str):
         subprocess.call(['cmd.exe', '/C', file_path], startupinfo=si)
 
         # 删除安装包, 删除升级后生成的db
-        for str_f in [file_path, str_db]:
+        for str_f in [file_path]:
             try:
                 if os.path.isfile(str_f):
                     os.remove(str_f)

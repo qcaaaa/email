@@ -47,7 +47,7 @@ class GoogleTool:
         """
         dialog = QDialog(self.obj_ui)  # 自定义一个dialog
         form_layout = QFormLayout(dialog)  # 配置layout
-        dialog.setWindowTitle('谷歌定位搜索(一行一个)')
+        dialog.setWindowTitle('谷歌定位搜索(一行一个,当前仅支持谷歌浏览器)')
         dialog.resize(500, 100)
         city_input = QLineEdit(self.obj_ui)
         city_input.setStyleSheet("height: 30px")
@@ -199,7 +199,7 @@ class GoogleTool:
         options.page_load_strategy = "eager"
         self.driver.options = options
         for a_tag in lst_tags:
-            second_snap_value = address1 = address2 = url = phone = ''
+            second_snap_value = address1 = address2 = url = phone = str_type = ''
             try:
                 self.obj_ui.show_message('', '', f'-' * 20)
 
@@ -231,6 +231,17 @@ class GoogleTool:
 
                 phone = self.__get(By.XPATH, "// *[ @ data-tooltip='复制电话号码']", "aria-label").replace('电话:', '').strip()
                 self.obj_ui.show_message('', '', f'公司电话: {phone}')
+
+                try:
+                    str_btu = WebDriverWait(self.driver, INT_TIMEOUT).until(
+                        EC.presence_of_element_located((By.CLASS_NAME, "DkEaL "))
+                    )
+                except:
+                    str_type = ''
+                else:
+                    str_type = str_btu.text
+                    self.obj_ui.show_message('', '', f'公司类型: {str_type}')
+
             except Exception as err:
                 logger.error(f'解析失败: {err.__traceback__.tb_lineno}: {err}')
             finally:
@@ -239,8 +250,8 @@ class GoogleTool:
                     if self.driver.current_window_handle != index_win:
                         self.driver.close()
                     self.driver.switch_to.window(index_win)
-                if url and any([second_snap_value, address1, address2, phone]):
-                    self.__write_excel([city, keyword, second_snap_value, address1, address2, url, phone], str_file)
+                if url and any([second_snap_value, address1, address2, phone, str_type]):
+                    self.__write_excel([city, keyword, str_type, second_snap_value, address1, address2, url, phone], str_file)
         else:
             self.obj_ui.show_message('', '', f'{city}--{keyword}组合搜索完毕')
         return

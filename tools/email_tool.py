@@ -198,13 +198,18 @@ class EmailTools:
                         result = word_2_html(str_file)
                         if result:
                             body_title.setHtml(result)
-                            button.setEnabled(True)
                         else:
                             self.obj_ui.show_message('错误', 'Word未获取到内容')
                     else:
                         self.obj_ui.show_message('错误', '未选择文件')
                 except Exception as e:
                     logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
+
+            def __body_change():
+                if str_box.currentText().strip() and body_title.toPlainText():
+                    button.setEnabled(True)
+                else:
+                    button.setDisabled(True)
 
             dialog = QDialog(self.obj_ui)
             dialog.setWindowTitle('增加邮件标题')
@@ -224,6 +229,7 @@ class EmailTools:
 
             body_title = QTextEdit(dialog)
             body_title.setVerticalScrollBar(BaseBar(QSS_STYLE).bar)
+            body_title.textChanged.connect(__body_change)
             grid.addWidget(body_title, 2, 1, 6, 5)
 
             box_label = BaseLabel(dialog, str_text='模板语种').label

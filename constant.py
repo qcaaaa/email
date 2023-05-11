@@ -61,7 +61,10 @@ DIT_EMAIL = {
 
 # 有过滤的表
 FILTER_TABLE = ['info', 'body', 'title']
+# 语种表
 FILTER_LANG = ['info_lang', 'body_lang', 'title_lang']
+# 必须要选择数据的表
+MAST_SELECT_TABLE = ['user', 'body', 'title']
 
 # 搜索表头
 SEARCH_TITLE = ['城市', '关键字', '公司名称', '公司地址1', '公司地址2', '公司网站', '公司联系电话']

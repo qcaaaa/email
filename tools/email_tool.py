@@ -29,9 +29,9 @@ from email.utils import formatdate
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from utils.tools import sub_html, word_2_html, load_file, str_2_int
-from constant import DIT_DATABASE, DIT_EMAIL, FILTER_TABLE, FILTER_LANG, QSS_STYLE, STATIC_PATH
+from constant import DIT_DATABASE, DIT_EMAIL, FILTER_TABLE, FILTER_LANG, QSS_STYLE, STATIC_PATH, MAST_SELECT_TABLE
 from PyQt5.QtWidgets import QDialog, QFormLayout, QLineEdit, QDialogButtonBox, QComboBox, \
-    QTextEdit, QFileDialog, QCheckBox, QGridLayout, QPushButton, QRadioButton
+    QTextEdit, QFileDialog, QCheckBox, QGridLayout, QRadioButton
 from ui.base_ui import BaseButton, BaseLabel, BaseLineEdit, BaseBar, BaseComboBox
 
 
@@ -48,9 +48,9 @@ class EmailTools:
             'title': {'key': 'str_title', 'len': 3, 'lst': [], 'cn': '标题'},
             'info': {'key': 'url', 'len': 2, 'lst': [], 'cn': '附件'},
             'end': {'key': 'name', 'len': 5, 'lst': [], 'cn': '结尾'},
-            'info_lang': {'key': 'language', 'len': 3, 'lst': [], 'cn': '附件语种'},
-            'body_lang': {'key': 'language', 'len': 3, 'lst': [], 'cn': '正文语种'},
-            'title_lang': {'key': 'language', 'len': 3, 'lst': [], 'cn': '标题语种'},
+            'info_lang': {'key': 'language', 'len': 1, 'lst': [], 'cn': '附件语种'},
+            'body_lang': {'key': 'language', 'len': 1, 'lst': [], 'cn': '正文语种'},
+            'title_lang': {'key': 'language', 'len': 1, 'lst': [], 'cn': '标题语种'},
         }
         self.dialog = None  # 下一步之前的页面 用于下一步后 关闭上一个页面
         self.button = None  # 每个页面的下一步按钮
@@ -137,11 +137,16 @@ class EmailTools:
                             str_data = f.read()
                             if str_data:
                                 text_title.append(str_data)
-                                button.setEnabled(True)
                     else:
                         self.obj_ui.show_message('错误', '未选择文件')
                 except Exception as e:
                     logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
+
+            def __body_change():
+                if text_title.toPlainText():
+                    button.setEnabled(True)
+                else:
+                    button.setDisabled(True)
 
             dialog = QDialog(self.obj_ui)
             dialog.setWindowTitle('增加邮件标题')
@@ -160,6 +165,7 @@ class EmailTools:
             grid.addWidget(title_lst_label, 2, 0)
 
             text_title = QTextEdit(dialog)
+            text_title.textChanged.connect(__body_change)
             text_title.setVerticalScrollBar(BaseBar(QSS_STYLE).bar)
             grid.addWidget(text_title, 2, 1, 5, 3)
 
@@ -332,6 +338,13 @@ class EmailTools:
         """增加邮件结尾"""
         int_ret = 0
         try:
+
+            def __body_change():
+                if end_line.text() and (end_title.toPlainText().strip() or url_line.text().strip()):
+                    button.setEnabled(True)
+                else:
+                    button.setDisabled(True)
+
             dialog = QDialog(self.obj_ui)  # 自定义一个dialog
             dialog.setWindowTitle('增加邮件结尾')
             dialog.resize(600, 300)
@@ -343,12 +356,14 @@ class EmailTools:
             grid.addWidget(end_label, 1, 0)
 
             end_line = BaseLineEdit(dialog, file_style=QSS_STYLE).lineedit
+            end_line.textChanged.connect(__body_change)
             grid.addWidget(end_line, 1, 1, 1, 2)
 
             end_label_1 = BaseLabel(dialog, str_text='结尾内容').label
             grid.addWidget(end_label_1, 2, 0)
 
             end_title = QTextEdit(dialog)
+            end_title.textChanged.connect(__body_change)
             end_title.setVerticalScrollBar(BaseBar(QSS_STYLE).bar)
             grid.addWidget(end_title, 2, 1, 6, 3)
 
@@ -356,6 +371,7 @@ class EmailTools:
             grid.addWidget(url_label, 8, 0)
 
             url_line = BaseLineEdit(dialog, file_style=QSS_STYLE).lineedit
+            url_line.textChanged.connect(__body_change)
             grid.addWidget(url_line, 8, 1, 1, 3)
 
             button = QDialogButtonBox(QDialogButtonBox.Ok)
@@ -446,7 +462,7 @@ class EmailTools:
             logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
         finally:
             # 账号,模板 页面的下一步按钮禁用/启用
-            if self.str_page in FILTER_TABLE:
+            if self.str_page in MAST_SELECT_TABLE:
                 if lst_c and self.button:
                     self.button.setEnabled(True)
                 elif not lst_c and self.button:
@@ -469,58 +485,73 @@ class EmailTools:
         except Exception as e:
             logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
         finally:
-            if self.str_page in FILTER_TABLE:
+            if self.str_page in MAST_SELECT_TABLE:
                 self.button.setEnabled(state)
 
     def __show_dialog(self, table: str, func):
         dialog = None
         try:
-            str_key, str_len, str_title = self.dit_v[table]['key'], self.dit_v[table]['len'], self.dit_v[table]['cn']
-            dialog = QDialog(self.obj_ui)
-            dialog.setWindowTitle(f'选择{str_title}')
-            dialog.resize(800, 600)
 
-            # 创建多选按钮
-            layout = QGridLayout()
-            if table in FILTER_LANG:
-                int_count = 1
-                lst_lang = ['全部'] + self.__get_language('info' if table == 'info_lang' else ('body' if table == 'body_lang'
-                                                                                             else 'title'))
-                self.lang = QComboBox(self.obj_ui)
-                self.lang.setStyleSheet("height: 30px")
-                self.lang.addItems(lst_lang)
-                layout.addWidget(self.lang, 0, 0)
-            else:
-                int_count = 0 if table not in ['body', 'title'] else 1
-                # 数据源
+            def __select_lang():
+                dialog.resize(300, 100)
+                lst_lang = ['全部']
+                if table == 'info_lang':
+                    lst_lang.extend(self.__get_language('info'))
+                elif table == 'body_lang':
+                    lst_lang.extend(self.__get_language('body'))
+                else:
+                    lst_lang.extend(self.__get_language('title'))
+                self.lang = BaseComboBox(dialog, QSS_STYLE, lst_data=lst_lang).box
+                grad.addWidget(self.lang, 1, 0)
+                grad.addWidget(self.button, 1, 1)
+
+            def __select_option():
+                dialog.resize(600, 300)
                 lst_user = self.get_info(table, int_start=-1).get('lst_ret', [])
                 if table in FILTER_TABLE and self.lang:
                     str_lang = self.lang.currentText()
                     if str_lang and str_lang != '全部':
                         lst_user = [dit_info for dit_info in lst_user if dit_info['language'] == str_lang]
+
                 lst_all = []
-                for i, item in enumerate(lst_user, int_count):
+                # 标题和正文 多了个 全选
+                int_row = 1 if str_len > 1 else 2
+                int_col = 1 if table in ['body', 'title'] and int_row == 1 else 0
+                for item in lst_user:
                     str_t = str(item[str_key])
                     checkbox = QCheckBox(str_t if len(str_t) <= 400 else str_t[:400])
                     checkbox.setStyleSheet("height: 30px")
                     checkbox.clicked.connect(partial(self.__on_checkbox_changed, item))
-                    row = i // str_len
-                    col = i % str_len
-                    layout.addWidget(checkbox, row, col)
-                    int_count += 1
                     lst_all.append({'obj': checkbox, 'value': item})
-                if table in ['body', 'title']:
+                    grad.addWidget(checkbox, int_row, int_col)
+                    int_col = int_col + 1 if int_col < str_len - 1 else 0
+                    int_row = int_row + 1 if int_col == 0 else int_row
+                    grad.addWidget(checkbox, int_row, int_col)
+                if table in ['body', 'title'] and lst_all:
                     checkbox = QCheckBox('全选')
                     checkbox.setStyleSheet("height: 30px")
                     checkbox.clicked.connect(partial(self.__on_all_checkbox_changed, lst_all))
-                    layout.addWidget(checkbox, 0, 0)
-            dialog.setLayout(layout)
-            self.button = QPushButton('下一步')
+                    grad.addWidget(checkbox, 1, 0)
+                grad.addWidget(self.button, int_row + 1, str_len)
+
+            str_key, str_len, str_title = self.dit_v[table]['key'], self.dit_v[table]['len'], self.dit_v[table]['cn']
+            dialog = QDialog(self.obj_ui)
+            dialog.setWindowTitle(f'选择{str_title}')
+            grad = QGridLayout()
+            grad.setSpacing(3)
+
+            self.button = BaseButton(dialog, str_tip='下一步', func=func, tuple_size=(60, 30),
+                                     str_img=os.path.join(STATIC_PATH, 'images', 'next.png')).btu
+
+            if table in FILTER_LANG:
+                __select_lang()
+            else:
+                __select_option()
+            dialog.setLayout(grad)
+
             # 账号,模板 按钮最开始禁用
-            if table in FILTER_TABLE:
+            if table in MAST_SELECT_TABLE:
                 self.button.setDisabled(True)
-            self.button.clicked.connect(func)
-            layout.addWidget(self.button, int_count, str_len)
             self.str_page = table
             dialog.show()
         except Exception as err:

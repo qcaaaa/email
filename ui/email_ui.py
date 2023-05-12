@@ -218,6 +218,8 @@ class EmailUi(QMainWindow, BaseClass):
             self.item = QListWidgetItem(keys, self.left_widget)  # 左侧选项的添加
             self.item.setSizeHint(QSize(30, 60))
             self.item.setTextAlignment(Qt.AlignCenter)  # 居中显示
+            # 菜单改了 图片名称也得改
+            self.item.setIcon(QIcon(os.path.join(STATIC_PATH, 'images', f'{keys}.png')))
         # 首页自动刷新
         self.flush_table(True)
 
@@ -275,9 +277,12 @@ class EmailUi(QMainWindow, BaseClass):
             str_items = str(item.text())
             if self.page != str_items:
                 self.page = str_items  # 记住当前在哪个页面
-                # 填充表格
-                dit_info = self.email_tool.get_info(DIT_DATABASE[self.page])
-                self.show_table(dit_info.get('lst_ret', []), str_items, count_pag=dit_info.get('count', ''))
+                if self.page == '软件配置':
+                    pass
+                else:
+                    # 填充表格
+                    dit_info = self.email_tool.get_info(DIT_DATABASE[self.page])
+                    self.show_table(dit_info.get('lst_ret', []), str_items, count_pag=dit_info.get('count', ''))
         except Exception as e:
             logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
 

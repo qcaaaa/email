@@ -1,15 +1,12 @@
 from typing import Tuple, Callable
-from PyQt5.QtWidgets import QRadioButton, QAction, QComboBox
-from PyQt5.QtCore import QSize, Qt, QEvent
-from PyQt5 import QtCore, QtGui
+from PyQt5.QtWidgets import QAction, QComboBox
+from PyQt5 import QtCore
 from PyQt5.QtGui import QIcon
-from PyQt5.QtGui import QTextCursor
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QPushButton
 from PyQt5.QtWidgets import QLineEdit
 from PyQt5.QtWidgets import QLabel
-from PyQt5.QtWidgets import QTextEdit, QScrollBar
-from PyQt5.QtWidgets import QMessageBox
+from PyQt5.QtWidgets import QScrollBar
 
 
 class BaseButton:

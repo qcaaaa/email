@@ -75,8 +75,7 @@ class EmailUi(QMainWindow, BaseClass):
 
         # ################# 状态栏 开始.......########################################
         self.statusBar().showMessage("正在检查版本信息...")
-        self.upd_btu = BaseButton(self, (80, 20), os.path.join(STATIC_PATH, 'images', 'download.png'),
-                                  file_style=QSS_STYLE, str_name='upd_btu', func=self.ota_tool.show_page).btu
+        self.upd_btu = BaseButton(self, (80, 20), file_style=QSS_STYLE, str_text='立即查看', func=self.ota_tool.show_page).btu
         self.upd_btu.setDisabled(True)
         self.statusBar().addPermanentWidget(self.upd_btu)
         # ################# 状态栏 结束.......########################################
@@ -135,6 +134,14 @@ class EmailUi(QMainWindow, BaseClass):
                                        func=self.flush_table).action
         toolbar.addAction(self.flush_button)
         # ################# 刷新控件 结束.......########################################
+
+        toolbar.addSeparator()  # 分隔符
+
+        # ################# 检查更新控件 开始.......########################################
+        self.ver_btu = BaseAction(self, os.path.join(STATIC_PATH, 'images', 'ver.png'), '检查更新',
+                                  func=self.set_ver).action
+        toolbar.addAction(self.ver_btu)
+        # ################# 检查更新控件 结束.......########################################
 
         # ################# 状态栏 结束.......########################################
 
@@ -215,11 +222,11 @@ class EmailUi(QMainWindow, BaseClass):
         for index_, keys in enumerate(DIT_LIST.keys()):
             if index_ == 0:
                 self.page = keys
-            self.item = QListWidgetItem(keys, self.left_widget)  # 左侧选项的添加
-            self.item.setSizeHint(QSize(30, 60))
-            self.item.setTextAlignment(Qt.AlignCenter)  # 居中显示
+            item = QListWidgetItem(keys, self.left_widget)  # 左侧选项的添加
+            item.setSizeHint(QSize(30, 60))
+            item.setTextAlignment(Qt.AlignCenter)  # 居中显示
             # 菜单改了 图片名称也得改
-            self.item.setIcon(QIcon(os.path.join(STATIC_PATH, 'images', f'{keys}.png')))
+            item.setIcon(QIcon(os.path.join(STATIC_PATH, 'images', f'{keys}.png')))
         # 首页自动刷新
         self.flush_table(True)
 
@@ -454,7 +461,6 @@ class EmailUi(QMainWindow, BaseClass):
 
                 for index_ in range(4):
                     if lst_new_ver[index_] > lst_old_ver[index_]:
-                        self.upd_btu.setText('立即查看')
                         self.upd_btu.setEnabled(True)
                         break
 

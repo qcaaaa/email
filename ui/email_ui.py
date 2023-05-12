@@ -38,6 +38,7 @@ from tools.email_check import CheckTool
 from tools.email_google import GoogleTool
 from ota.otaupgrade import OtaUpgrade
 from ui.base_ui import BaseButton, BaseLabel, BaseLineEdit, BaseAction, BaseBar, BaseComboBox
+from ui.setting_ui import BaseSetting
 from version import VERSION
 
 
@@ -48,6 +49,7 @@ class BaseClass:
         self.email_tool = EmailTools(self)
         self.check_tool = CheckTool(self)
         self.google_tool = GoogleTool(self)
+        self.setting_tool = BaseSetting(self)
         self.ota_tool = OtaUpgrade(GIT_URL, EXE_NAME)
 
 
@@ -142,6 +144,12 @@ class EmailUi(QMainWindow, BaseClass):
                                   func=self.set_ver).action
         toolbar.addAction(self.ver_btu)
         # ################# 检查更新控件 结束.......########################################
+
+        # ################# 设置更新控件 开始.......########################################
+        self.set_btu = BaseAction(self, os.path.join(STATIC_PATH, 'images', 'setting.png'), '设置',
+                                  func=self.setting_tool.load_frame).action
+        toolbar.addAction(self.set_btu)
+        # ################# 设置更新控件 结束.......########################################
 
         # ################# 状态栏 结束.......########################################
 
@@ -284,12 +292,9 @@ class EmailUi(QMainWindow, BaseClass):
             str_items = str(item.text())
             if self.page != str_items:
                 self.page = str_items  # 记住当前在哪个页面
-                if self.page == '软件配置':
-                    pass
-                else:
-                    # 填充表格
-                    dit_info = self.email_tool.get_info(DIT_DATABASE[self.page])
-                    self.show_table(dit_info.get('lst_ret', []), str_items, count_pag=dit_info.get('count', ''))
+                # 填充表格
+                dit_info = self.email_tool.get_info(DIT_DATABASE[self.page])
+                self.show_table(dit_info.get('lst_ret', []), str_items, count_pag=dit_info.get('count', ''))
         except Exception as e:
             logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
 

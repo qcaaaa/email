@@ -14,9 +14,9 @@
 """
 
 import os
-from json import load
 import win32com.client
 from loguru import logger
+from json import load, dump
 
 
 def sub_html(str_html: str) -> str:
@@ -56,15 +56,28 @@ def word_2_html(str_file: str) -> str:
 
 
 def load_file(str_file: str = 'email.json'):
-    from constant import CONFIG_PATH
-
     dit_info = {}
     try:
+        from constant import CONFIG_PATH
+
         with open(os.path.join(CONFIG_PATH, str_file), 'r', encoding='utf-8') as f:
             dit_info = load(f)
     except Exception as err_msg:
         logger.error(f"{err_msg.__traceback__.tb_lineno}:--:{err_msg}")
     return dit_info
+
+
+def dump_file(dit_conf: dict, str_file: str = 'email.json') -> int:
+    int_ret = 0
+    try:
+        from constant import CONFIG_PATH
+
+        with open(os.path.join(CONFIG_PATH, str_file), 'w', encoding='utf-8') as f:
+            dump(dit_conf, f)
+        int_ret = 1
+    except Exception as err_msg:
+        logger.error(f"{err_msg.__traceback__.tb_lineno}:--:{err_msg}")
+    return int_ret
 
 
 def get_qss_style():

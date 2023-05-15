@@ -26,7 +26,14 @@ LOOK = Lock()
 
 class MySql:
 
-    def __init__(self):
+    def __init__(self, str_db=os.path.join(DB_PATH, 'data.db')):
+
+        self.str_db = os.path.join(DB_PATH, 'data.db')
+
+        self.conn = None
+        self.curr = None
+
+    def connect(self):
         self.conn = sqlite3.connect(os.path.join(DB_PATH, 'data.db'))
         self.conn.row_factory = self.__dict_factory
         self.curr = self.conn.cursor()
@@ -54,6 +61,7 @@ class MySql:
         int_ret = 0
         LOOK.acquire()
         try:
+            self.connect()
             if lst_data:
                 self.curr.execute(str_sql, lst_data)
             else:

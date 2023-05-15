@@ -140,7 +140,7 @@ class EmailUi(QMainWindow, BaseClass):
         toolbar.addSeparator()  # 分隔符
 
         # ################# 检查更新控件 开始.......########################################
-        self.ver_btu = BaseAction(self, os.path.join(STATIC_PATH, 'images', 'ver.png'), '检查更新',
+        self.ver_btu = BaseAction(self, os.path.join(STATIC_PATH, 'images', 'upgrade.ico'), '检查更新',
                                   func=self.set_ver).action
         toolbar.addAction(self.ver_btu)
         # ################# 检查更新控件 结束.......########################################

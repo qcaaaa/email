@@ -212,13 +212,13 @@ class EmailTools:
                     logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
 
             def __body_change():
-                if str_box.currentText().strip() and body_title.toPlainText():
+                if str_box.currentText().strip() and body_title.toHtml():
                     button.setEnabled(True)
                 else:
                     button.setDisabled(True)
 
             dialog = QDialog(self.obj_ui)
-            dialog.setWindowTitle('增加邮件标题')
+            dialog.setWindowTitle('增加邮件正文')
             dialog.resize(500, 300)
 
             grid = QGridLayout()

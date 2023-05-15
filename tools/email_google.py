@@ -40,6 +40,7 @@ class GoogleTool:
         self.driver = None
         self.wb = None
         self.ws = None
+        self.succ = 0
 
     def google_search(self):
         """谷歌定位搜索
@@ -72,6 +73,7 @@ class GoogleTool:
     def __search(self, city, keyword):
         lst_search = list(product(city.split('\n'), keyword.split('\n')))
         self.obj_ui.show_message('', '', f'本轮一共 {len(lst_search)} 种搜索组合')
+        str_file = self.__get_excel()
         for tuple_search in lst_search:
             try:
                 self.driver = webdriver.Chrome(service=Service(DRIVER_PATH))
@@ -118,7 +120,6 @@ class GoogleTool:
                         )
                         self.obj_ui.show_message('', '', f'开始解析数据')
                         # 同步写入数据
-                        str_file = self.__get_excel()
                         if str_file and self.ws and self.wb:
                             self.__check_url(a_tags, str_city, str_key, str_file)
                         else:
@@ -134,6 +135,7 @@ class GoogleTool:
             self.obj_ui.google_button.setEnabled(True)
             if self.wb:
                 self.wb.close()
+                self.obj_ui.show_message('', '', f'共搜索出{self.succ}条有效数据')
         return
 
     def __load(self, str_key):
@@ -276,6 +278,7 @@ class GoogleTool:
         try:
             self.ws.append(lst_data)
             self.wb.save(str_file)
+            self.succ += 1
         except Exception as err:
             logger.error(f'保存搜索结果失败: {err.__traceback__.tb_lineno}: {err}')
         return

@@ -212,7 +212,7 @@ class EmailTools:
                     logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
 
             def __body_change():
-                if str_box.currentText().strip() and body_title.toHtml():
+                if body_title.toHtml():
                     button.setEnabled(True)
                 else:
                     button.setDisabled(True)

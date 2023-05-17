@@ -80,3 +80,6 @@ EXE_NAME = 'Email.exe'
 
 # qss 样式
 QSS_STYLE = get_qss_style()
+
+# dear 字体
+DEAR_FONT = ['Times New Roman', '黑体', '楷体', '宋体', '新宋体', '仿宋', '隶书', '方正舒体', '方正姚体']

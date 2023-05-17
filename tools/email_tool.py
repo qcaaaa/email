@@ -29,7 +29,8 @@ from email.utils import formatdate
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from utils.tools import sub_html, word_2_html, load_file, str_2_int
-from constant import DIT_DATABASE, DIT_EMAIL, FILTER_TABLE, FILTER_LANG, QSS_STYLE, STATIC_PATH, MAST_SELECT_TABLE
+from constant import DIT_DATABASE, DIT_EMAIL, FILTER_TABLE, FILTER_LANG, QSS_STYLE, STATIC_PATH, MAST_SELECT_TABLE, \
+    DEAR_FONT
 from PyQt5.QtWidgets import QDialog, QFormLayout, QLineEdit, QDialogButtonBox, QComboBox, \
     QTextEdit, QFileDialog, QCheckBox, QGridLayout, QRadioButton
 from ui.base_ui import BaseButton, BaseLabel, BaseLineEdit, BaseBar, BaseComboBox
@@ -57,6 +58,7 @@ class EmailTools:
         self.send_mun = 50  # 一个账号一次发50封
         self.sleep_mun = 20  # 发送间隔
         self.send_model = False  # 发送模式(不带网页)
+        self.dear_font = DEAR_FONT[0]  # Dear 行字体
         self.lang = None
 
     def __login(self, str_user: str, str_pwd: str, str_type: str):
@@ -600,6 +602,12 @@ class EmailTools:
             btu_user = BaseButton(dialog, str_text='导入联系人', func=__import_user).btu
             grid.addWidget(btu_user, 1, 1)
 
+            dear_label = BaseLabel(dialog, str_text='Dear字体').label
+            grid.addWidget(dear_label, 1, 2)
+
+            dear_box = BaseComboBox(dialog, file_style=QSS_STYLE, lst_data=DEAR_FONT).box
+            grid.addWidget(dear_box, 1, 3, 1, 1)
+
             label_user_2 = BaseLabel(dialog, str_text='联系人列表').label
             grid.addWidget(label_user_2, 2, 0)
 
@@ -640,6 +648,7 @@ class EmailTools:
                 self.send_mun = str_2_int(interval_edit.text(), self.send_mun)
                 self.sleep_mun = str_2_int(sleep_edit.text(), self.sleep_mun)
                 self.send_model = radio_button.isChecked()
+                self.dear_font = dear_box.currentText()
                 dialog.close()
                 self.select_account()
         except Exception as err:
@@ -820,7 +829,8 @@ class EmailTools:
                         tuple_text = lst_text[int_count % int_title]
                         # 公司名称 + 正文 + 网页
                         firm = dit_send["firm"]
-                        str_txt = f'Dear {firm}<br><br>' + tuple_text[1] + '<br>' + str_html
+                        str_txt = f'<p style="font-family: {self.dear_font};"> Dear {firm}</p>' + '<br>' + \
+                                  tuple_text[1] + '<br>' + str_html
                         # 结尾
                         if lst_end:
                             dit_end = choice(lst_end)

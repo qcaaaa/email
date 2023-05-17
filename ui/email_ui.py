@@ -468,6 +468,8 @@ class EmailUi(QMainWindow, BaseClass):
                     if lst_new_ver[index_] > lst_old_ver[index_]:
                         self.upd_btu.setEnabled(True)
                         break
+                else:
+                    self.show_message('', '', '无新版本升级')
 
         try:
 

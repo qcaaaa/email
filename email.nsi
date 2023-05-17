@@ -2,7 +2,7 @@
 
 ; HM NIS Edit Wizard helper defines
 !define PRODUCT_NAME "Email"
-!define PRODUCT_VERSION "1.0.0.1"
+!define PRODUCT_VERSION "1.0.0.2"
 !define PRODUCT_PUBLISHER "Qc"
 !define PRODUCT_DIR_REGKEY "Software\Microsoft\Windows\CurrentVersion\App Paths\Email.exe"
 !define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
@@ -15,11 +15,6 @@
 !define MUI_ABORTWARNING
 !define MUI_ICON "static\images\logo.ico"
 !define MUI_UNICON "${NSISDIR}\Contrib\Graphics\Icons\modern-uninstall.ico"
-
-; Language Selection Dialog Settings
-!define MUI_LANGDLL_REGISTRY_ROOT "${PRODUCT_UNINST_ROOT_KEY}"
-!define MUI_LANGDLL_REGISTRY_KEY "${PRODUCT_UNINST_KEY}"
-!define MUI_LANGDLL_REGISTRY_VALUENAME "NSIS:Language"
 
 ; Welcome page
 !insertmacro MUI_PAGE_WELCOME
@@ -35,7 +30,6 @@
 !insertmacro MUI_UNPAGE_INSTFILES
 
 ; Language files
-!insertmacro MUI_LANGUAGE "English"
 !insertmacro MUI_LANGUAGE "TradChinese"
 
 ; MUI end ------
@@ -46,10 +40,6 @@ InstallDir "$PROGRAMFILES\Email"
 InstallDirRegKey HKLM "${PRODUCT_DIR_REGKEY}" ""
 ShowInstDetails show
 ShowUnInstDetails show
-
-Function .onInit
-  !insertmacro MUI_LANGDLL_DISPLAY
-FunctionEnd
 
 Section "MainSection" SEC01
   SetOutPath "$INSTDIR\aliyunsdkcore\data"
@@ -1870,6 +1860,7 @@ Section "MainSection" SEC01
   File "dist\Email\static\images\up.png"
   File "dist\Email\static\images\update.png"
   File "dist\Email\static\images\upgrade.ico"
+  File "dist\Email\static\images\ver.png"
   File "dist\Email\static\images\账号配置.png"
   File "dist\Email\static\images\软件配置.png"
   File "dist\Email\static\images\邮件标题.png"
@@ -2938,7 +2929,6 @@ Function un.onUninstSuccess
 FunctionEnd
 
 Function un.onInit
-!insertmacro MUI_UNGETLANGUAGE
   MessageBox MB_ICONQUESTION|MB_YESNO|MB_DEFBUTTON2 "你确实要完全移除 $(^Name) ，其及所有的组件？" IDYES +2
   Abort
 FunctionEnd
@@ -3928,6 +3918,7 @@ Section Uninstall
   Delete "$INSTDIR\static\images\邮件标题.png"
   Delete "$INSTDIR\static\images\软件配置.png"
   Delete "$INSTDIR\static\images\账号配置.png"
+  Delete "$INSTDIR\static\images\ver.png"
   Delete "$INSTDIR\static\images\upgrade.ico"
   Delete "$INSTDIR\static\images\update.png"
   Delete "$INSTDIR\static\images\up.png"

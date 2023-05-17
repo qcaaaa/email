@@ -292,6 +292,8 @@ class EmailUi(QMainWindow, BaseClass):
             str_items = str(item.text())
             if self.page != str_items:
                 self.page = str_items  # 记住当前在哪个页面
+                # 每次切换页面 端开之前的 表头点击事件
+                self.table.horizontalHeader().sectionClicked.disconnect()
                 # 填充表格
                 dit_info = self.email_tool.get_info(DIT_DATABASE[self.page])
                 self.show_table(dit_info.get('lst_ret', []), str_items, count_pag=dit_info.get('count', ''))
@@ -354,6 +356,7 @@ class EmailUi(QMainWindow, BaseClass):
         :param logical_index: 列索引
         :return:
         """
+        print('xx')
         is_clear = False
         lst_radio = []
         try:

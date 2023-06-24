@@ -7,7 +7,6 @@
 import os.path
 import sys
 import tempfile
-
 import psutil
 import shutil
 import subprocess

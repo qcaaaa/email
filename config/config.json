@@ -1,6 +1,11 @@
 {
-  "AccessKey_ID": "LTAI5tGu38drtB7D2VTdUyPH",
-  "AccessKey_Secret": "oxAGUDtNrTTo8ssZXf241TjTLRB5Pz",
+  "AccessKey_ID": "cJAcVBfMcLOCmz9ev9/cdZX2sHcTuPi+CJQQidx4Db33C6mk4QAlRrN2NqkgxPL5",
+  "AccessKey_Secret": "S618YmaMzvjmy+snzpK3vs4mMAvl4VC5kasZLvs/xYggf1x30vm501HRrXrINNja",
   "bucket": "email-tools",
-  "url": "https://oss-cn-hangzhou.aliyuncs.com"
+  "url": "https://oss-cn-hangzhou.aliyuncs.com",
+  "ip": "127.0.0.1",
+  "user": "Zfb0wdPBytNUOP0DRWEOug==",
+  "pwd": "aDpU0+AfbdYRXr1jcprEgPcLqaThACVGs3Y2qSDE8vk=",
+  "port": 3306,
+  "database": "email"
 }

@@ -13,12 +13,10 @@
 @Desc :
 """
 
-import os
-import sqlite3
+import pymysql
 from loguru import logger
 from threading import Lock
-
-from constant import DB_PATH
+from utils.tools import load_file
 
 
 LOOK = Lock()
@@ -26,17 +24,16 @@ LOOK = Lock()
 
 class MySql:
 
-    def __init__(self, str_db=os.path.join(DB_PATH, 'data.db')):
-
-        self.str_db = os.path.join(DB_PATH, 'data.db')
-
+    def __init__(self):
+        self.dit_conf = load_file('config.json')
         self.conn = None
         self.curr = None
 
     def connect(self):
-        self.conn = sqlite3.connect(os.path.join(DB_PATH, 'data.db'))
-        self.conn.row_factory = self.__dict_factory
-        self.curr = self.conn.cursor()
+        self.conn = pymysql.connect(host=self.dit_conf['ip'], user=self.dit_conf['user'],
+                                    password=self.dit_conf['pwd'], port=self.dit_conf['port'],
+                                    db=self.dit_conf['database'], charset='utf8')
+        self.curr = self.conn.cursor(pymysql.cursors.DictCursor)
 
     @staticmethod
     def __dict_factory(cursor, row):

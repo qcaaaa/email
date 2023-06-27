@@ -139,4 +139,3 @@ cython_debug/
 data.sql
 sql/data.db
 
-/config/config.json

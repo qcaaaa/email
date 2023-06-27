@@ -1,0 +1,11 @@
+{
+    "AccessKey_ID": "",
+    "AccessKey_Secret": "",
+    "bucket": "",
+    "url": "",
+    "ip": "127.0.0.1",
+    "user": "",
+    "pwd": "",
+    "port": 3306,
+    "database": "email"
+}

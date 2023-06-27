@@ -40,7 +40,7 @@ class EmailTools:
 
     def __init__(self, obj_ui):
         self.obj_ui = obj_ui
-        self.email_dict = load_file()
+        self.email_list = load_file()
         self.to_list = []
         self.str_page = ''  # 当前在那个选择页
         self.dit_v = {
@@ -111,7 +111,7 @@ class EmailTools:
         pwd_input.setStyleSheet("height: 20px")
         form_layout.addRow('邮箱密码:', pwd_input)
         serve_box = QComboBox(self.obj_ui)
-        serve_box.addItems([dit_c['name_cn'] for dit_c in self.email_dict])
+        serve_box.addItems([dit_c['name_cn'] for dit_c in self.email_list])
         serve_box.setStyleSheet("height: 20px")
         form_layout.addRow('邮箱服务器:', serve_box)
         lang_input = QLineEdit(self.obj_ui)
@@ -122,7 +122,7 @@ class EmailTools:
         button.clicked.connect(dialog.accept)
         dialog.show()
         if dialog.exec() == QDialog.Accepted:
-            lst_e = [dit_e for dit_e in self.email_dict if dit_e['name_cn'] == serve_box.currentText().strip()]
+            lst_e = [dit_e for dit_e in self.email_list if dit_e['name_cn'] == serve_box.currentText().strip()]
             str_1, str_2, str_3 = user_input.text().strip(), pwd_input.text().strip(), lang_input.text().strip()
             if all([str_1, str_2, lst_e, str_3]):
                 return self.add_info(DIT_DATABASE[self.obj_ui.page], [str_1, str_2, int(lst_e[0]['index']), str_3])

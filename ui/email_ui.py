@@ -305,7 +305,7 @@ class EmailUi(QMainWindow, BaseClass):
             self.select_table.clear()
             # 清空表格数据
             self.table.clearContents()  # 清空现有数据
-            table_header = DIT_LIST[str_table]
+            table_header = DIT_LIST[str_table].get('cn', [])
             int_len = len(table_header)
             page_name = str_2_int(self.page_num.currentText())
             # 渲染表格数据
@@ -323,6 +323,9 @@ class EmailUi(QMainWindow, BaseClass):
             self.table.setMouseTracking(True)
             self.table.itemEntered.connect(self.enter_item_slot)
             # 填充数据
+            en_table_header = DIT_LIST[str_table].get('en', [])
+            # 邮箱类型
+            dit_email = {dit_e['index']: dit_e['name_cn'] for dit_e in self.email_tool.email_list}
             for index_, dit_info in enumerate(lst_data):
                 # 创建单选框
                 checkbox = QCheckBox()
@@ -330,10 +333,11 @@ class EmailUi(QMainWindow, BaseClass):
                 checkbox.clicked.connect(self.on_checkbox_changed)
                 self.table.setCellWidget(index_, 0, checkbox)
                 # 设置数据
-                for index_j, value in enumerate(dit_info.values(), 1):
-                    if str_table == '账号配置' and index_j == 4:
-                        value = self.email_tool.email_dict.get(str(value), {}).get('name_cn')
-                    item = QTableWidgetItem(str(value or ''))
+                for index_j, str_en in enumerate(en_table_header, 1):
+                    value = str(dit_info.get(str_en, ''))
+                    if str_en == 'str_type' and str_table == '账号配置':
+                        value = dit_email.get(value, '')
+                    item = QTableWidgetItem(value)
                     item.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
                     self.table.setItem(index_, index_j, item)  # 转换后可插入表格
             # 更新页数

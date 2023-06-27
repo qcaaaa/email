@@ -51,6 +51,7 @@ class BaseClass:
         self.google_tool = GoogleTool(self)
         self.setting_tool = BaseSetting(self)
         self.ota_tool = OtaUpgrade(GIT_URL, EXE_NAME)
+        self.str_ver = ''
 
 
 class EmailUi(QMainWindow, BaseClass):
@@ -77,9 +78,6 @@ class EmailUi(QMainWindow, BaseClass):
 
         # ################# 状态栏 开始.......########################################
         self.statusBar().showMessage("正在检查版本信息...")
-        self.upd_btu = BaseButton(self, (80, 20), file_style=QSS_STYLE, str_text='立即查看', func=self.ota_tool.show_page).btu
-        self.upd_btu.setDisabled(True)
-        self.statusBar().addPermanentWidget(self.upd_btu)
         # ################# 状态栏 结束.......########################################
 
         # ################# 增加控件 开始.......########################################
@@ -141,7 +139,7 @@ class EmailUi(QMainWindow, BaseClass):
 
         # ################# 检查更新控件 开始.......########################################
         self.ver_btu = BaseAction(self, os.path.join(STATIC_PATH, 'images', 'ver.png'), '检查更新',
-                                  func=self.set_ver).action
+                                  func=self.check_ver).action
         toolbar.addAction(self.ver_btu)
         # ################# 检查更新控件 结束.......########################################
 
@@ -459,24 +457,34 @@ class EmailUi(QMainWindow, BaseClass):
     def set_ver(self):
 
         def __do():
-            str_ver = self.ota_tool.get_ver()
-            str_title = f'软件当前版本: {VERSION} 最新版本: {str_ver}'
+            self.str_ver = self.ota_tool.get_ver()
+            str_title = f'软件当前版本: {VERSION} 最新版本: {self.str_ver}'
             # 版本
             self.statusBar().showMessage(str_title)
-            if VERSION.count('.') == str_ver.count('.') == 3:
-                lst_new_ver = [int(i) for i in str_ver.lower().replace('v', '').split('.')]
-                lst_old_ver = [int(i) for i in VERSION.lower().replace('v', '').split('.')]
-
-                for index_ in range(4):
-                    if lst_new_ver[index_] > lst_old_ver[index_]:
-                        self.upd_btu.setEnabled(True)
-                        break
-                else:
-                    self.show_message('', '', '无新版本升级')
 
         try:
 
             threading.Thread(target=__do).start()
         except Exception as e:
             logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
+        return
+
+    def check_ver(self):
+        is_update = False
+        try:
+            if VERSION.count('.') == self.str_ver.count('.') == 3:
+                lst_new_ver = [int(i) for i in self.str_ver.lower().replace('v', '').split('.')]
+                lst_old_ver = [int(i) for i in VERSION.lower().replace('v', '').split('.')]
+
+                for index_ in range(4):
+                    if lst_new_ver[index_] > lst_old_ver[index_]:
+                        is_update = True
+                        break
+        except Exception as err_msg:
+            logger.error(f"{err_msg.__traceback__.tb_lineno}:--:{err_msg}")
+        finally:
+            if not is_update:
+                self.show_message('升级', '已是最新版本！')
+            else:
+                self.ota_tool.show_page()
         return

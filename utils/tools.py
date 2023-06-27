@@ -89,7 +89,7 @@ def dump_file(dit_conf: dict, str_file: str = 'email.json') -> int:
                 'pwd': encrypt_str(dit_conf.get('pwd', '')),
             })
         with open(os.path.join(CONFIG_PATH, str_file), 'w', encoding='utf-8') as f:
-            dump(dit_conf, f)
+            dump(dit_conf, f, indent=4)
         int_ret = 1
     except Exception as err_msg:
         logger.error(f"{err_msg.__traceback__.tb_lineno}:--:{err_msg}")

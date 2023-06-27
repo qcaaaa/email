@@ -1,17 +1,17 @@
 /*
  Navicat Premium Data Transfer
 
- Source Server         : 192.168.162.100
+ Source Server         : 本地
  Source Server Type    : MySQL
- Source Server Version : 80031
- Source Host           : 192.168.162.100:7706
+ Source Server Version : 80032
+ Source Host           : localhost:3306
  Source Schema         : email
 
  Target Server Type    : MySQL
- Target Server Version : 80031
+ Target Server Version : 80032
  File Encoding         : 65001
 
- Date: 27/06/2023 18:16:41
+ Date: 27/06/2023 21:58:30
 */
 
 SET NAMES utf8mb4;
@@ -22,7 +22,7 @@ SET FOREIGN_KEY_CHECKS = 0;
 -- ----------------------------
 DROP TABLE IF EXISTS `body`;
 CREATE TABLE `body`  (
-  `id` int(0) NOT NULL,
+  `id` int(0) NOT NULL AUTO_INCREMENT,
   `str_body` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '邮件正文',
   `language` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '语种',
   PRIMARY KEY (`id`) USING BTREE
@@ -33,7 +33,7 @@ CREATE TABLE `body`  (
 -- ----------------------------
 DROP TABLE IF EXISTS `end`;
 CREATE TABLE `end`  (
-  `id` int(0) NOT NULL,
+  `id` int(0) NOT NULL AUTO_INCREMENT,
   `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '结尾名称',
   `url` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '结尾附件',
   `content` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '结尾内容',
@@ -46,7 +46,7 @@ CREATE TABLE `end`  (
 -- ----------------------------
 DROP TABLE IF EXISTS `info`;
 CREATE TABLE `info`  (
-  `id` int(0) NOT NULL,
+  `id` int(0) NOT NULL AUTO_INCREMENT,
   `url` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '附件地址',
   `language` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '语种',
   PRIMARY KEY (`id`) USING BTREE
@@ -57,7 +57,7 @@ CREATE TABLE `info`  (
 -- ----------------------------
 DROP TABLE IF EXISTS `title`;
 CREATE TABLE `title`  (
-  `id` int(0) NOT NULL,
+  `id` int(0) NOT NULL AUTO_INCREMENT,
   `str_title` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '邮件正文',
   `language` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '语种',
   PRIMARY KEY (`id`) USING BTREE
@@ -68,7 +68,7 @@ CREATE TABLE `title`  (
 -- ----------------------------
 DROP TABLE IF EXISTS `user`;
 CREATE TABLE `user`  (
-  `id` int(0) NOT NULL,
+  `id` int(0) NOT NULL AUTO_INCREMENT,
   `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '邮箱账号',
   `pwd` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '邮箱授权码',
   `str_type` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '邮箱类型',

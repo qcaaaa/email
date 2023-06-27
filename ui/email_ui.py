@@ -354,7 +354,6 @@ class EmailUi(QMainWindow, BaseClass):
         :param logical_index: 列索引
         :return:
         """
-        print('xx')
         is_clear = False
         lst_radio = []
         try:

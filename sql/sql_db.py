@@ -103,15 +103,15 @@ class MySql:
         str_sql = ''
         try:
             if table == 'user':
-                str_sql = f"insert into {table} (name, pwd, str_type) values (?, ?, ?)"
+                str_sql = f"insert into {table} (name, pwd, str_type, language) values (%s, %s, %s, %s)"
             elif table == 'body':
-                str_sql = f"insert into {table} (str_body, language) values (?, ?)"
+                str_sql = f"insert into {table} (str_body, language) values (%s, %s)"
             elif table == 'title':
-                str_sql = f"insert into {table} (str_title, language) values (?, ?)"
+                str_sql = f"insert into {table} (str_title, language) values (%s, %s)"
             elif table == 'info':
-                str_sql = f"insert into {table} (url, language) values (?, ?)"
+                str_sql = f"insert into {table} (url, language) values (%s, %s)"
             elif table == 'end':
-                str_sql = f"insert into {table} (name, content, url) values (?, ?, ?)"
+                str_sql = f"insert into {table} (name, content, url) values (%s, %s, %s)"
             int_ret = self.__exec_sql('add', str_sql, lst_info)
         except Exception as e:
             logger.debug(f"{e.__traceback__.tb_lineno}:--{e}:{str_sql}")

@@ -29,7 +29,7 @@ from email.utils import formatdate
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from utils.tools import sub_html, word_2_html, load_file, str_2_int
-from constant import DIT_DATABASE, DIT_EMAIL, FILTER_TABLE, FILTER_LANG, QSS_STYLE, STATIC_PATH, MAST_SELECT_TABLE, \
+from constant import DIT_DATABASE, FILTER_TABLE, FILTER_LANG, QSS_STYLE, STATIC_PATH, MAST_SELECT_TABLE, \
     DEAR_FONT
 from PyQt5.QtWidgets import QDialog, QFormLayout, QLineEdit, QDialogButtonBox, QComboBox, \
     QTextEdit, QFileDialog, QCheckBox, QGridLayout, QRadioButton
@@ -111,18 +111,21 @@ class EmailTools:
         pwd_input.setStyleSheet("height: 20px")
         form_layout.addRow('邮箱密码:', pwd_input)
         serve_box = QComboBox(self.obj_ui)
-        serve_box.addItems([dit_e['name_cn'] for dit_e in self.email_dict.values()])
+        serve_box.addItems([dit_c['name_cn'] for dit_c in self.email_dict])
         serve_box.setStyleSheet("height: 20px")
         form_layout.addRow('邮箱服务器:', serve_box)
+        lang_input = QLineEdit(self.obj_ui)
+        lang_input.setStyleSheet("height: 20px")
+        form_layout.addRow('邮箱语种:', lang_input)
         button = QDialogButtonBox(QDialogButtonBox.Ok)
         form_layout.addRow(button)
         button.clicked.connect(dialog.accept)
         dialog.show()
         if dialog.exec() == QDialog.Accepted:
-            str_type = DIT_EMAIL.get(serve_box.currentText(), '腾讯邮箱')
-            str_1, str_2 = user_input.text().strip(), pwd_input.text().strip()
-            if all([str_1, str_2, str_type]):
-                return self.add_info(DIT_DATABASE[self.obj_ui.page], [str_1, str_2, str_type])
+            lst_e = [dit_e for dit_e in self.email_dict if dit_e['name_cn'] == serve_box.currentText().strip()]
+            str_1, str_2, str_3 = user_input.text().strip(), pwd_input.text().strip(), lang_input.text().strip()
+            if all([str_1, str_2, lst_e, str_3]):
+                return self.add_info(DIT_DATABASE[self.obj_ui.page], [str_1, str_2, int(lst_e[0]['index']), str_3])
             return -1
 
     def __add_title(self):

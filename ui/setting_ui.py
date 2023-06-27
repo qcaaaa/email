@@ -53,7 +53,7 @@ class BaseSetting:
             s3_url_line.textChanged.connect(__body_change)
             grid.addWidget(s3_url_line, 4, 1, 1, 3)
 
-            db_name_label = BaseLabel(dialog, str_text='数据库').label
+            db_name_label = BaseLabel(dialog, str_text='数据库名称').label
             grid.addWidget(db_name_label, 5, 0)
             db_name_line = BaseLineEdit(dialog, str_default=dit_conf.get('database', ''), file_style=QSS_STYLE).lineedit
             db_name_line.textChanged.connect(__body_change)
@@ -65,32 +65,47 @@ class BaseSetting:
             db_ip_line.textChanged.connect(__body_change)
             grid.addWidget(db_ip_line, 6, 1, 1, 3)
 
+            db_user_label = BaseLabel(dialog, str_text='数据库用户').label
+            grid.addWidget(db_user_label, 7, 0)
+            db_user_line = BaseLineEdit(dialog, str_default=dit_conf.get('user', ''), file_style=QSS_STYLE).lineedit
+            db_user_line.textChanged.connect(__body_change)
+            grid.addWidget(db_user_line, 7, 1, 1, 3)
+
+            db_pwd_label = BaseLabel(dialog, str_text='数据库密码').label
+            grid.addWidget(db_pwd_label, 8, 0)
+            db_pwd_line = BaseLineEdit(dialog, str_default=dit_conf.get('pwd', ''), file_style=QSS_STYLE).lineedit
+            db_pwd_line.textChanged.connect(__body_change)
+            grid.addWidget(db_pwd_line, 8, 1, 1, 3)
+
             button = QDialogButtonBox(QDialogButtonBox.Ok)
             button.clicked.connect(dialog.accept)
             button.setDisabled(True)
-            grid.addWidget(button, 8, 3)
+            grid.addWidget(button, 10, 3)
 
             dialog.setLayout(grid)
 
             if dialog.exec() == QDialog.Accepted:
-                str_id = s3_id_line.text()
-                str_key = s3_key_line.text()
-                str_bucket = s3_bucket_line.text()
-                str_url = s3_url_line.text()
-                str_ip = db_ip_line.text()
-                str_db = db_name_line.text()
+                str_id = s3_id_line.text().strip()
+                str_key = s3_key_line.text().strip()
+                str_bucket = s3_bucket_line.text().strip()
+                str_url = s3_url_line.text().strip()
+                str_ip = db_ip_line.text().strip()
+                str_db = db_name_line.text().strip()
+                str_user = db_user_line.text().strip()
+                str_pwd = db_pwd_line.text().strip()
 
-                if all([str_id, str_key, str_bucket, str_url, str_ip, str_db]):
+                if all([str_id, str_key, str_bucket, str_url, str_ip, str_db, str_user, str_pwd]):
                     dit_conf.update({
                         'AccessKey_ID': str_id, 'AccessKey_Secret': str_key,
-                        'bucket': str_bucket, 'url': str_url, 'ip': str_ip, 'database': str_db
+                        'bucket': str_bucket, 'url': str_url, 'ip': str_ip, 'database': str_db,
+                        'pwd': str_pwd, 'user': str_user
                     })
                     if dump_file(dit_conf, 'config.json') == 1:
-                        QMessageBox.warning(dialog, '成功', '配置更新成功！', QMessageBox.Yes)
+                        QMessageBox.warning(dialog, '成功', '配置更新成功！', QMessageBox.Ok)
                     else:
-                        QMessageBox.warning(dialog, '失败', '配置更新失败！', QMessageBox.Yes)
+                        QMessageBox.warning(dialog, '失败', '配置更新失败！', QMessageBox.Ok)
                 else:
-                    QMessageBox.warning(dialog, '错误', '不能有空数据！', QMessageBox.Yes)
+                    QMessageBox.warning(dialog, '错误', '不能有空数据！', QMessageBox.Ok)
         except Exception as err:
             logger.error(f"{err.__traceback__.tb_lineno}:--:{err}")
         finally:

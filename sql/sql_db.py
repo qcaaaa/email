@@ -35,13 +35,6 @@ class MySql:
                                     db=self.dit_conf['database'], charset='utf8')
         self.curr = self.conn.cursor(pymysql.cursors.DictCursor)
 
-    @staticmethod
-    def __dict_factory(cursor, row):
-        d = {}
-        for idx, col in enumerate(cursor.description):
-            d[col[0]] = row[idx] if row[idx] else ''
-        return d
-
     def __enter__(self):
         return self
 
@@ -79,7 +72,7 @@ class MySql:
         int_count = 0
         try:
             if int_start != -1:
-                str_sql = f"select * from {table} limit {int_limit} offset {(int_start - 1) * int_limit}"
+                str_sql = f"select * from {table} limit {int_limit * (int_start - int_start)}, {int_limit}"
             else:
                 str_sql = f"select * from {table}"
             self.__exec_sql('select', str_sql)

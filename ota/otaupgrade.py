@@ -121,7 +121,7 @@ class OtaUpgrade:
                 self.dialog.setLayout(layout)
                 self.dialog.exec_()
             else:
-                QMessageBox.warning(self.dialog, '错误', '未获取到最新版本下载地址', QMessageBox.Yes)
+                QMessageBox.warning(self.dialog, '错误', '未获取到最新版本下载地址', QMessageBox.Ok)
         except Exception as e:
             logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
 

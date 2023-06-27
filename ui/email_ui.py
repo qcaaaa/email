@@ -17,7 +17,7 @@ import os
 import threading
 from loguru import logger
 from datetime import datetime
-from PyQt5.QtWidgets import QTextEdit, QToolBar, QWidget, QCheckBox
+from PyQt5.QtWidgets import QTextEdit, QToolBar, QWidget
 from PyQt5.QtWidgets import QMessageBox
 from PyQt5.QtWidgets import QListWidgetItem
 from PyQt5.QtWidgets import QMainWindow
@@ -29,8 +29,6 @@ from PyQt5 import QtCore
 from PyQt5.QtGui import QIcon, QIntValidator
 from PyQt5.QtGui import QTextCursor
 from PyQt5.QtWidgets import QListWidget
-from PyQt5.QtWidgets import QHeaderView, QAbstractItemView
-from PyQt5.Qt import QTableWidgetItem
 from constant import DIT_LIST, DIT_DATABASE, STATIC_PATH, GIT_URL, EXE_NAME, QSS_STYLE
 from utils.tools import str_2_int
 from tools.email_tool import EmailTools
@@ -39,6 +37,7 @@ from tools.email_google import GoogleTool
 from ota.otaupgrade import OtaUpgrade
 from ui.base_ui import BaseButton, BaseLabel, BaseLineEdit, BaseAction, BaseBar, BaseComboBox
 from ui.setting_ui import BaseSetting
+from ui.base_table import BaseTab
 from version import VERSION
 
 
@@ -301,45 +300,16 @@ class EmailUi(QMainWindow, BaseClass):
     def show_table(self, lst_data: list, str_table: str, curr_pag: int = 1, count_pag: int = 1):
         """表格填充数据"""
         try:
-            # 清空所有勾选
-            self.select_table.clear()
-            # 清空表格数据
-            self.table.clearContents()  # 清空现有数据
-            table_header = DIT_LIST[str_table].get('cn', [])
-            int_len = len(table_header)
             page_name = str_2_int(self.page_num.currentText())
-            # 渲染表格数据
-            self.table.setColumnCount(int_len)
-            self.table.setRowCount(len(lst_data) if len(lst_data) <= page_name else page_name)
-            self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)  # 铺满
-            self.table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)  # 前两列自适应
-            self.table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeToContents)
-            self.table.setHorizontalHeaderLabels(table_header)  # 表头
-            self.table.horizontalHeader().sectionClicked.connect(self.on_all_checkbox_changed)  # 表头点击事件
-            self.table.setEditTriggers(QAbstractItemView.NoEditTriggers)  # 禁止修改
-            self.table.setAlternatingRowColors(True)  # 交替行颜色
-            # 表格 tip 显示
-            self.table.installEventFilter(self)
-            self.table.setMouseTracking(True)
-            self.table.itemEntered.connect(self.enter_item_slot)
-            # 填充数据
-            en_table_header = DIT_LIST[str_table].get('en', [])
+            obj_table = BaseTab(self.table, str_table, page_name=page_name, parent=self)
             # 邮箱类型
-            dit_email = {dit_e['index']: dit_e['name_cn'] for dit_e in self.email_tool.email_list}
-            for index_, dit_info in enumerate(lst_data):
-                # 创建单选框
-                checkbox = QCheckBox()
-                checkbox.setObjectName(str(dit_info['id']))
-                checkbox.clicked.connect(self.on_checkbox_changed)
-                self.table.setCellWidget(index_, 0, checkbox)
-                # 设置数据
-                for index_j, str_en in enumerate(en_table_header, 1):
-                    value = str(dit_info.get(str_en, ''))
-                    if str_en == 'str_type' and str_table == '账号配置':
-                        value = dit_email.get(value, '')
-                    item = QTableWidgetItem(value)
-                    item.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
-                    self.table.setItem(index_, index_j, item)  # 转换后可插入表格
+            if str_table == '账号配置':
+                dit_email = {dit_e['index']: dit_e['name_cn'] for dit_e in self.email_tool.email_list}
+            else:
+                dit_email = {}
+            obj_table.show_table(lst_data, dit_email)
+            # 获取一下单选框
+            self.select_table = obj_table.select_table
             # 更新页数
             self.page_text.setText(f'{curr_pag}/{count_pag}')
             if curr_pag > 1:
@@ -430,6 +400,8 @@ class EmailUi(QMainWindow, BaseClass):
                         self.show_message('删除', f'{int_succ}条记录删除成功,{int_len - int_succ}条记录删除失败')
                     else:
                         self.show_message('删除', f'删除失败')
+            else:
+                self.show_message('删除', '未选择数据')
         except Exception as e:
             logger.debug(f"{e.__traceback__.tb_lineno}:--:{e}")
         else:

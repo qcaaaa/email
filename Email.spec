@@ -8,7 +8,7 @@ a = Analysis(
     ['main.py'],
     pathex=[],
     binaries=[],
-    datas=[("./config", "./config"), ("./bak/data.db", "./sql/"), ("./static", "./static"), ("./driver", "./driver")],
+    datas=[("./config", "./config"), ("./static", "./static"), ("./driver", "./driver")],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},

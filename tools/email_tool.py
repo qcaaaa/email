@@ -22,7 +22,7 @@ from tools.aly_s3 import AlyS3
 from sql.sql_db import MySql
 from loguru import logger
 from random import choice
-from itertools import product
+from itertools import product, groupby, chain
 from email.header import Header
 from email.utils import formatdate
 from email.mime.text import MIMEText
@@ -59,9 +59,14 @@ class EmailTools:
     def __login(self, str_user: str, str_pwd: str, str_type: str):
         try:
             dit_config = load_file()
-            str_server, int_port = dit_config[str_type]['server'], dit_config[str_type]['port']
-            obj_smtp = smtplib.SMTP(str_server, port=int_port, local_hostname='localhost')
-            obj_smtp.login(str_user, str_pwd)
+            for dit_em in dit_config:
+                if dit_em['index'] == str_type:
+                    str_server, int_port = dit_em['server'], dit_em['port']
+                    obj_smtp = smtplib.SMTP(str_server, port=int_port, local_hostname='localhost')
+                    obj_smtp.login(str_user, str_pwd)
+                    break
+            else:
+                obj_smtp = None
         except Exception as err:
             self.obj_ui.show_message('', '', f"{err.__traceback__.tb_lineno}: {err}")
             obj_smtp = None
@@ -71,7 +76,7 @@ class EmailTools:
         """获取数据库信息"""
         int_limit = int_limit or int(self.obj_ui.page_num.currentText())
         with MySql() as obj_sql:
-            dit_info = obj_sql.select_sql(table, int_start=int_start, int_limit=int_limit)
+            dit_info = obj_sql.select_sql(table, int_start=int_start, int_limit=int_limit, where=where)
         return dit_info
 
     @staticmethod
@@ -511,7 +516,10 @@ class EmailTools:
             dialog.on_all_checkbox_changed = self.__on_all_checkbox_changed
             dialog.on_checkbox_changed = self.__on_checkbox_changed
             dialog.resize(800, 600)
-
+            try:
+                self.obj_table.horizontalHeader().sectionClicked.disconnect()
+            except:
+                pass
             table_db = DIT_DATABASE[table]
 
             self.obj_table.setObjectName(DIT_DATABASE[table])
@@ -709,24 +717,65 @@ class EmailTools:
             # 先关闭上一个的
             if self.dialog:
                 self.dialog.close()
-            lst_user = self.dit_v.get('user', {}).get('lst', [])  # ID
-            lst_body = self.dit_v.get('body', {}).get('lst', [])  # ID
-            lst_title = self.dit_v.get('title', {}).get('lst', [])  # ID
+            lst_user_id = self.dit_v.get('user', [])  # ID
+            lst_body_id = self.dit_v.get('body', [])  # ID
+            lst_title_id = self.dit_v.get('title', [])  # ID
+            lst_info_id = self.dit_v.get('info', [])  # ID
+            lst_end_id = self.dit_v.get('end', [])  # ID
 
-            with MySql() as sql:
-                lst_user = sql.select_sql('user')
-                lst_body = sql.select_sql('body')
-                lst_title = sql.select_sql('')
+            if len(lst_user_id) == 1:
+                lst_user = self.get_info('user', f"id={lst_user_id[0]}", -1, -1).get('lst_ret', [])
+            else:
+                lst_user = self.get_info('user', f"id in {tuple(lst_user_id)}", -1, -1).get('lst_ret', [])
 
-            # 起码保证 客户, 账号, 模板有
+            if len(lst_body_id) == 1:
+                lst_body = self.get_info('body', f"id={lst_body_id[0]}", -1, -1).get('lst_ret', [])
+            else:
+                lst_body = self.get_info('body', f"id in {tuple(lst_body_id)}", -1, -1).get('lst_ret', [])
+
+            if len(lst_title_id) == 1:
+                lst_title = self.get_info('title', f"id={lst_title_id[0]}", -1, -1).get('lst_ret', [])
+            else:
+                lst_title = self.get_info('title', f"id in {tuple(lst_title_id)}", -1, -1).get('lst_ret', [])
+
+            # 起码保证 客户, 账号, 模板有(但不一定全套有)
             if all([self.to_list, lst_user, lst_body, lst_title]):
-                # 获取邮件标题和内容组合数
-                lst_text = list(
-                    product([dit_text['str_title'] for dit_text in lst_title], [dit_text['str_body'] for dit_text in lst_body]))
-                lst_info = [dit_info['url'] for dit_info in self.dit_v.get('info', {}).get('lst', [])]
-                lst_end = self.dit_v.get('end', {}).get('lst', [])
+
+                lst_end = self.get_info('end').get('lst_ret', []) if lst_end_id else []
+
+                if len(lst_info_id) == 1:
+                    lst_info = self.get_info('info', f"id={lst_info_id[0]}", -1, -1).get('lst_ret', [])
+                elif len(lst_info_id) > 1:
+                    lst_info = self.get_info('info', f"id in {tuple(lst_info_id)}", -1, -1).get('lst_ret', [])
+                else:
+                    lst_info = []
+
+                # 按语种分组
+                dit_user_group = groupby(lst_user, lambda x: x['language'])
+                dit_body_group = {key: list(group) for key, group in groupby(sorted(lst_body, key=lambda x: x['language']), lambda x: x['language'])}
+                dit_title_group = {key: list(group) for key, group in groupby(sorted(lst_title, key=lambda x: x['language']), lambda x: x['language'])}
+                dit_info_group = {key: list(group) for key, group in groupby(sorted(lst_info, key=lambda x: x['language']), lambda x: x['language'])}
+
+                lst_text = []
+                for key, group in dit_user_group:
+                    lst_b = list(dit_body_group.get(key, []))
+                    lst_t = list(dit_title_group.get(key, []))
+                    if not lst_b or not lst_t:
+                        str_txt = f'账号: {",".join([dit_u["name"] for dit_u in group])}无产品({key})相关的标题/正文,取消发送'
+                        self.obj_ui.show_message('', '', str_txt)
+                        continue
+                    # 获取邮件标题和内容组合数
+                    else:
+                        itr_comb = product([dit_t['str_title'] for dit_t in lst_t], [dit_b['str_body'] for dit_b in lst_b])
+                        lst_text.append({
+                            'lst_user': list(group),
+                            'lst_comb': list(itr_comb),
+                            'lst_info': [dit_info['url'] for dit_info in dit_info_group.get(key, [])],
+                            'key': key
+                        })
+
                 self.obj_ui.show_message('提示', '正在后台发送中,请稍等......', '正在后台发送中,请稍等......')
-                threading.Thread(target=self.__send_mail, args=(lst_user, lst_text, lst_info, lst_end), daemon=True).start()
+                threading.Thread(target=self.__send_mail, args=(lst_text, lst_end), daemon=True).start()
             else:
                 self.obj_ui.show_message('错误', '缺少数据,无法发送邮件.请重试')
         except Exception as e:
@@ -735,21 +784,37 @@ class EmailTools:
             # 这是最后一个 要置空
             self.dialog = None
 
-    def __send_mail(self, lst_user: list, lst_text: list, lst_info: list, lst_end: list):
-        """发送邮件"""
+    def __send_mail(self, lst_text, lst_end: list):
+        """发送邮件
+        :param lst_text [{
+                        lst_user,lst_comb, lst_info, key
+                    }]
+        """
         # 发送成功的数量
         int_num = 0
         int_count = 0
         # 收件人数量
         int_len = len(self.to_list)
-        # 标题组合存在的数量
-        int_title = len(lst_text)
-        # 账号数量
-        int_user = len(lst_user)
+
+        self.obj_ui.show_message('', '', f"当前发送策略: {'携带网页' if self.send_model else '不携带网页'}, "
+                                         f"间隔时间: {self.sleep_mun}s, 轮询数量: {self.send_mun}, "
+                                         f"收件人数量: {int_len}")
+
+        # 是否携带网页
+        str_html = ''
+        if self.send_model:
+            try:
+                with open(os.path.join(STATIC_PATH, 'templates', 'templates.html'), 'r', encoding='utf-8') as f:
+                    str_html = f.read()
+            except Exception as er:
+                logger.error(f"{er.__traceback__.tb_lineno}:--:{er}")
+
+        # 分配任务(合并在一起分)
+        lst_task = []
+        k = 0
         try:
-            # 分配任务
-            lst_task = []
-            k = 0
+            lst_user = list(chain.from_iterable([dit_u['lst_user'] for dit_u in lst_text]))
+            int_user = len(lst_user)
             for i in range(0, int_len, self.send_mun):
                 if k >= int_user:
                     k = 0
@@ -758,79 +823,84 @@ class EmailTools:
                     'user': lst_user[k]
                 })
                 k += 1
+        except Exception as err2:
+            logger.error(f"{err2.__traceback__.tb_lineno}:--:{err2}")
 
-            self.obj_ui.show_message('', '', f"当前发送策略: {'携带网页' if self.send_model else '不携带网页'}, "
-                                             f"间隔时间: {self.sleep_mun}s, 轮询数量: {self.send_mun}")
+        try:
+            for dit_text in lst_text:
+                # 账号
+                user_id = [dit_u['id'] for dit_u in dit_text['lst_user']]
+                # 附件
+                lst_info = dit_text['lst_info']
+                # 正文/标题组合
+                lst_comb = dit_text['lst_comb']
+                # 标题组合存在的数量
+                int_title = len(lst_comb)
+                # 产品
+                str_key = dit_text['key']
+                # 附件
+                if lst_info:
+                    # 附件图标
+                    info_html = '<br><br> <hr><p>attachment：</p><img style="width: 20px; height: 20px;" ' \
+                                'src="http://img.mp.itc.cn/upload/20170406/690f8eb8b38144028ee4bf0f04233901.png">'
+                    # 附件内容
+                    for str_url in lst_info:
+                        str_name = str_url.rsplit("/", 1)[-1]  # type: str
+                        if str_name.endswith('.pdf'):
+                            info_html += f'<a href="{str_url}" target="_blank" download="{str_name}">{str_name}</a><br>'
+                        else:
+                            info_html += f'<p><img src="{str_url}"></span></p><br>'
+                else:
+                    info_html = ''
 
-            # 是否携带网页
-            str_html = ''
-            if self.send_model:
-                try:
-                    with open(os.path.join(STATIC_PATH, 'templates', 'templates.html'), 'r', encoding='utf-8') as f:
-                        str_html = f.read()
-                except Exception as er:
-                    logger.error(f"{er.__traceback__.tb_lineno}:--:{er}")
-            # 附件
-            if lst_info:
-                # 附件图标
-                info_html = '<br><br> <hr><p>attachment：</p><img style="width: 20px; height: 20px;" ' \
-                            'src="http://img.mp.itc.cn/upload/20170406/690f8eb8b38144028ee4bf0f04233901.png">'
-                # 附件内容
-                for str_url in lst_info:
-                    str_name = str_url.rsplit("/", 1)[-1]  # type: str
-                    if str_name.endswith('.pdf'):
-                        info_html += f'<a href="{str_url}" target="_blank" download="{str_name}">{str_name}</a><br>'
-                    else:
-                        info_html += f'<p><img src="{str_url}"></span></p><br>'
-            else:
-                info_html = ''
-
-            for dit_key in lst_task:
-                dit_user = dit_key['user']
-                obj_smtp = self.__login(dit_user['name'], dit_user['pwd'], dit_user['str_type'])
-                # key 是公司名称  value 是邮箱
-                for dit_send in dit_key['send']:
-                    try:
-                        #  按索引取值
-                        tuple_text = lst_text[int_count % int_title]
-                        # 公司名称 + 正文 + 网页
-                        firm = dit_send["firm"]
-                        str_txt = f'<p style="font-family: {self.dear_font};"> Dear {firm}</p>' + '<br>' + \
-                                  tuple_text[1] + '<br>' + str_html
-                        # 结尾
-                        if lst_end:
-                            dit_end = choice(lst_end)
-                            end_html, end_url = dit_end.get('content', ''), dit_end.get('url', '')
-                            # 加结尾
-                            if end_html:
-                                str_txt += '<br><br><br>' + end_html
-                            # 加结尾图片
-                            if end_url:
-                                str_txt += f'<p><img src="{end_url}"></span></p>'
-                        # 加附件
-                        if info_html:
-                            str_txt += info_html
-                        # 转HTML
-                        obj_email = MIMEMultipart('related')
-                        # 设置标题
-                        obj_email["Subject"] = Header(tuple_text[0], "utf-8")
-                        # 日期
-                        obj_email['Date'] = formatdate(localtime=True)
-                        # 接收人
-                        obj_email['To'] = ', '.join([dit_send['email']])
-                        obj_email['From'] = dit_user['name']
-                        str_html_ = MIMEText(str_txt, 'html', 'utf-8')
-                        obj_email.attach(str_html_)
-                        obj_smtp.sendmail(dit_user['name'], [dit_send['email']], obj_email.as_string())
-                        int_num += 1
-                        self.obj_ui.show_message('', '', f"{dit_user['name']} --> {dit_send['email']} 成功")
-                        time.sleep(self.sleep_mun)
-                    except Exception as err:
-                        logger.error(f"{err.__traceback__.tb_lineno}:--:{err}")
-                    finally:
-                        int_count += 1
-        except Exception as e:
-            logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
+                for dit_key in lst_task:
+                    dit_user = dit_key['user']
+                    if dit_user['id'] not in user_id:
+                        continue
+                    obj_smtp = self.__login(dit_user['name'], dit_user['pwd'], dit_user['str_type'])
+                    # key 是公司名称  value 是邮箱
+                    for dit_send in dit_key['send']:
+                        try:
+                            #  按索引取值
+                            tuple_text = lst_comb[int_count % int_title]
+                            # 公司名称 + 正文 + 网页
+                            firm = dit_send["firm"]
+                            str_txt = f'<p style="font-family: {self.dear_font};"> Dear {firm}</p>' + '<br>' + \
+                                      tuple_text[1] + '<br>' + str_html
+                            # 结尾
+                            if lst_end:
+                                dit_end = choice(lst_end)
+                                end_html, end_url = dit_end.get('content', ''), dit_end.get('url', '')
+                                # 加结尾
+                                if end_html:
+                                    str_txt += '<br><br><br>' + end_html
+                                # 加结尾图片
+                                if end_url:
+                                    str_txt += f'<p><img src="{end_url}"></span></p>'
+                            # 加附件
+                            if info_html:
+                                str_txt += info_html
+                            # 转HTML
+                            obj_email = MIMEMultipart('related')
+                            # 设置标题
+                            obj_email["Subject"] = Header(tuple_text[0], "utf-8")
+                            # 日期
+                            obj_email['Date'] = formatdate(localtime=True)
+                            # 接收人
+                            obj_email['To'] = ', '.join([dit_send['email']])
+                            obj_email['From'] = dit_user['name']
+                            str_html_ = MIMEText(str_txt, 'html', 'utf-8')
+                            obj_email.attach(str_html_)
+                            obj_smtp.sendmail(dit_user['name'], [dit_send['email']], obj_email.as_string())
+                            int_num += 1
+                            self.obj_ui.show_message('', '', f"{dit_user['name']}({str_key}) --> {dit_send['email']} 成功")
+                            time.sleep(self.sleep_mun)
+                        except Exception as err:
+                            logger.error(f"{err.__traceback__.tb_lineno}:--:{err}")
+                        finally:
+                            int_count += 1
+        except Exception as err3:
+            logger.error(f"{err3.__traceback__.tb_lineno}:--:{err3}")
         finally:
             self.obj_ui.show_message('', f'', f'本轮发送结束. 一共需要发送: {int_len}封邮件, 发送成功: {int_num}封邮件')
             # 还原数据

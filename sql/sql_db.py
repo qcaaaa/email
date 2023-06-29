@@ -65,7 +65,7 @@ class MySql:
             LOOK.release()
         return int_ret
 
-    def select_sql(self, table: str, int_start: int, int_limit: int) -> dict:
+    def select_sql(self, table: str, int_start: int, int_limit: int, where: str = '') -> dict:
         lst_ret = []
         int_mun = 1
         str_sql = ''
@@ -75,6 +75,8 @@ class MySql:
                 str_sql = f"select * from {table} limit {int_limit * (int_start - int_start)}, {int_limit}"
             else:
                 str_sql = f"select * from {table}"
+            if where:
+                str_sql = f"{str_sql} where {where}"
             self.__exec_sql('select', str_sql)
             lst_ret = self.curr.fetchall()
             if lst_ret and int_start != -1:

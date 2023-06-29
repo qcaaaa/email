@@ -53,12 +53,6 @@ class BaseTab:
             self.table.setEditTriggers(QAbstractItemView.NoEditTriggers)  # 禁止修改
             self.table.setAlternatingRowColors(True)  # 交替行颜色
 
-            # 表格tip
-            if self.parent:
-                self.table.installEventFilter(self.parent)
-                self.table.setMouseTracking(True)
-                self.table.itemEntered.connect(self.parent.enter_item_slot)
-
             # 填充数据
             en_table_header = DIT_LIST[self.table_name].get('en', [])
 

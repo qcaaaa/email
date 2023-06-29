@@ -43,16 +43,12 @@ class EmailTools:
         self.obj_ui = obj_ui
         self.email_list = load_file()
         self.to_list = []
-        self.str_page = ''  # 当前在那个选择页
-        self.dit_v = {
-            'user': {'key': 'name', 'len': 5, 'lst': [], 'cn': '账号'},
-            'body': {'key': 'str_body', 'len': 1, 'lst': [], 'cn': '内容'},
-            'title': {'key': 'str_title', 'len': 3, 'lst': [], 'cn': '标题'},
-            'info': {'key': 'url', 'len': 2, 'lst': [], 'cn': '附件'},
-            'end': {'key': 'name', 'len': 5, 'lst': [], 'cn': '结尾'},
-            'info_lang': {'key': 'language', 'len': 1, 'lst': [], 'cn': '附件语种'},
-            'body_lang': {'key': 'language', 'len': 1, 'lst': [], 'cn': '正文语种'},
-            'title_lang': {'key': 'language', 'len': 1, 'lst': [], 'cn': '标题语种'},
+        self.dit_v = {  # 存的是选择的数据库ID
+            'user': [],
+            'body': [],
+            'title': [],
+            'info': [],
+            'end': []
         }
         self.dialog = None  # 下一步之前的页面 用于下一步后 关闭上一个页面
         self.button = None  # 每个页面的下一步按钮
@@ -60,7 +56,7 @@ class EmailTools:
         self.sleep_mun = 20  # 发送间隔
         self.send_model = False  # 发送模式(不带网页)
         self.dear_font = DEAR_FONT[0]  # Dear 行字体
-        self.lang = None
+        self.obj_table = QTableWidget()  # 选择的表格
 
     def __login(self, str_user: str, str_pwd: str, str_type: str):
         try:
@@ -462,57 +458,66 @@ class EmailTools:
         else:
             self.obj_ui.show_message('错误提示', '上阿里云OSS连接失败,请检查配置', '上阿里云OSS连接失败,请检查配置')
 
-    def __on_checkbox_changed(self, dit_value: dict, state):
+    def __on_checkbox_changed(self, state):
         lst_c = []
+        table_db = self.obj_table.objectName()
         try:
-            checkbox = self.obj_ui.sender()
-            str_user = checkbox.text()
-            dit_info = self.dit_v[self.str_page]
-            lst_c = dit_info['lst']
-            if checkbox.isChecked():
-                self.obj_ui.show_message('', '', f'{dit_info["cn"]}:{str_user}已选择')
-                lst_c.append(dit_value)
-            else:
-                self.obj_ui.show_message('', '', f'{dit_info["cn"]}:{str_user}取消选择')
-                lst_c.remove(dit_value)
+            int_id = str_2_int(self.obj_ui.sender().objectName())
+            lst_c = self.dit_v[table_db]
+            if int_id >= 0 and state and int_id not in lst_c:
+                lst_c.append(int_id)
+            elif int_id >= 0 and not state and int_id in lst_c:
+                lst_c.remove(int_id)
         except Exception as e:
             logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
         finally:
             # 账号,模板 页面的下一步按钮禁用/启用
-            if self.str_page in MAST_SELECT_TABLE:
+            if table_db in MAST_SELECT_TABLE:
                 if lst_c and self.button:
                     self.button.setEnabled(True)
                 elif not lst_c and self.button:
                     self.button.setDisabled(True)
 
-    def __on_all_checkbox_changed(self, lst_checkbox, state):
+    def __on_all_checkbox_changed(self, logical_index):
         """全选
-        :param lst_checkbox:
-        :param state:
+        :param logical_index:
         :return:
         """
+        table_db = self.obj_table.objectName()
+        is_clear = False
+        lst_c = []
         try:
-            dit_info = self.dit_v[self.str_page]
-            if not state:
-                dit_info['lst'].clear()
-            for dit_value in lst_checkbox:
-                dit_value['obj'].setCheckState(2 if state else 0)
-                if state:
-                    dit_info['lst'].append(dit_value['value'])
+            lst_c = self.dit_v[table_db]
+            if logical_index == 0:
+                lst_radio = [self.obj_table.cellWidget(i, 0) for i in range(self.obj_table.rowCount())]
+                if 0 < len(lst_radio) == len(lst_c):
+                    is_clear = True
+                for obj_radio in lst_radio:
+                    obj_radio.setChecked(not is_clear)
+                    int_id = str_2_int(obj_radio.objectName())
+                    if is_clear and int_id in lst_c:
+                        lst_c.remove(int_id)
+                    elif not is_clear and int_id not in lst_c:
+                        lst_c.append(int_id)
         except Exception as e:
             logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
         finally:
-            if self.str_page in MAST_SELECT_TABLE:
-                self.button.setEnabled(state)
+            if table_db in MAST_SELECT_TABLE:
+                self.button.setEnabled(bool(lst_c))
 
     def __show_dialog(self, table: str, func, str_title: str):
         dialog = None
         try:
             dialog = QDialog(self.obj_ui)
             dialog.setWindowTitle(f'选择{str_title}')
+            dialog.on_all_checkbox_changed = self.__on_all_checkbox_changed
+            dialog.on_checkbox_changed = self.__on_checkbox_changed
             dialog.resize(800, 600)
-            obj_table = QTableWidget()
-            lst_data = self.get_info(DIT_DATABASE[table], int_start=-1).get('lst_ret', [])
+
+            table_db = DIT_DATABASE[table]
+
+            self.obj_table.setObjectName(DIT_DATABASE[table])
+            lst_data = self.get_info(table_db, int_start=-1).get('lst_ret', [])
             # 邮箱类型
             if table == '账号配置':
                 dit_email = {dit_e['index']: dit_e['name_cn'] for dit_e in self.email_list}
@@ -520,85 +525,27 @@ class EmailTools:
                 dit_email = {}
 
             # 渲染表格
-            BaseTab(obj_table, table, self.obj_ui).show_table(lst_data, dit_email)
+            BaseTab(self.obj_table, table, dialog).show_table(lst_data, dit_email)
 
             # 创建按钮布局
             button_layout = QHBoxLayout()
 
             # 创建下一步按钮
-            next_button = BaseButton(dialog, str_tip='下一步', func=func, tuple_size=(60, 30),
+            self.button = BaseButton(dialog, str_tip='下一步', func=func, tuple_size=(60, 30), file_style=QSS_STYLE,
                                      str_img=os.path.join(STATIC_PATH, 'images', 'next.png')).btu
-            button_layout.addWidget(next_button)
+            button_layout.addWidget(self.button)
 
             main_layout = QVBoxLayout()
-            main_layout.addWidget(obj_table)
+            main_layout.addWidget(self.obj_table)
             main_layout.addLayout(button_layout)
 
             dialog.setLayout(main_layout)
 
+            # 账号,模板 按钮最开始禁用
+            if table_db in MAST_SELECT_TABLE:
+                self.button.setDisabled(True)
+
             dialog.show()
-            # def __select_lang():
-            #     dialog.resize(300, 100)
-            #     lst_lang = ['全部']
-            #     if table == 'info_lang':
-            #         lst_lang.extend(self.__get_language('info'))
-            #     elif table == 'body_lang':
-            #         lst_lang.extend(self.__get_language('body'))
-            #     else:
-            #         lst_lang.extend(self.__get_language('title'))
-            #     self.lang = BaseComboBox(dialog, QSS_STYLE, lst_data=lst_lang).box
-            #     grad.addWidget(self.lang, 1, 0)
-            #     grad.addWidget(self.button, 1, 1)
-            #
-            # def __select_option():
-            #     dialog.resize(600, 300)
-            #     lst_user = self.get_info(table, int_start=-1).get('lst_ret', [])
-            #     if table in FILTER_TABLE and self.lang:
-            #         str_lang = self.lang.currentText()
-            #         if str_lang and str_lang != '全部':
-            #             lst_user = [dit_info for dit_info in lst_user if dit_info['language'] == str_lang]
-            #
-            #     lst_all = []
-            #     # 标题和正文 多了个 全选
-            #     int_row = 1 if str_len > 1 else 2
-            #     int_col = 1 if table in ['body', 'title'] and int_row == 1 else 0
-            #     for item in lst_user:
-            #         str_t = str(item[str_key])
-            #         checkbox = QCheckBox(str_t if len(str_t) <= 400 else str_t[:400])
-            #         checkbox.setStyleSheet("height: 30px")
-            #         checkbox.clicked.connect(partial(self.__on_checkbox_changed, item))
-            #         lst_all.append({'obj': checkbox, 'value': item})
-            #         grad.addWidget(checkbox, int_row, int_col)
-            #         int_col = int_col + 1 if int_col < str_len - 1 else 0
-            #         int_row = int_row + 1 if int_col == 0 else int_row
-            #         grad.addWidget(checkbox, int_row, int_col)
-            #     if table in ['body', 'title'] and lst_all:
-            #         checkbox = QCheckBox('全选')
-            #         checkbox.setStyleSheet("height: 30px")
-            #         checkbox.clicked.connect(partial(self.__on_all_checkbox_changed, lst_all))
-            #         grad.addWidget(checkbox, 1, 0)
-            #     grad.addWidget(self.button, int_row + 1, str_len)
-            #
-            # str_key, str_len, str_title = self.dit_v[table]['key'], self.dit_v[table]['len'], self.dit_v[table]['cn']
-            # dialog = QDialog(self.obj_ui)
-            # dialog.setWindowTitle(f'选择{str_title}')
-            # grad = QGridLayout()
-            # grad.setSpacing(3)
-            #
-            # self.button = BaseButton(dialog, str_tip='下一步', func=func, tuple_size=(60, 30),
-            #                          str_img=os.path.join(STATIC_PATH, 'images', 'next.png')).btu
-            #
-            # if table in FILTER_LANG:
-            #     __select_lang()
-            # else:
-            #     __select_option()
-            # dialog.setLayout(grad)
-            #
-            # # 账号,模板 按钮最开始禁用
-            # if table in MAST_SELECT_TABLE:
-            #     self.button.setDisabled(True)
-            # self.str_page = table
-            # dialog.show()
         except Exception as err:
             logger.error(f"{err.__traceback__.tb_lineno}:--:{err}--{table}")
         return dialog
@@ -704,7 +651,7 @@ class EmailTools:
             if self.to_list:
                 # 每次第一个页面先还原一下数据
                 for value in self.dit_v.values():
-                    value['lst'] = []
+                    value.clear()
                 self.dialog = self.__show_dialog('账号配置', self.select_title, '选择账号')
             else:
                 self.obj_ui.show_message('提示', '先导入收件人')
@@ -777,7 +724,6 @@ class EmailTools:
         finally:
             # 这是最后一个 要置空
             self.dialog = None
-            self.lang = None
 
     def __send_mail(self, lst_user: list, lst_text: list, lst_info: list, lst_end: list):
         """发送邮件"""
@@ -880,4 +826,4 @@ class EmailTools:
             # 还原数据
             self.to_list.clear()
             for value in self.dit_v.values():
-                value['lst'] = []
+                value.clear()

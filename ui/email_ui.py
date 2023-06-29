@@ -307,6 +307,11 @@ class EmailUi(QMainWindow, BaseClass):
             else:
                 dit_email = {}
             obj_table.show_table(lst_data, dit_email)
+
+            self.table.installEventFilter(self)
+            self.table.setMouseTracking(True)
+            self.table.itemEntered.connect(self.enter_item_slot)
+
             # 获取一下单选框
             self.select_table = obj_table.select_table
             # 更新页数

@@ -31,9 +31,10 @@ from email.mime.multipart import MIMEMultipart
 from utils.tools import sub_html, word_2_html, load_file, str_2_int
 from constant import DIT_DATABASE, FILTER_TABLE, FILTER_LANG, QSS_STYLE, STATIC_PATH, MAST_SELECT_TABLE, \
     DEAR_FONT
-from PyQt5.QtWidgets import QDialog, QFormLayout, QLineEdit, QDialogButtonBox, QComboBox, \
-    QTextEdit, QFileDialog, QCheckBox, QGridLayout, QRadioButton
+from PyQt5.QtWidgets import QDialog, QFormLayout, QDialogButtonBox, QTextEdit, QFileDialog, QCheckBox, QGridLayout, \
+    QRadioButton, QTableWidget, QVBoxLayout, QHBoxLayout, QPushButton
 from ui.base_ui import BaseButton, BaseLabel, BaseLineEdit, BaseBar, BaseComboBox
+from ui.base_table import BaseTab
 
 
 class EmailTools:
@@ -504,72 +505,100 @@ class EmailTools:
             if self.str_page in MAST_SELECT_TABLE:
                 self.button.setEnabled(state)
 
-    def __show_dialog(self, table: str, func):
+    def __show_dialog(self, table: str, func, str_title: str):
         dialog = None
         try:
-
-            def __select_lang():
-                dialog.resize(300, 100)
-                lst_lang = ['全部']
-                if table == 'info_lang':
-                    lst_lang.extend(self.__get_language('info'))
-                elif table == 'body_lang':
-                    lst_lang.extend(self.__get_language('body'))
-                else:
-                    lst_lang.extend(self.__get_language('title'))
-                self.lang = BaseComboBox(dialog, QSS_STYLE, lst_data=lst_lang).box
-                grad.addWidget(self.lang, 1, 0)
-                grad.addWidget(self.button, 1, 1)
-
-            def __select_option():
-                dialog.resize(600, 300)
-                lst_user = self.get_info(table, int_start=-1).get('lst_ret', [])
-                if table in FILTER_TABLE and self.lang:
-                    str_lang = self.lang.currentText()
-                    if str_lang and str_lang != '全部':
-                        lst_user = [dit_info for dit_info in lst_user if dit_info['language'] == str_lang]
-
-                lst_all = []
-                # 标题和正文 多了个 全选
-                int_row = 1 if str_len > 1 else 2
-                int_col = 1 if table in ['body', 'title'] and int_row == 1 else 0
-                for item in lst_user:
-                    str_t = str(item[str_key])
-                    checkbox = QCheckBox(str_t if len(str_t) <= 400 else str_t[:400])
-                    checkbox.setStyleSheet("height: 30px")
-                    checkbox.clicked.connect(partial(self.__on_checkbox_changed, item))
-                    lst_all.append({'obj': checkbox, 'value': item})
-                    grad.addWidget(checkbox, int_row, int_col)
-                    int_col = int_col + 1 if int_col < str_len - 1 else 0
-                    int_row = int_row + 1 if int_col == 0 else int_row
-                    grad.addWidget(checkbox, int_row, int_col)
-                if table in ['body', 'title'] and lst_all:
-                    checkbox = QCheckBox('全选')
-                    checkbox.setStyleSheet("height: 30px")
-                    checkbox.clicked.connect(partial(self.__on_all_checkbox_changed, lst_all))
-                    grad.addWidget(checkbox, 1, 0)
-                grad.addWidget(self.button, int_row + 1, str_len)
-
-            str_key, str_len, str_title = self.dit_v[table]['key'], self.dit_v[table]['len'], self.dit_v[table]['cn']
             dialog = QDialog(self.obj_ui)
             dialog.setWindowTitle(f'选择{str_title}')
-            grad = QGridLayout()
-            grad.setSpacing(3)
-
-            self.button = BaseButton(dialog, str_tip='下一步', func=func, tuple_size=(60, 30),
-                                     str_img=os.path.join(STATIC_PATH, 'images', 'next.png')).btu
-
-            if table in FILTER_LANG:
-                __select_lang()
+            dialog.resize(800, 600)
+            obj_table = QTableWidget()
+            lst_data = self.get_info(DIT_DATABASE[table], int_start=-1).get('lst_ret', [])
+            # 邮箱类型
+            if table == '账号配置':
+                dit_email = {dit_e['index']: dit_e['name_cn'] for dit_e in self.email_list}
             else:
-                __select_option()
-            dialog.setLayout(grad)
+                dit_email = {}
 
-            # 账号,模板 按钮最开始禁用
-            if table in MAST_SELECT_TABLE:
-                self.button.setDisabled(True)
-            self.str_page = table
+            # 渲染表格
+            BaseTab(obj_table, table, self.obj_ui).show_table(lst_data, dit_email)
+
+            # 创建按钮布局
+            button_layout = QHBoxLayout()
+
+            # 创建下一步按钮
+            next_button = BaseButton(dialog, str_tip='下一步', func=func, tuple_size=(60, 30),
+                                     str_img=os.path.join(STATIC_PATH, 'images', 'next.png')).btu
+            button_layout.addWidget(next_button)
+
+            main_layout = QVBoxLayout()
+            main_layout.addWidget(obj_table)
+            main_layout.addLayout(button_layout)
+
+            dialog.setLayout(main_layout)
+
             dialog.show()
+            # def __select_lang():
+            #     dialog.resize(300, 100)
+            #     lst_lang = ['全部']
+            #     if table == 'info_lang':
+            #         lst_lang.extend(self.__get_language('info'))
+            #     elif table == 'body_lang':
+            #         lst_lang.extend(self.__get_language('body'))
+            #     else:
+            #         lst_lang.extend(self.__get_language('title'))
+            #     self.lang = BaseComboBox(dialog, QSS_STYLE, lst_data=lst_lang).box
+            #     grad.addWidget(self.lang, 1, 0)
+            #     grad.addWidget(self.button, 1, 1)
+            #
+            # def __select_option():
+            #     dialog.resize(600, 300)
+            #     lst_user = self.get_info(table, int_start=-1).get('lst_ret', [])
+            #     if table in FILTER_TABLE and self.lang:
+            #         str_lang = self.lang.currentText()
+            #         if str_lang and str_lang != '全部':
+            #             lst_user = [dit_info for dit_info in lst_user if dit_info['language'] == str_lang]
+            #
+            #     lst_all = []
+            #     # 标题和正文 多了个 全选
+            #     int_row = 1 if str_len > 1 else 2
+            #     int_col = 1 if table in ['body', 'title'] and int_row == 1 else 0
+            #     for item in lst_user:
+            #         str_t = str(item[str_key])
+            #         checkbox = QCheckBox(str_t if len(str_t) <= 400 else str_t[:400])
+            #         checkbox.setStyleSheet("height: 30px")
+            #         checkbox.clicked.connect(partial(self.__on_checkbox_changed, item))
+            #         lst_all.append({'obj': checkbox, 'value': item})
+            #         grad.addWidget(checkbox, int_row, int_col)
+            #         int_col = int_col + 1 if int_col < str_len - 1 else 0
+            #         int_row = int_row + 1 if int_col == 0 else int_row
+            #         grad.addWidget(checkbox, int_row, int_col)
+            #     if table in ['body', 'title'] and lst_all:
+            #         checkbox = QCheckBox('全选')
+            #         checkbox.setStyleSheet("height: 30px")
+            #         checkbox.clicked.connect(partial(self.__on_all_checkbox_changed, lst_all))
+            #         grad.addWidget(checkbox, 1, 0)
+            #     grad.addWidget(self.button, int_row + 1, str_len)
+            #
+            # str_key, str_len, str_title = self.dit_v[table]['key'], self.dit_v[table]['len'], self.dit_v[table]['cn']
+            # dialog = QDialog(self.obj_ui)
+            # dialog.setWindowTitle(f'选择{str_title}')
+            # grad = QGridLayout()
+            # grad.setSpacing(3)
+            #
+            # self.button = BaseButton(dialog, str_tip='下一步', func=func, tuple_size=(60, 30),
+            #                          str_img=os.path.join(STATIC_PATH, 'images', 'next.png')).btu
+            #
+            # if table in FILTER_LANG:
+            #     __select_lang()
+            # else:
+            #     __select_option()
+            # dialog.setLayout(grad)
+            #
+            # # 账号,模板 按钮最开始禁用
+            # if table in MAST_SELECT_TABLE:
+            #     self.button.setDisabled(True)
+            # self.str_page = table
+            # dialog.show()
         except Exception as err:
             logger.error(f"{err.__traceback__.tb_lineno}:--:{err}--{table}")
         return dialog
@@ -676,20 +705,9 @@ class EmailTools:
                 # 每次第一个页面先还原一下数据
                 for value in self.dit_v.values():
                     value['lst'] = []
-                self.dialog = self.__show_dialog(DIT_DATABASE['账号配置'], self.select_title_language)
+                self.dialog = self.__show_dialog('账号配置', self.select_title, '选择账号')
             else:
                 self.obj_ui.show_message('提示', '先导入收件人')
-        except Exception as err:
-            logger.error(f"{err.__traceback__.tb_lineno}:--:{err}")
-
-    def select_title_language(self):
-        """选择标题语种
-        :return:
-        """
-        try:
-            if self.dialog:
-                self.dialog.close()
-            self.dialog = self.__show_dialog('title_lang', self.select_title)
         except Exception as err:
             logger.error(f"{err.__traceback__.tb_lineno}:--:{err}")
 
@@ -701,18 +719,7 @@ class EmailTools:
             # 先关闭上一个的
             if self.dialog:
                 self.dialog.close()
-            self.dialog = self.__show_dialog(DIT_DATABASE['邮件标题'], self.select_template_language)
-        except Exception as err:
-            logger.error(f"{err.__traceback__.tb_lineno}:--:{err}")
-
-    def select_template_language(self):
-        """选择模板语种
-        :return:
-        """
-        try:
-            if self.dialog:
-                self.dialog.close()
-            self.dialog = self.__show_dialog('body_lang', self.select_templates)
+            self.dialog = self.__show_dialog('邮件标题', self.select_templates, '选择邮件标题')
         except Exception as err:
             logger.error(f"{err.__traceback__.tb_lineno}:--:{err}")
 
@@ -722,18 +729,7 @@ class EmailTools:
             # 先关闭上一个的
             if self.dialog:
                 self.dialog.close()
-            self.dialog = self.__show_dialog(DIT_DATABASE['邮件正文'], self.select_info_language)
-        except Exception as err:
-            logger.error(f"{err.__traceback__.tb_lineno}:--:{err}")
-
-    def select_info_language(self):
-        """选择附件语种
-        :return:
-        """
-        try:
-            if self.dialog:
-                self.dialog.close()
-            self.dialog = self.__show_dialog('info_lang', self.select_file)
+            self.dialog = self.__show_dialog('邮件正文', self.select_file, '选择邮件正文')
         except Exception as err:
             logger.error(f"{err.__traceback__.tb_lineno}:--:{err}")
 
@@ -743,7 +739,7 @@ class EmailTools:
             # 先关闭上一个的
             if self.dialog:
                 self.dialog.close()
-            self.dialog = self.__show_dialog(DIT_DATABASE['邮件附件'], self.select_end)
+            self.dialog = self.__show_dialog('邮件附件', self.select_end, '选择邮件附件')
         except Exception as err:
             logger.error(f"{err.__traceback__.tb_lineno}:--:{err}")
 
@@ -753,7 +749,7 @@ class EmailTools:
             # 先关闭上一个的
             if self.dialog:
                 self.dialog.close()
-            self.dialog = self.__show_dialog(DIT_DATABASE['邮件结尾'], self.send_email)
+            self.dialog = self.__show_dialog('邮件结尾', self.send_email, '选择邮件结尾')
         except Exception as err:
             logger.error(f"{err.__traceback__.tb_lineno}:--:{err}")
 
@@ -766,7 +762,7 @@ class EmailTools:
             lst_body = self.dit_v.get('body', {}).get('lst', [])
             lst_title = self.dit_v.get('title', {}).get('lst', [])
             # 起码保证 客户, 账号, 模板有
-            if any([self.to_list, lst_user, lst_body, lst_title]):
+            if all([self.to_list, lst_user, lst_body, lst_title]):
                 # 获取邮件标题和内容组合数
                 lst_text = list(
                     product([dit_text['str_title'] for dit_text in lst_title], [dit_text['str_body'] for dit_text in lst_body]))

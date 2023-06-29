@@ -14,16 +14,14 @@ from constant import DIT_LIST
 
 class BaseTab:
 
-    def __init__(self, table: QTableWidget, table_name: str, parent, page_name: int = -1):
+    def __init__(self, table: QTableWidget, table_name: str, parent):
         """
         :param table: 表格对象
         :param table_name: 表格对应的左侧菜单
         :param parent: 表格 的父对象
-        :param page_name: 表格显示行数 -1 显示全部数据
         """
         self.table = table
         self.table_name = table_name
-        self.page_name = page_name
         self.select_table = set()  # 表头单选框
         self.parent = parent
 
@@ -43,10 +41,8 @@ class BaseTab:
 
             # 渲染表格数据
             self.table.setColumnCount(int_len)
-            if self.page_name == -1:
-                self.table.setRowCount(len(lst_data))
-            else:
-                self.table.setRowCount(len(lst_data) if len(lst_data) <= self.page_name else self.page_name)
+
+            self.table.setRowCount(len(lst_data))
 
             # 表格样式
             self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)  # 铺满

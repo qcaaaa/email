@@ -300,8 +300,7 @@ class EmailUi(QMainWindow, BaseClass):
     def show_table(self, lst_data: list, str_table: str, curr_pag: int = 1, count_pag: int = 1):
         """表格填充数据"""
         try:
-            page_name = str_2_int(self.page_num.currentText())
-            obj_table = BaseTab(self.table, str_table, page_name=page_name, parent=self)
+            obj_table = BaseTab(self.table, str_table, parent=self)
             # 邮箱类型
             if str_table == '账号配置':
                 dit_email = {dit_e['index']: dit_e['name_cn'] for dit_e in self.email_tool.email_list}

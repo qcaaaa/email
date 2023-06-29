@@ -22,17 +22,15 @@ from tools.aly_s3 import AlyS3
 from sql.sql_db import MySql
 from loguru import logger
 from random import choice
-from functools import partial
 from itertools import product
 from email.header import Header
 from email.utils import formatdate
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from utils.tools import sub_html, word_2_html, load_file, str_2_int
-from constant import DIT_DATABASE, FILTER_TABLE, FILTER_LANG, QSS_STYLE, STATIC_PATH, MAST_SELECT_TABLE, \
-    DEAR_FONT
-from PyQt5.QtWidgets import QDialog, QFormLayout, QDialogButtonBox, QTextEdit, QFileDialog, QCheckBox, QGridLayout, \
-    QRadioButton, QTableWidget, QVBoxLayout, QHBoxLayout, QPushButton
+from constant import DIT_DATABASE, QSS_STYLE, STATIC_PATH, MAST_SELECT_TABLE, DEAR_FONT
+from PyQt5.QtWidgets import QDialog, QFormLayout, QDialogButtonBox, QTextEdit, QFileDialog, QGridLayout, \
+    QRadioButton, QTableWidget, QVBoxLayout, QHBoxLayout
 from ui.base_ui import BaseButton, BaseLabel, BaseLineEdit, BaseBar, BaseComboBox
 from ui.base_table import BaseTab
 
@@ -91,9 +89,9 @@ class EmailTools:
         return int_ret
 
     @staticmethod
-    def __get_language(str_type: str):
+    def __get_language():
         with MySql() as obj_sql:
-            lst_info = obj_sql.get_language(str_type)
+            lst_info = [dit_l['language'] for dit_l in obj_sql.select_sql('get_language', -1, -1).get('lst_ret', []) if 'language' in dit_l]
         return lst_info
 
     def __add_user(self):
@@ -120,8 +118,8 @@ class EmailTools:
 
         lang_label = BaseLabel(dialog, str_text='邮箱语种').label
         grid.addWidget(lang_label, 4, 0)
-        lang_input = BaseLineEdit(dialog, file_style=QSS_STYLE).lineedit
-        grid.addWidget(lang_input, 4, 1, 1, 2)
+        lang_box = BaseComboBox(dialog, QSS_STYLE, False, lst_data=self.__get_language()).box
+        grid.addWidget(lang_box, 4, 1, 1, 2)
 
         button = QDialogButtonBox(QDialogButtonBox.Ok)
         button.clicked.connect(dialog.accept)
@@ -131,7 +129,7 @@ class EmailTools:
         dialog.show()
         if dialog.exec() == QDialog.Accepted:
             lst_e = [dit_e for dit_e in self.email_list if dit_e['name_cn'] == serve_box.currentText().strip()]
-            str_1, str_2, str_3 = user_input.text().strip(), pwd_input.text().strip(), lang_input.text().strip()
+            str_1, str_2, str_3 = user_input.text().strip(), pwd_input.text().strip(), lang_box.currentText().strip()
             if all([str_1, str_2, lst_e, str_3]):
                 return self.add_info(DIT_DATABASE[self.obj_ui.page], [str_1, str_2, int(lst_e[0]['index']), str_3])
             return -1
@@ -254,7 +252,7 @@ class EmailTools:
             box_label = BaseLabel(dialog, str_text='模板语种').label
             grid.addWidget(box_label, 8, 0)
 
-            str_box = BaseComboBox(dialog, QSS_STYLE, False, self.__get_language('body')).box
+            str_box = BaseComboBox(dialog, QSS_STYLE, False, self.__get_language()).box
             grid.addWidget(str_box, 8, 1)
 
             button = QDialogButtonBox(QDialogButtonBox.Ok)
@@ -326,7 +324,7 @@ class EmailTools:
             box_label = BaseLabel(dialog, str_text='附件语种').label
             grid.addWidget(box_label, 3, 0)
 
-            str_box = BaseComboBox(dialog, QSS_STYLE, False, self.__get_language('info')).box
+            str_box = BaseComboBox(dialog, QSS_STYLE, False, self.__get_language()).box
             grid.addWidget(str_box, 3, 1)
 
             button = QDialogButtonBox(QDialogButtonBox.Ok)
@@ -518,6 +516,11 @@ class EmailTools:
 
             self.obj_table.setObjectName(DIT_DATABASE[table])
             lst_data = self.get_info(table_db, int_start=-1).get('lst_ret', [])
+            if table != '账号配置':
+                with MySql() as sql:
+                    lst_lang = sql.get_language('user', self.dit_v['user'])
+                if table != '邮件结尾':
+                    lst_data = [dit_v for dit_v in lst_data if 'language' in dit_v and dit_v['language'] in lst_lang]
             # 邮箱类型
             if table == '账号配置':
                 dit_email = {dit_e['index']: dit_e['name_cn'] for dit_e in self.email_list}
@@ -558,6 +561,7 @@ class EmailTools:
                 """导入客户"""
                 try:
                     text_user.clear()
+                    self.to_list.clear()
                     file_name, _ = QFileDialog.getOpenFileName(self.obj_ui, '选取文件', os.getcwd(), 'Text File(*.txt)')
                     if os.path.isfile(file_name):
                         with open(file_name, 'r', encoding='utf-8') as f:
@@ -705,9 +709,15 @@ class EmailTools:
             # 先关闭上一个的
             if self.dialog:
                 self.dialog.close()
-            lst_user = self.dit_v.get('user', {}).get('lst', [])
-            lst_body = self.dit_v.get('body', {}).get('lst', [])
-            lst_title = self.dit_v.get('title', {}).get('lst', [])
+            lst_user = self.dit_v.get('user', {}).get('lst', [])  # ID
+            lst_body = self.dit_v.get('body', {}).get('lst', [])  # ID
+            lst_title = self.dit_v.get('title', {}).get('lst', [])  # ID
+
+            with MySql() as sql:
+                lst_user = sql.select_sql('user')
+                lst_body = sql.select_sql('body')
+                lst_title = sql.select_sql('')
+
             # 起码保证 客户, 账号, 模板有
             if all([self.to_list, lst_user, lst_body, lst_title]):
                 # 获取邮件标题和内容组合数

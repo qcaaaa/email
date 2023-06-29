@@ -341,14 +341,15 @@ class EmailUi(QMainWindow, BaseClass):
         except Exception as e:
             logger.debug(f"{e.__traceback__.tb_lineno}:--:{e}")
         finally:
-            if is_clear:
-                self.select_table.clear()
-            else:
-                self.select_table = {str_2_int(obj_radio.objectName()) for obj_radio in lst_radio}
-            if self.select_table:
-                self.del_button.setEnabled(True)
-            else:
-                self.del_button.setDisabled(True)
+            if logical_index == 0:
+                if is_clear:
+                    self.select_table.clear()
+                else:
+                    self.select_table = {str_2_int(obj_radio.objectName()) for obj_radio in lst_radio}
+                if self.select_table:
+                    self.del_button.setEnabled(True)
+                else:
+                    self.del_button.setDisabled(True)
         return
 
     def on_checkbox_changed(self, state):

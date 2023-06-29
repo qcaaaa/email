@@ -165,7 +165,7 @@ class OtaUpgrade:
                 si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
                 # 执行安装程序
                 subprocess.call(['cmd.exe', '/C', f'{os.path.join(BASE_PATH, "upgrade.exe")}', EXE_NAME, str_file,
-                                 os.path.join(DB_PATH, 'data.db'), os.path.join(CONFIG_PATH, 'config.json')], startupinfo=si)
+                                 os.path.join(CONFIG_PATH, 'config.json')], startupinfo=si)
         except Exception as e:
             logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
         finally:

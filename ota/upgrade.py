@@ -35,7 +35,7 @@ def copy_file(source_file: str, dest_file: str, str_type: str):
         pass
 
 
-def install(name: str, file_path: str, str_db: str, str_conf: str):
+def install(name: str, file_path: str, str_conf: str):
     """安装软件"""
     close_program(name)
     # 安装程序路径
@@ -45,8 +45,6 @@ def install(name: str, file_path: str, str_db: str, str_conf: str):
         si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
 
         # 复制文件
-        _, tmp_db = tempfile.mkstemp(suffix='.db')
-        copy_file(str_db, tmp_db, str_type='copy')
         _, tmp_conf = tempfile.mkstemp(suffix='json')
         copy_file(str_conf, tmp_conf, str_type='copy')
 
@@ -54,11 +52,10 @@ def install(name: str, file_path: str, str_db: str, str_conf: str):
         subprocess.call(['cmd.exe', '/C', file_path], startupinfo=si)
 
         # 移动旧数据
-        copy_file(tmp_db, str_db, str_type='mv')
         copy_file(tmp_conf, str_conf, str_type='mv')
 
         # 删除安装包, 删除升级后生成的db
-        for str_f in [file_path, tmp_db, tmp_conf]:
+        for str_f in [file_path, tmp_conf]:
             try:
                 if os.path.isfile(str_f):
                     os.remove(str_f)
@@ -71,7 +68,7 @@ def install(name: str, file_path: str, str_db: str, str_conf: str):
 
 if __name__ == '__main__':
     lst_args = sys.argv
-    if len(lst_args) >= 5:
-        install(lst_args[1], lst_args[2], lst_args[3], lst_args[4])
+    if len(lst_args) >= 4:
+        install(lst_args[1], lst_args[2], lst_args[4])
     else:
         win32api.MessageBox(0, '升级失败', '错误', win32con.MB_ICONWARNING)

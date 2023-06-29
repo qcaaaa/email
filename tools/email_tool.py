@@ -101,25 +101,36 @@ class EmailTools:
 
     def __add_user(self):
         dialog = QDialog(self.obj_ui)  # 自定义一个dialog
-        form_layout = QFormLayout(dialog)  # 配置layout
         dialog.setWindowTitle('增加邮箱账号')
         dialog.resize(300, 100)
-        user_input = QLineEdit(self.obj_ui)
-        user_input.setStyleSheet("height: 20px")
-        form_layout.addRow('邮箱账号:', user_input)
-        pwd_input = QLineEdit(self.obj_ui)
-        pwd_input.setStyleSheet("height: 20px")
-        form_layout.addRow('邮箱密码:', pwd_input)
-        serve_box = QComboBox(self.obj_ui)
-        serve_box.addItems([dit_c['name_cn'] for dit_c in self.email_list])
-        serve_box.setStyleSheet("height: 20px")
-        form_layout.addRow('邮箱服务器:', serve_box)
-        lang_input = QLineEdit(self.obj_ui)
-        lang_input.setStyleSheet("height: 20px")
-        form_layout.addRow('邮箱语种:', lang_input)
+        grid = QGridLayout()
+        grid.setSpacing(10)
+
+        user_label = BaseLabel(dialog, str_text='邮箱账号').label
+        grid.addWidget(user_label, 1, 0)
+        user_input = BaseLineEdit(dialog, file_style=QSS_STYLE).lineedit
+        grid.addWidget(user_input, 1, 1, 1, 2)
+
+        pwd_label = BaseLabel(dialog, str_text='邮箱密码').label
+        grid.addWidget(pwd_label, 2, 0)
+        pwd_input = BaseLineEdit(dialog, file_style=QSS_STYLE).lineedit
+        grid.addWidget(pwd_input, 2, 1, 1, 2)
+
+        serve_label = BaseLabel(dialog, str_text='邮箱服务器').label
+        grid.addWidget(serve_label, 3, 0)
+        serve_box = BaseComboBox(dialog, file_style=QSS_STYLE, lst_data=[dit_c['name_cn'] for dit_c in self.email_list]).box
+        grid.addWidget(serve_box, 3, 1, 1, 2)
+
+        lang_label = BaseLabel(dialog, str_text='邮箱语种').label
+        grid.addWidget(lang_label, 4, 0)
+        lang_input = BaseLineEdit(dialog, file_style=QSS_STYLE).lineedit
+        grid.addWidget(lang_input, 4, 1, 1, 2)
+
         button = QDialogButtonBox(QDialogButtonBox.Ok)
-        form_layout.addRow(button)
         button.clicked.connect(dialog.accept)
+        grid.addWidget(button, 5, 3)
+
+        dialog.setLayout(grid)
         dialog.show()
         if dialog.exec() == QDialog.Accepted:
             lst_e = [dit_e for dit_e in self.email_list if dit_e['name_cn'] == serve_box.currentText().strip()]

@@ -1,6 +1,7 @@
-from ui.base_ui import BaseLabel, BaseLineEdit, BaseButton
+from ui.base_ui import BaseLabel, BaseLineEdit
+from PyQt5 import QtGui
 from PyQt5.QtWidgets import QDialog, QGridLayout, QMessageBox, QDialogButtonBox
-from utils.tools import load_file, dump_file
+from utils.tools import load_file, dump_file, str_2_int
 from constant import QSS_STYLE
 from loguru import logger
 
@@ -65,22 +66,29 @@ class BaseSetting:
             db_ip_line.textChanged.connect(__body_change)
             grid.addWidget(db_ip_line, 6, 1, 1, 3)
 
+            db_port_label = BaseLabel(dialog, str_text='数据库端口').label
+            grid.addWidget(db_port_label, 7, 0)
+            db_port_line = BaseLineEdit(dialog, str_default=str(dit_conf.get('port', '3306')), file_style=QSS_STYLE).lineedit
+            db_port_line.textChanged.connect(__body_change)
+            db_port_line.setValidator(QtGui.QIntValidator())
+            grid.addWidget(db_port_line, 7, 1, 1, 3)
+
             db_user_label = BaseLabel(dialog, str_text='数据库用户').label
-            grid.addWidget(db_user_label, 7, 0)
+            grid.addWidget(db_user_label, 8, 0)
             db_user_line = BaseLineEdit(dialog, str_default=dit_conf.get('user', ''), file_style=QSS_STYLE).lineedit
             db_user_line.textChanged.connect(__body_change)
-            grid.addWidget(db_user_line, 7, 1, 1, 3)
+            grid.addWidget(db_user_line, 8, 1, 1, 3)
 
             db_pwd_label = BaseLabel(dialog, str_text='数据库密码').label
-            grid.addWidget(db_pwd_label, 8, 0)
+            grid.addWidget(db_pwd_label, 9, 0)
             db_pwd_line = BaseLineEdit(dialog, str_default=dit_conf.get('pwd', ''), file_style=QSS_STYLE).lineedit
             db_pwd_line.textChanged.connect(__body_change)
-            grid.addWidget(db_pwd_line, 8, 1, 1, 3)
+            grid.addWidget(db_pwd_line, 9, 1, 1, 3)
 
             button = QDialogButtonBox(QDialogButtonBox.Ok)
             button.clicked.connect(dialog.accept)
             button.setDisabled(True)
-            grid.addWidget(button, 10, 3)
+            grid.addWidget(button, 11, 3)
 
             dialog.setLayout(grid)
 
@@ -90,15 +98,16 @@ class BaseSetting:
                 str_bucket = s3_bucket_line.text().strip()
                 str_url = s3_url_line.text().strip()
                 str_ip = db_ip_line.text().strip()
+                str_port = str_2_int(db_port_line.text().strip(), 3306)
                 str_db = db_name_line.text().strip()
                 str_user = db_user_line.text().strip()
                 str_pwd = db_pwd_line.text().strip()
 
-                if all([str_id, str_key, str_bucket, str_url, str_ip, str_db, str_user, str_pwd]):
+                if all([str_id, str_key, str_bucket, str_url, str_ip, str_db, str_user, str_pwd, str_port]):
                     dit_conf.update({
                         'AccessKey_ID': str_id, 'AccessKey_Secret': str_key,
                         'bucket': str_bucket, 'url': str_url, 'ip': str_ip, 'database': str_db,
-                        'pwd': str_pwd, 'user': str_user
+                        'pwd': str_pwd, 'user': str_user, 'port': str_port
                     })
                     if dump_file(dit_conf, 'config.json') == 1:
                         QMessageBox.warning(dialog, '成功', '配置更新成功！', QMessageBox.Ok)

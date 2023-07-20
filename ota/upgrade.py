@@ -69,6 +69,6 @@ def install(name: str, file_path: str, str_conf: str):
 if __name__ == '__main__':
     lst_args = sys.argv
     if len(lst_args) >= 4:
-        install(lst_args[1], lst_args[2], lst_args[4])
+        install(lst_args[1], lst_args[2], lst_args[3])
     else:
         win32api.MessageBox(0, '升级失败', '错误', win32con.MB_ICONWARNING)

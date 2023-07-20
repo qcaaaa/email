@@ -45,7 +45,7 @@ def install(name: str, file_path: str, str_conf: str):
         si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
 
         # 复制文件
-        _, tmp_conf = tempfile.mkstemp(suffix='json')
+        _, tmp_conf = tempfile.mkstemp(suffix='.json')
         copy_file(str_conf, tmp_conf, str_type='copy')
 
         # 执行安装程序

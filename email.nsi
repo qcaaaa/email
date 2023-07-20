@@ -2,7 +2,7 @@
 
 ; HM NIS Edit Wizard helper defines
 !define PRODUCT_NAME "Email"
-!define PRODUCT_VERSION "v1.0.0.3"
+!define PRODUCT_VERSION "1.0.0.4"
 !define PRODUCT_PUBLISHER "Qc"
 !define PRODUCT_DIR_REGKEY "Software\Microsoft\Windows\CurrentVersion\App Paths\Email.exe"
 !define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
@@ -36,7 +36,7 @@
 
 ; Language files
 !insertmacro MUI_LANGUAGE "English"
-!insertmacro MUI_LANGUAGE "TradChinese"
+!insertmacro MUI_LANGUAGE "SimpChinese"
 
 ; MUI end ------
 
@@ -53,7 +53,6 @@ FunctionEnd
 
 Section "MainSection" SEC01
   SetOutPath "$INSTDIR\aliyunsdkcore\data"
-  SetOverwrite try
   File "dist\Email\aliyunsdkcore\data\endpoints.json"
   File "dist\Email\aliyunsdkcore\data\retry_config.json"
   File "dist\Email\aliyunsdkcore\data\timeout_config.json"
@@ -1283,6 +1282,7 @@ Section "MainSection" SEC01
   File "dist\Email\_tkinter.pyd"
   File "dist\Email\_uuid.pyd"
   File "dist\Email\_win32sysloader.pyd"
+  SetOverwrite try
   File "dist\upgrade\base_library.zip"
   File "dist\upgrade\libcrypto-1_1.dll"
   File "dist\upgrade\libffi-8.dll"

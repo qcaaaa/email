@@ -33,6 +33,7 @@ from PyQt5.QtWidgets import QDialog, QFormLayout, QDialogButtonBox, QTextEdit, Q
     QRadioButton, QTableWidget, QVBoxLayout, QHBoxLayout
 from ui.base_ui import BaseButton, BaseLabel, BaseLineEdit, BaseBar, BaseComboBox
 from ui.base_table import BaseTab
+from ui.base_combobox import BaseComboBox as ComboBox
 
 
 class EmailTools:
@@ -123,7 +124,8 @@ class EmailTools:
 
         lang_label = BaseLabel(dialog, str_text='邮箱语种').label
         grid.addWidget(lang_label, 4, 0)
-        lang_box = BaseComboBox(dialog, QSS_STYLE, False, lst_data=self.__get_language()).box
+
+        lang_box = ComboBox(dialog, lst_data=self.__get_language(), file_style=QSS_STYLE).box
         grid.addWidget(lang_box, 4, 1, 1, 2)
 
         button = QDialogButtonBox(QDialogButtonBox.Ok)

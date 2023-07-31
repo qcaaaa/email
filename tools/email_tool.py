@@ -539,9 +539,9 @@ class EmailTools:
             lst_data = self.get_info(table_db, int_start=-1).get('lst_ret', [])
             if table != '账号配置':
                 with MySql() as sql:
-                    lst_lang = sql.get_language('user', self.dit_v['user'])
+                    set_lang = sql.get_language('user', self.dit_v['user'])
                 if table != '邮件结尾':
-                    lst_data = [dit_v for dit_v in lst_data if 'language' in dit_v and dit_v['language'] in lst_lang]
+                    lst_data = [dit_v for dit_v in lst_data if 'language' in dit_v and set(dit_v['language'].split(',')) & set_lang]
             # 邮箱类型
             if table == '账号配置':
                 dit_email = {dit_e['index']: dit_e['name_cn'] for dit_e in self.email_list}
@@ -764,15 +764,30 @@ class EmailTools:
                     lst_info = []
 
                 # 按语种分组
-                dit_user_group = groupby(lst_user, lambda x: x['language'])
-                dit_body_group = {key: list(group) for key, group in groupby(sorted(lst_body, key=lambda x: x['language']), lambda x: x['language'])}
-                dit_title_group = {key: list(group) for key, group in groupby(sorted(lst_title, key=lambda x: x['language']), lambda x: x['language'])}
-                dit_info_group = {key: list(group) for key, group in groupby(sorted(lst_info, key=lambda x: x['language']), lambda x: x['language'])}
+                dit_user_group = {}
+                for dit_user in lst_user:
+                    for key in dit_user.get('language', '').split(','):
+                        dit_user_group.setdefault(key, []).append(dit_user)
+
+                dit_body_group = {}
+                for dit_body in lst_body:
+                    for key in dit_body.get('language', '').split(','):
+                        dit_body_group.setdefault(key, []).append(dit_body)
+
+                dit_title_group = {}
+                for dit_title in lst_title:
+                    for key in dit_title.get('language', '').split(','):
+                        dit_title_group.setdefault(key, []).append(dit_title)
+
+                dit_info_group = {}
+                for dit_info in lst_info:
+                    for key in dit_info.get('language', '').split(','):
+                        dit_info_group.setdefault(key, []).append(dit_info)
 
                 lst_text = []
-                for key, group in dit_user_group:
-                    lst_b = list(dit_body_group.get(key, []))
-                    lst_t = list(dit_title_group.get(key, []))
+                for key, group in dit_user_group.items():
+                    lst_b = dit_body_group.get(key, [])
+                    lst_t = dit_title_group.get(key, [])
                     if not lst_b or not lst_t:
                         str_txt = f'账号: {",".join([dit_u["name"] for dit_u in group])}无产品({key})相关的标题/正文,取消发送'
                         self.obj_ui.show_message('', '', str_txt)
@@ -781,7 +796,7 @@ class EmailTools:
                     else:
                         itr_comb = product([dit_t['str_title'] for dit_t in lst_t], [dit_b['str_body'] for dit_b in lst_b])
                         lst_text.append({
-                            'lst_user': list(group),
+                            'lst_user': group,
                             'lst_comb': list(itr_comb),
                             'lst_info': [dit_info['url'] for dit_info in dit_info_group.get(key, [])],
                             'key': key

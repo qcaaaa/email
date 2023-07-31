@@ -119,13 +119,13 @@ class MySql:
             logger.debug(f"{e.__traceback__.tb_lineno}:--{e}:{str_sql}")
         return int_ret
 
-    def get_language(self, str_table: str, lst_id: list) -> list:
+    def get_language(self, str_table: str, lst_id: list) -> set:
         """
         :param str_table: 表名
         :param lst_id:
         :return:
         """
-        lst_ret = []
+        set_ret = set()
         str_sql = ''
         try:
             if len(lst_id) == 1:
@@ -133,7 +133,7 @@ class MySql:
             else:
                 str_sql = f"select distinct language from {str_table} where id in {tuple(lst_id)}"
             self.__exec_sql('select', str_sql)
-            lst_ret = [dit_info['language'] for dit_info in self.curr.fetchall() if 'language' in dit_info]
+            set_ret = set(sum([dit_info.get('language', '').split(',') for dit_info in self.curr.fetchall()], []))
         except Exception as e:
             logger.debug(f"{e.__traceback__.tb_lineno}:--{e}:{str_sql}")
-        return lst_ret
+        return set_ret

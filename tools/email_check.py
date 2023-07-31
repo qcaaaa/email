@@ -35,7 +35,7 @@ class CheckTool:
         """邮箱检测"""
         from PyQt5.QtWidgets import QFileDialog
 
-        file_name, _ = QFileDialog.getOpenFileName(self.obj_ui, '选取文件', Path.cwd(), 'Text File(*.txt)')
+        file_name, _ = QFileDialog.getOpenFileName(self.obj_ui, '选取文件', Path.cwd().__str__(), 'Text File(*.txt)')
         if Path(file_name).is_file():
             try:
                 with open(file_name, 'r', encoding='utf-8') as f:

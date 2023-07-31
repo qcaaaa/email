@@ -149,7 +149,7 @@ class EmailTools:
             def __import_file():
                 try:
                     text_title.clear()
-                    str_file, _ = QFileDialog.getOpenFileName(self.obj_ui, '选取邮件标题文件', Path.cwd(), 'Text File(*.txt)')
+                    str_file, _ = QFileDialog.getOpenFileName(self.obj_ui, '选取邮件标题文件', Path.cwd().__str__(), 'Text File(*.txt)')
                     if Path(str_file).is_file():
                         with open(str_file, 'r', encoding='utf-8') as f:
                             str_data = f.read()
@@ -217,7 +217,7 @@ class EmailTools:
                     # doc文件名包含中文处理
                     options = QFileDialog.Options()
                     options |= QFileDialog.DontUseNativeDialog
-                    str_file, _ = QFileDialog.getOpenFileName(self.obj_ui, '选取邮件正文文件', Path.cwd(), 'Text File(*.docx)', options=options)
+                    str_file, _ = QFileDialog.getOpenFileName(self.obj_ui, '选取邮件正文文件', Path.cwd().__str__(), 'Text File(*.docx)', options=options)
                     if Path(str_file).is_file():
                         result = word_2_html(str_file)
                         if result:
@@ -289,7 +289,7 @@ class EmailTools:
             def __upload_aly():
                 """上传文件至阿里云"""
                 title = 'Text File(*.pdf);;JPG File(*.jpg);;PNG File(*.png)'
-                str_file, _ = QFileDialog.getOpenFileName(self.obj_ui, '选择本地附件上传', Path.cwd(), title)
+                str_file, _ = QFileDialog.getOpenFileName(self.obj_ui, '选择本地附件上传', Path.cwd().__str__(), title)
                 if Path(str_file).is_file():
                     dit_config = load_file('config.json')
                     obj_s3 = AlyS3(dit_config['AccessKey_ID'], dit_config['AccessKey_Secret'], dit_config['bucket'],
@@ -572,7 +572,7 @@ class EmailTools:
                 try:
                     text_user.clear()
                     self.to_list.clear()
-                    file_name, _ = QFileDialog.getOpenFileName(self.obj_ui, '选取文件', Path.cwd(), 'Text File(*.txt)')
+                    file_name, _ = QFileDialog.getOpenFileName(self.obj_ui, '选取文件', Path.cwd().__str__(), 'Text File(*.txt)')
                     if Path(file_name).is_file():
                         with open(file_name, 'r', encoding='utf-8') as f:
                             for str_line in f.readlines():

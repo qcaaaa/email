@@ -124,8 +124,11 @@ class EmailTools:
 
         lang_label = BaseLabel(dialog, str_text='邮箱语种').label
         grid.addWidget(lang_label, 4, 0)
-
-        lang_box = ComboBox(dialog, lst_data=self.__get_language(), file_style=QSS_STYLE).box
+        lst_data = self.__get_language()
+        if lst_data:
+            lang_box = ComboBox(dialog, lst_data=lst_data, file_style=QSS_STYLE).box
+        else:
+            lang_box = BaseComboBox(dialog, QSS_STYLE, False, lst_data).box
         grid.addWidget(lang_box, 4, 1, 1, 2)
 
         button = QDialogButtonBox(QDialogButtonBox.Ok)
@@ -259,8 +262,12 @@ class EmailTools:
             box_label = BaseLabel(dialog, str_text='模板语种').label
             grid.addWidget(box_label, 8, 0)
 
-            str_box = BaseComboBox(dialog, QSS_STYLE, False, self.__get_language()).box
-            grid.addWidget(str_box, 8, 1)
+            lst_data = self.__get_language()
+            if lst_data:
+                str_box = ComboBox(dialog, lst_data=lst_data, file_style=QSS_STYLE).box
+            else:
+                str_box = BaseComboBox(dialog, QSS_STYLE, False, lst_data).box
+            grid.addWidget(str_box, 8, 1,)
 
             button = QDialogButtonBox(QDialogButtonBox.Ok)
             button.clicked.connect(dialog.accept)
@@ -331,7 +338,11 @@ class EmailTools:
             box_label = BaseLabel(dialog, str_text='附件语种').label
             grid.addWidget(box_label, 3, 0)
 
-            str_box = BaseComboBox(dialog, QSS_STYLE, False, self.__get_language()).box
+            lst_data = self.__get_language()
+            if lst_data:
+                str_box = ComboBox(dialog, lst_data=lst_data, file_style=QSS_STYLE).box
+            else:
+                str_box = BaseComboBox(dialog, QSS_STYLE, False, lst_data).box
             grid.addWidget(str_box, 3, 1)
 
             button = QDialogButtonBox(QDialogButtonBox.Ok)

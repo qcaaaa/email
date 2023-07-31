@@ -20,7 +20,7 @@ class BaseComboBox(QtWidgets.QWidget):
         self.file_style = file_style
         self.is_clear = is_clear
         self.comboBox = QComboBox(self.parent)
-        self.lineEdit = QLineEdit(self.parent)
+        self.lineEdit = QLineEdit()
         self.listWidget = QListWidget(self.parent)
         self.listWidget.setStyleSheet(self.file_style)
         self.listWidget.itemClicked.connect(self.updateLineEdit)
@@ -63,7 +63,7 @@ class BaseComboBox(QtWidgets.QWidget):
                 self.listWidget.item(i).setCheckState(state)
                 if state and i != 0:
                     lst_data.append(self.listWidget.item(i).text())
-            self.lineEdit.setText(", ".join(lst_data))
+            self.lineEdit.setText(",".join(lst_data))
         else:
             curr_text = self.lineEdit.text()
             if state:

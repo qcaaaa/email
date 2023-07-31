@@ -13,4 +13,4 @@
 @Desc :
 """
 
-VERSION = 'v1.0.0.4'
+VERSION = 'v1.0.0.5'

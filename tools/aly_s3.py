@@ -13,8 +13,8 @@
 @Desc :
 """
 # -*- coding: utf-8 -*-
-import os
 import oss2
+from pathlib import Path
 from loguru import logger
 
 
@@ -35,13 +35,13 @@ class AlyS3:
     def push_file(self, str_path: str) -> int:
         int_ret = 0
         try:
-            if os.path.isfile(str_path):
+            if Path(str_path).is_file():
                 bucket = self.__login()
                 # 必须以二进制的方式打开文件。
                 # 填写本地文件的完整路径。如果未指定本地路径，则默认从示例程序所属项目对应本地路径中上传文件。
                 with open(str_path, 'rb') as f:
                     # 填写Object完整路径。Object完整路径中不能包含Bucket名称。
-                    bucket.put_object(os.path.split(str_path)[-1], f)
+                    bucket.put_object(Path(str_path).name, f)
                 int_ret = 1
         except Exception as e:
             logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
@@ -52,7 +52,7 @@ class AlyS3:
         lst_ret = []
         try:
             for obj in oss2.ObjectIteratorV2(self.__login()):
-                if not lst_filter or os.path.splitext(obj.key)[-1] in lst_filter:
+                if not lst_filter or Path(obj.key).name in lst_filter:
                     lst_ret.append({'name': obj.key, 'url': f'https://{self.bucket}.{self.url.split("//", 1)[-1]}/{obj.key}'})
         except Exception as e:
             logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
@@ -64,8 +64,8 @@ class AlyS3:
         int_ret = 0
         try:
             bucket = self.__login()
-            bucket.get_object_to_file(str_path, os.path.join(str_file, str_path))
-            if os.path.isfile(str_file):
+            bucket.get_object_to_file(str_path, Path.joinpath(str_file, str_path).__str__())
+            if Path(str_file).is_file():
                 int_ret = 1
         except Exception as e:
             logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")

@@ -12,24 +12,24 @@
 
 @Desc :
 """
-import os
+from pathlib import Path
 from utils.tools import get_qss_style
 
-BASE_PATH = os.path.abspath(os.path.dirname(__file__))
+BASE_PATH = Path(__file__).absolute().parent
 
-LOG_PATH = os.path.join(BASE_PATH, 'log')
+LOG_PATH = Path.joinpath(BASE_PATH, 'log')
 
-EMAIL_CHECK_PATH = os.path.join(BASE_PATH, 'email_check')
+EMAIL_CHECK_PATH = Path.joinpath(BASE_PATH, 'email_check')
 
-EMAIL_SEARCH_PATH = os.path.join(BASE_PATH, 'email_google')
+EMAIL_SEARCH_PATH = Path.joinpath(BASE_PATH, 'email_google')
 
-STATIC_PATH = os.path.join(BASE_PATH, 'static')
+STATIC_PATH = Path.joinpath(BASE_PATH, 'static')
 
-CONFIG_PATH = os.path.join(BASE_PATH, 'config')
+CONFIG_PATH = Path.joinpath(BASE_PATH, 'config')
 
-DB_PATH = os.path.join(BASE_PATH, 'sql')
+DB_PATH = Path.joinpath(BASE_PATH, 'sql')
 
-DRIVER_PATH = os.path.join(BASE_PATH, 'driver', 'chromedriver')
+DRIVER_PATH = Path.joinpath(BASE_PATH, 'driver', 'chromedriver')
 
 # 采集超时时间
 INT_TIMEOUT = 60

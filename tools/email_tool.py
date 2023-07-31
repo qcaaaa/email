@@ -13,11 +13,11 @@
 @Desc :
 """
 
-import os
 import time
 import smtplib
 import threading
 from PyQt5 import QtGui
+from pathlib import Path
 from tools.aly_s3 import AlyS3
 from sql.sql_db import MySql
 from loguru import logger
@@ -149,8 +149,8 @@ class EmailTools:
             def __import_file():
                 try:
                     text_title.clear()
-                    str_file, _ = QFileDialog.getOpenFileName(self.obj_ui, '选取邮件标题文件', os.getcwd(), 'Text File(*.txt)')
-                    if os.path.isfile(str_file):
+                    str_file, _ = QFileDialog.getOpenFileName(self.obj_ui, '选取邮件标题文件', Path.cwd(), 'Text File(*.txt)')
+                    if Path(str_file).is_file():
                         with open(str_file, 'r', encoding='utf-8') as f:
                             str_data = f.read()
                             if str_data:
@@ -217,8 +217,8 @@ class EmailTools:
                     # doc文件名包含中文处理
                     options = QFileDialog.Options()
                     options |= QFileDialog.DontUseNativeDialog
-                    str_file, _ = QFileDialog.getOpenFileName(self.obj_ui, '选取邮件正文文件', os.getcwd(), 'Text File(*.docx)', options=options)
-                    if os.path.isfile(str_file):
+                    str_file, _ = QFileDialog.getOpenFileName(self.obj_ui, '选取邮件正文文件', Path.cwd(), 'Text File(*.docx)', options=options)
+                    if Path(str_file).is_file():
                         result = word_2_html(str_file)
                         if result:
                             body_title.setHtml(result)
@@ -289,8 +289,8 @@ class EmailTools:
             def __upload_aly():
                 """上传文件至阿里云"""
                 title = 'Text File(*.pdf);;JPG File(*.jpg);;PNG File(*.png)'
-                str_file, _ = QFileDialog.getOpenFileName(self.obj_ui, '选择本地附件上传', os.getcwd(), title)
-                if os.path.isfile(str_file):
+                str_file, _ = QFileDialog.getOpenFileName(self.obj_ui, '选择本地附件上传', Path.cwd(), title)
+                if Path(str_file).is_file():
                     dit_config = load_file('config.json')
                     obj_s3 = AlyS3(dit_config['AccessKey_ID'], dit_config['AccessKey_Secret'], dit_config['bucket'],
                                    dit_config['url'])
@@ -298,7 +298,7 @@ class EmailTools:
                     if obj_s3:
                         try:
                             if obj_s3.push_file(str_file) == 1:
-                                str_url = f"https://{dit_config['bucket']}.{dit_config['url'][8:]}/{os.path.split(str_file)[-1]}"
+                                str_url = f"https://{dit_config['bucket']}.{dit_config['url'][8:]}/{Path(str_file).name}"
                                 self.obj_ui.show_message('', '', f'附件{str_file} 上传成功, 保存地址: {str_url}')
                                 if file_path and str_url:
                                     file_path.setText(str_url)
@@ -545,7 +545,7 @@ class EmailTools:
 
             # 创建下一步按钮
             self.button = BaseButton(dialog, str_tip='下一步', func=func, tuple_size=(60, 30), file_style=QSS_STYLE,
-                                     str_img=os.path.join(STATIC_PATH, 'images', 'next.png')).btu
+                                     str_img=Path.joinpath(STATIC_PATH, 'images', 'next.png').__str__()).btu
             button_layout.addWidget(self.button)
 
             main_layout = QVBoxLayout()
@@ -572,8 +572,8 @@ class EmailTools:
                 try:
                     text_user.clear()
                     self.to_list.clear()
-                    file_name, _ = QFileDialog.getOpenFileName(self.obj_ui, '选取文件', os.getcwd(), 'Text File(*.txt)')
-                    if os.path.isfile(file_name):
+                    file_name, _ = QFileDialog.getOpenFileName(self.obj_ui, '选取文件', Path.cwd(), 'Text File(*.txt)')
+                    if Path(file_name).is_file():
                         with open(file_name, 'r', encoding='utf-8') as f:
                             for str_line in f.readlines():
                                 lst_line = [i for i in str_line.strip().rsplit(maxsplit=1) if i.strip()]
@@ -806,7 +806,7 @@ class EmailTools:
         str_html = ''
         if self.send_model:
             try:
-                with open(os.path.join(STATIC_PATH, 'templates', 'templates.html'), 'r', encoding='utf-8') as f:
+                with open(Path.joinpath(STATIC_PATH, 'templates', 'templates.html'), 'r', encoding='utf-8') as f:
                     str_html = f.read()
             except Exception as er:
                 logger.error(f"{er.__traceback__.tb_lineno}:--:{er}")

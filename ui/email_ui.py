@@ -13,8 +13,8 @@
 @Desc :
 """
 
-import os
 import threading
+from pathlib import Path
 from loguru import logger
 from datetime import datetime
 from PyQt5.QtWidgets import QTextEdit, QToolBar, QWidget
@@ -56,7 +56,7 @@ class BaseClass:
 class EmailUi(QMainWindow, BaseClass):
     def __init__(self):
         super(EmailUi, self).__init__()
-        self.setWindowIcon(QIcon(os.path.join(STATIC_PATH, 'images', 'logo.png')))
+        self.setWindowIcon(QIcon(Path.joinpath(STATIC_PATH, 'images', 'logo.png').__str__()))
         self.setObjectName('Email-Tool')
         self.resize(1400, 1000)
         self.setMaximumSize(1400, 1000)
@@ -80,7 +80,7 @@ class EmailUi(QMainWindow, BaseClass):
         # ################# 状态栏 结束.......########################################
 
         # ################# 增加控件 开始.......########################################
-        self.add_button = BaseAction(self, os.path.join(STATIC_PATH, 'images', 'add.png'), '增加',
+        self.add_button = BaseAction(self, Path.joinpath(STATIC_PATH, 'images', 'add.png').__str__(), '增加',
                                      func=self.email_tool.add_table).action
         toolbar.addAction(self.add_button)
         # ################# 增加控件 结束.......########################################
@@ -88,7 +88,7 @@ class EmailUi(QMainWindow, BaseClass):
         toolbar.addSeparator()  # 分隔符
 
         # ################# 删除控件 开始.......########################################
-        self.del_button = BaseAction(self, str_img=os.path.join(STATIC_PATH, 'images', 'del.png'), str_tip='删除',
+        self.del_button = BaseAction(self, Path.joinpath(STATIC_PATH, 'images', 'del.png').__str__(), str_tip='删除',
                                      func=self.del_info, file_style=QSS_STYLE).action
         self.del_button.setDisabled(True)
         toolbar.addAction(self.del_button)
@@ -97,7 +97,7 @@ class EmailUi(QMainWindow, BaseClass):
         toolbar.addSeparator()  # 分隔符
 
         # ################# 发送邮件控件 开始.......########################################
-        self.send_button = BaseAction(self, os.path.join(STATIC_PATH, 'images', 'email.png'), '发送邮件',
+        self.send_button = BaseAction(self, Path.joinpath(STATIC_PATH, 'images', 'email.png').__str__(), '发送邮件',
                                       func=self.email_tool.select_user).action
         toolbar.addAction(self.send_button)
         # ################# 发送邮件控件 结束.......########################################
@@ -105,7 +105,7 @@ class EmailUi(QMainWindow, BaseClass):
         toolbar.addSeparator()  # 分隔符
 
         # ################# 谷歌搜索控件 开始.......########################################
-        self.google_button = BaseAction(self, os.path.join(STATIC_PATH, 'images', 'search.png'), '谷歌搜索',
+        self.google_button = BaseAction(self, Path.joinpath(STATIC_PATH, 'images', 'search.png').__str__(), '谷歌搜索',
                                         func=self.google_tool.google_search).action
         toolbar.addAction(self.google_button)
         # ################# 谷歌搜索控件 结束.......########################################
@@ -113,7 +113,7 @@ class EmailUi(QMainWindow, BaseClass):
         toolbar.addSeparator()  # 分隔符
 
         # ################# 邮箱账号检查控件 开始.......########################################
-        self.check_button = BaseAction(self, os.path.join(STATIC_PATH, 'images', 'check.png'), '邮箱账号检测',
+        self.check_button = BaseAction(self, Path.joinpath(STATIC_PATH, 'images', 'check.png').__str__(), '邮箱账号检测',
                                        func=self.check_tool.check_email).action
         toolbar.addAction(self.check_button)
         # ################# 邮箱账号检查控件 结束.......########################################
@@ -121,7 +121,7 @@ class EmailUi(QMainWindow, BaseClass):
         toolbar.addSeparator()  # 分隔符
 
         # ################# 上传附件控件 开始.......########################################
-        self.upload_button = BaseAction(self, os.path.join(STATIC_PATH, 'images', 'fj.png'), '查看附件',
+        self.upload_button = BaseAction(self, Path.joinpath(STATIC_PATH, 'images', 'fj.png').__str__(), '查看附件',
                                         func=self.email_tool.get_aly).action
         toolbar.addAction(self.upload_button)
         # ################# 上传附件控件 结束.......########################################
@@ -129,7 +129,7 @@ class EmailUi(QMainWindow, BaseClass):
         toolbar.addSeparator()  # 分隔符
 
         # ################# 刷新控件 开始.......########################################
-        self.flush_button = BaseAction(self, os.path.join(STATIC_PATH, 'images', 'flush.png'), '刷新',
+        self.flush_button = BaseAction(self, Path.joinpath(STATIC_PATH, 'images', 'flush.png').__str__(), '刷新',
                                        func=self.flush_table).action
         toolbar.addAction(self.flush_button)
         # ################# 刷新控件 结束.......########################################
@@ -137,13 +137,13 @@ class EmailUi(QMainWindow, BaseClass):
         toolbar.addSeparator()  # 分隔符
 
         # ################# 检查更新控件 开始.......########################################
-        self.ver_btu = BaseAction(self, os.path.join(STATIC_PATH, 'images', 'ver.png'), '检查更新',
+        self.ver_btu = BaseAction(self, Path.joinpath(STATIC_PATH, 'images', 'ver.png').__str__(), '检查更新',
                                   func=self.check_ver).action
         toolbar.addAction(self.ver_btu)
         # ################# 检查更新控件 结束.......########################################
 
         # ################# 设置更新控件 开始.......########################################
-        self.set_btu = BaseAction(self, os.path.join(STATIC_PATH, 'images', 'setting.png'), '设置',
+        self.set_btu = BaseAction(self, Path.joinpath(STATIC_PATH, 'images', 'setting.png').__str__(), '设置',
                                   func=self.setting_tool.load_frame).action
         toolbar.addAction(self.set_btu)
         # ################# 设置更新控件 结束.......########################################
@@ -163,19 +163,19 @@ class EmailUi(QMainWindow, BaseClass):
         self.setCentralWidget(central_widget)
 
         # ################# 分页 开始....########################################
-        self.page_up = BaseButton(central_widget, (525, 720, 80, 30), os.path.join(STATIC_PATH, 'images', 'up.png'),
+        self.page_up = BaseButton(central_widget, (525, 720, 80, 30), Path.joinpath(STATIC_PATH, 'images', 'up.png').__str__(),
                                   '上一页', QSS_STYLE, func=self.page_turning, str_name='上一页').btu
 
         self.page_text = BaseLabel(central_widget, (625, 720, 40, 30), str_text="1/1").label
         self.page_text.setAlignment(Qt.AlignCenter)
 
-        self.page_down = BaseButton(central_widget, (685, 720, 80, 30), os.path.join(STATIC_PATH, 'images', 'next.png'),
+        self.page_down = BaseButton(central_widget, (685, 720, 80, 30), Path.joinpath(STATIC_PATH, 'images', 'next.png').__str__(),
                                     '下一页', QSS_STYLE, func=self.page_turning, str_name='下一页').btu
 
         self.page_text_2 = BaseLineEdit(central_widget, (785, 720, 70, 30), QSS_STYLE).lineedit
         self.page_text_2.textChanged.connect(self.text_changed)
 
-        self.page_skip = BaseButton(central_widget, (875, 720, 80, 30), os.path.join(STATIC_PATH, 'images', 'skip.png'),
+        self.page_skip = BaseButton(central_widget, (875, 720, 80, 30), Path.joinpath(STATIC_PATH, 'images', 'skip.png').__str__(),
                                     '跳转', QSS_STYLE, func=self.page_turning, str_name='跳转').btu
         self.page_skip.setDisabled(True)
 
@@ -194,7 +194,7 @@ class EmailUi(QMainWindow, BaseClass):
         main_layout.addWidget(self.table)
 
         # 下侧 日志框
-        self.log_label = BaseLabel(self, (10, 760, 100, 35), str_img=os.path.join(STATIC_PATH, 'images', 'log.png'),
+        self.log_label = BaseLabel(self, (10, 760, 100, 35), str_img=Path.joinpath(STATIC_PATH, 'images', 'log.png').__str__(),
                                    str_tip='日志输出').label
         self.log_label.setAlignment(Qt.AlignLeft)
 
@@ -231,7 +231,7 @@ class EmailUi(QMainWindow, BaseClass):
             item.setSizeHint(QSize(30, 60))
             item.setTextAlignment(Qt.AlignCenter)  # 居中显示
             # 菜单改了 图片名称也得改
-            item.setIcon(QIcon(os.path.join(STATIC_PATH, 'images', f'{keys}.png')))
+            item.setIcon(QIcon(Path(STATIC_PATH, 'images', f'{keys}.png').__str__()))
         # 首页自动刷新
         self.flush_table(True)
 

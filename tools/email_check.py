@@ -13,11 +13,11 @@
 @Desc :
 """
 
-import os
 import time
 import socket
 import threading
 import dns.resolver
+from pathlib import Path
 from loguru import logger
 from openpyxl import Workbook
 from datetime import datetime
@@ -35,8 +35,8 @@ class CheckTool:
         """邮箱检测"""
         from PyQt5.QtWidgets import QFileDialog
 
-        file_name, _ = QFileDialog.getOpenFileName(self.obj_ui, '选取文件', os.getcwd(), 'Text File(*.txt)')
-        if os.path.isfile(file_name):
+        file_name, _ = QFileDialog.getOpenFileName(self.obj_ui, '选取文件', Path.cwd(), 'Text File(*.txt)')
+        if Path(file_name).is_file():
             try:
                 with open(file_name, 'r', encoding='utf-8') as f:
                     self.lst_email = list(set([i for i in f.read().split('\n') if i.strip()]))
@@ -83,7 +83,7 @@ class CheckTool:
         return str_ret
 
     def __write_excel(self, lst_info: list):
-        str_file = os.path.join(EMAIL_CHECK_PATH, f"check_{datetime.now().strftime('%Y%m%d%H%M%S')}.xlsx")
+        str_file = Path.joinpath(EMAIL_CHECK_PATH, f"check_{datetime.now().strftime('%Y%m%d%H%M%S')}.xlsx").__str__()
         try:
             wb = Workbook()
             # 默认工作簿

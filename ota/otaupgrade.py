@@ -13,10 +13,10 @@
 @Desc :
 """
 
-import os
 import tempfile
 import requests
 import subprocess
+from pathlib import Path
 from loguru import logger
 from PyQt5.QtCore import Qt, QThread, pyqtSignal
 from PyQt5.QtGui import QIcon, QFont
@@ -70,7 +70,7 @@ class OtaUpgrade:
             if self.__url:
                 self.dialog = QDialog()  # 自定义一个dialog
                 self.dialog.setWindowTitle('版本更新')
-                self.dialog.setWindowIcon(QIcon(os.path.join(STATIC_PATH, 'images', 'update.png')))
+                self.dialog.setWindowIcon(QIcon(Path(STATIC_PATH, 'images', 'update.png').__str__()))
                 self.dialog.resize(600, 400)
                 # 垂直布局
                 layout = QVBoxLayout()
@@ -164,8 +164,8 @@ class OtaUpgrade:
                 si = subprocess.STARTUPINFO()
                 si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
                 # 执行安装程序
-                subprocess.call(['cmd.exe', '/C', f'{os.path.join(BASE_PATH, "upgrade.exe")}', EXE_NAME, str_file,
-                                 os.path.join(CONFIG_PATH, 'config.json')], startupinfo=si)
+                subprocess.call(['cmd.exe', '/C', f'{Path(BASE_PATH, "upgrade.exe")}', EXE_NAME, str_file,
+                                 Path.joinpath(CONFIG_PATH, 'config.json').__str__()], startupinfo=si)
         except Exception as e:
             logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
         finally:
@@ -196,6 +196,5 @@ class Worker(QThread):
                     int_length += len(content)
                     self.progress.emit(int(int_length / total_length * 100))
         except Exception as e:
-            if os.path.isfile(self.str_file):
-                os.unlink(self.str_file)
+            Path(self.str_file).unlink(True)
             logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")

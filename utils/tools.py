@@ -13,9 +13,9 @@
 @Desc :
 """
 
-import os
 import base64
 import win32com.client
+from pathlib import Path
 from loguru import logger
 from json import load, dump, dumps, loads
 from gmssl.sm4 import CryptSM4, SM4_DECRYPT, SM4_ENCRYPT
@@ -50,10 +50,7 @@ def word_2_html(str_file: str) -> str:
     except Exception as e:
         logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
     finally:
-        try:
-            os.remove(f"{str_file}.html")
-        except:
-            pass
+        Path(f"{str_file}.html").unlink(True)
         return str_html
 
 
@@ -62,7 +59,7 @@ def load_file(str_file: str = 'email.json'):
     try:
         from constant import CONFIG_PATH
 
-        with open(os.path.join(CONFIG_PATH, str_file), 'r', encoding='utf-8') as f:
+        with open(Path.joinpath(CONFIG_PATH, str_file), 'r', encoding='utf-8') as f:
             dit_info = load(f)  # type: dict
         if str_file == 'config.json' and dit_info:
             dit_info.update({
@@ -88,7 +85,7 @@ def dump_file(dit_conf: dict, str_file: str = 'email.json') -> int:
                 'user': encrypt_str(dit_conf.get('user', '')),
                 'pwd': encrypt_str(dit_conf.get('pwd', '')),
             })
-        with open(os.path.join(CONFIG_PATH, str_file), 'w', encoding='utf-8') as f:
+        with open(Path.joinpath(CONFIG_PATH, str_file), 'w', encoding='utf-8') as f:
             dump(dit_conf, f, indent=4)
         int_ret = 1
     except Exception as err_msg:
@@ -101,7 +98,7 @@ def get_qss_style():
 
     file_style = ''
     try:
-        with open(os.path.join(STATIC_PATH, 'css', 'QSS.qss'), 'r', encoding='utf-8') as f:
+        with open(Path.joinpath(STATIC_PATH, 'css', 'QSS.qss'), 'r', encoding='utf-8') as f:
             file_style = f.read()
     except Exception as err_msg:
         logger.error(f"{err_msg.__traceback__.tb_lineno}:--:{err_msg}")

@@ -13,10 +13,10 @@
 @Desc :
 """
 
-import os
 import time
 import threading
 import pyautogui
+from pathlib import Path
 from loguru import logger
 from datetime import datetime
 from itertools import product
@@ -261,7 +261,7 @@ class GoogleTool:
     def __get_excel(self) -> str:
         str_file = ''
         try:
-            str_file = os.path.join(EMAIL_SEARCH_PATH, f"search_{datetime.now().strftime('%Y%m%d%H%M%S')}.xlsx")
+            str_file = Path.joinpath(EMAIL_SEARCH_PATH, f"search_{datetime.now().strftime('%Y%m%d%H%M%S')}.xlsx").__str__()
             self.wb = Workbook()
             # 默认工作簿
             self.ws = self.wb.active

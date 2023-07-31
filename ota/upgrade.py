@@ -4,7 +4,7 @@
 # @Author  : Qc
 # @File    : upgrade.py
 # @Software: PyCharm
-import os.path
+
 import sys
 import tempfile
 import psutil
@@ -12,6 +12,7 @@ import shutil
 import subprocess
 import win32api
 import win32con
+from pathlib import Path
 
 
 def close_program(name):
@@ -40,7 +41,7 @@ def install(name: str, file_path: str, str_conf: str):
     close_program(name)
     # 安装程序路径
     # 创建启动信息对象
-    if os.path.isfile(file_path):
+    if Path(file_path).is_file():
         si = subprocess.STARTUPINFO()
         si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
 
@@ -56,11 +57,7 @@ def install(name: str, file_path: str, str_conf: str):
 
         # 删除安装包, 删除升级后生成的db
         for str_f in [file_path, tmp_conf]:
-            try:
-                if os.path.isfile(str_f):
-                    os.remove(str_f)
-            except:
-                pass
+            Path(str_f).unlink(True)
 
     else:
         win32api.MessageBox(0, '升级文件丢失', '错误', win32con.MB_ICONWARNING)

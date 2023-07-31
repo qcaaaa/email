@@ -14,11 +14,31 @@
 """
 import sys
 import os
+import traceback
 
 from loguru import logger
+from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtWidgets import QApplication
 
 from ui.email_ui import EmailUi
+
+
+def handleException(exc_type, exc_value, exc_traceback):
+    if issubclass(exc_type, KeyboardInterrupt):
+        return sys.__excepthook__(exc_type, exc_value, exc_traceback)
+    exception = str("".join(traceback.format_exception(exc_type, exc_value, exc_traceback)))
+    dialog = QtWidgets.QDialog()
+    # close对其进行删除操作
+    dialog.setAttribute(QtCore.Qt.WA_DeleteOnClose)
+
+    msg = QtWidgets.QMessageBox(dialog)
+    msg.setIcon(QtWidgets.QMessageBox.Critical)
+    msg.setText(exception)
+    msg.setWindowTitle("系统异常提示")
+    msg.setDetailedText(exception)
+    msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
+
+    msg.exec_()
 
 
 class MyTelegram:
@@ -45,6 +65,9 @@ class MyTelegram:
                 pass
 
         logger.add(log_path, rotation="500MB", encoding="utf-8", enqueue=True, retention="10 days")
+
+        # 自定义异常
+        sys.excepthook = handleException
 
 
 if __name__ == '__main__':

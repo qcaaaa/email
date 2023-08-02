@@ -289,7 +289,7 @@ class EmailUi(QMainWindow, BaseClass):
             str_items = str(item.text())
             if self.page != str_items:
                 self.page = str_items  # 记住当前在哪个页面
-                # 每次切换页面 端开之前的 表头点击事件
+                # 每次切换页面 断开之前的 表头点击事件
                 self.table.horizontalHeader().sectionClicked.disconnect()
                 # 填充表格
                 dit_info = self.email_tool.get_info(DIT_DATABASE[self.page])
@@ -304,9 +304,10 @@ class EmailUi(QMainWindow, BaseClass):
             # 邮箱类型
             if str_table == '账号配置':
                 dit_email = {dit_e['index']: dit_e['name_cn'] for dit_e in self.email_tool.email_list}
-            else:
-                dit_email = {}
-            obj_table.show_table(lst_data, dit_email)
+                for dit_user in lst_data:
+                    dit_user['str_type'] = dit_email.get(dit_user['str_type'], '未知')
+
+            obj_table.show_table(lst_data)
 
             self.table.installEventFilter(self)
             self.table.setMouseTracking(True)

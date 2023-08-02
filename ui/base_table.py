@@ -14,21 +14,24 @@ from constant import DIT_LIST
 
 class BaseTab:
 
-    def __init__(self, table: QTableWidget, table_name: str, parent):
+    def __init__(self, table: QTableWidget, table_name: str, parent, lst_readonly: list = None):
         """
         :param table: 表格对象
         :param table_name: 表格对应的左侧菜单
         :param parent: 表格 的父对象
+        :param lst_readonly: None -- 表格所有列允许修改
+                             [1, 2, 3] -- 表格第 1,2,3列不允许修改
+                             [-1] -- 表格所有列不允许修改
         """
         self.table = table
         self.table_name = table_name
         self.select_table = set()  # 表头单选框
         self.parent = parent
+        self.lst_readonly = lst_readonly
 
-    def show_table(self, lst_data: list, dit_email: dict):
+    def show_table(self, lst_data: list):
         """
         :param lst_data: 数据
-        :param dit_email: 邮箱类型
         :return: 表头单选按钮
         """
         try:
@@ -50,8 +53,10 @@ class BaseTab:
             self.table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeToContents)
             self.table.setHorizontalHeaderLabels(table_header)  # 表头
             self.table.horizontalHeader().sectionClicked.connect(self.parent.on_all_checkbox_changed)  # 表头点击事件
-            self.table.setEditTriggers(QAbstractItemView.NoEditTriggers)  # 禁止修改
             self.table.setAlternatingRowColors(True)  # 交替行颜色
+
+            if self.lst_readonly == [-1]:
+                self.table.setEditTriggers(QAbstractItemView.NoEditTriggers)  # 禁止修改
 
             # 填充数据
             en_table_header = DIT_LIST[self.table_name].get('en', [])
@@ -65,8 +70,6 @@ class BaseTab:
                 # 设置数据
                 for index_j, str_en in enumerate(en_table_header, 1):
                     value = str(dit_info.get(str_en, ''))
-                    if str_en == 'str_type' and self.table_name == '账号配置':
-                        value = dit_email.get(value, '')
                     item = QTableWidgetItem(value)
                     item.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
                     self.table.setItem(index_, index_j, item)  # 转换后可插入表格

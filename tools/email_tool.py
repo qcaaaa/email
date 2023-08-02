@@ -545,11 +545,11 @@ class EmailTools:
             # 邮箱类型
             if table == '账号配置':
                 dit_email = {dit_e['index']: dit_e['name_cn'] for dit_e in self.email_list}
-            else:
-                dit_email = {}
+                for dit_user in lst_data:
+                    dit_user['str_type'] = dit_email.get(dit_user['str_type'], '未知')
 
             # 渲染表格
-            BaseTab(self.obj_table, table, dialog).show_table(lst_data, dit_email)
+            BaseTab(self.obj_table, table, dialog).show_table(lst_data)
 
             # 创建按钮布局
             button_layout = QHBoxLayout()

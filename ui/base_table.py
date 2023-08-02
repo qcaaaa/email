@@ -14,20 +14,16 @@ from constant import DIT_LIST
 
 class BaseTab:
 
-    def __init__(self, table: QTableWidget, table_name: str, parent, lst_readonly: list = None):
+    def __init__(self, table: QTableWidget, table_name: str, parent):
         """
         :param table: 表格对象
         :param table_name: 表格对应的左侧菜单
         :param parent: 表格 的父对象
-        :param lst_readonly: None -- 表格所有列允许修改
-                             [1, 2, 3] -- 表格第 1,2,3列不允许修改
-                             [-1] -- 表格所有列不允许修改
         """
         self.table = table
         self.table_name = table_name
         self.select_table = set()  # 表头单选框
         self.parent = parent
-        self.lst_readonly = lst_readonly
 
     def show_table(self, lst_data: list):
         """
@@ -54,9 +50,7 @@ class BaseTab:
             self.table.setHorizontalHeaderLabels(table_header)  # 表头
             self.table.horizontalHeader().sectionClicked.connect(self.parent.on_all_checkbox_changed)  # 表头点击事件
             self.table.setAlternatingRowColors(True)  # 交替行颜色
-
-            if self.lst_readonly == [-1]:
-                self.table.setEditTriggers(QAbstractItemView.NoEditTriggers)  # 禁止修改
+            self.table.setEditTriggers(QAbstractItemView.NoEditTriggers)  # 禁止修改
 
             # 填充数据
             en_table_header = DIT_LIST[self.table_name].get('en', [])

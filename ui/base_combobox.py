@@ -1,3 +1,5 @@
+
+from loguru import logger
 from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtWidgets import QLineEdit, QComboBox, QListWidget, QListWidgetItem
 from typing import Tuple
@@ -57,17 +59,20 @@ class BaseComboBox(QtWidgets.QWidget):
 
     def updateLineEdit(self, item):
         lst_data = []
-        state = item.checkState()
-        if item.text() == '全选':
-            for i in range(self.listWidget.count()):
-                self.listWidget.item(i).setCheckState(state)
-                if state and i != 0:
-                    lst_data.append(self.listWidget.item(i).text())
-            self.lineEdit.setText(",".join(lst_data))
-        else:
-            curr_text = self.lineEdit.text()
-            if state:
-                self.lineEdit.setText(f'{curr_text},{item.text()}' if curr_text else item.text())
+        try:
+            state = item.checkState()
+            if item.text() == '全选':
+                for i in range(self.listWidget.count()):
+                    self.listWidget.item(i).setCheckState(state)
+                    if state and i != 0:
+                        lst_data.append(self.listWidget.item(i).text())
+                self.lineEdit.setText(",".join(lst_data))
             else:
-                self.lineEdit.setText(curr_text.replace(item.text(), ''))
+                curr_text = self.lineEdit.text()
+                if state:
+                    self.lineEdit.setText(f'{curr_text},{item.text()}' if curr_text else item.text())
+                else:
+                    self.lineEdit.setText(','.join(set(curr_text.split(',')) - {item.text()}))
+        except Exception as e:
+            logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
 

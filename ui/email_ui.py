@@ -17,7 +17,7 @@ import threading
 from pathlib import Path
 from loguru import logger
 from datetime import datetime
-from PyQt5.QtWidgets import QTextEdit, QToolBar, QWidget
+from PyQt5.QtWidgets import QTextEdit, QToolBar, QWidget, QDialog, QGridLayout, QDialogButtonBox
 from PyQt5.QtWidgets import QMessageBox
 from PyQt5.QtWidgets import QListWidgetItem
 from PyQt5.QtWidgets import QMainWindow
@@ -38,6 +38,7 @@ from ota.otaupgrade import OtaUpgrade
 from ui.base_ui import BaseButton, BaseLabel, BaseLineEdit, BaseAction, BaseBar, BaseComboBox
 from ui.setting_ui import BaseSetting
 from ui.base_table import BaseTab
+from ui.base_combobox import BaseComboBox as ComboBox
 from version import VERSION
 
 
@@ -309,9 +310,13 @@ class EmailUi(QMainWindow, BaseClass):
 
             obj_table.show_table(lst_data)
 
+            # tip 显示
             self.table.installEventFilter(self)
             self.table.setMouseTracking(True)
             self.table.itemEntered.connect(self.enter_item_slot)
+
+            # 双击事件
+            self.table.itemDoubleClicked.connect(self.update_table)
 
             # 获取一下单选框
             self.select_table = obj_table.select_table
@@ -420,6 +425,44 @@ class EmailUi(QMainWindow, BaseClass):
         self.show_table(dit_info.get('lst_ret', []), self.page, count_pag=dit_info.get('count', ''))
         if not is_show:
             self.show_message('刷新', '刷新当前页面成功')
+
+    def update_table(self, item=None):
+        try:
+            int_column = str_2_int(item.column(), -1)
+            int_row = str_2_int(item.row(), -1)
+            # 真实表头多了个 全选
+            en_table_header = DIT_LIST[self.page].get('en', [])
+            if int_column != -1 and int_row != -1 and en_table_header[int_column - 1] == 'language':
+                dialog = QDialog(self)  # 自定义一个dialog
+                dialog.setWindowTitle('修改产品信息')
+                dialog.resize(300, 100)
+                grid = QGridLayout()
+                lang_label = BaseLabel(dialog, str_text='产品').label
+                grid.addWidget(lang_label, 1, 0)
+                lang_box = ComboBox(dialog, lst_data=self.email_tool.get_language(), file_style=QSS_STYLE).box
+                grid.addWidget(lang_box, 1, 2, 1, 2)
+
+                button = QDialogButtonBox(QDialogButtonBox.Ok)
+                button.clicked.connect(dialog.accept)
+                grid.addWidget(button, 2, 3)
+
+                dialog.setLayout(grid)
+                dialog.show()
+                if dialog.exec() == QDialog.Accepted:
+                    curr_text = lang_box.currentText().strip()
+                    if curr_text:
+                        int_id = str_2_int(self.table.item(int_row, 1).text(), -1)
+                        int_ret = self.email_tool.upd_info(DIT_DATABASE[self.page], int_id, curr_text)
+                        if int_ret == 1:
+                            self.flush_table(True)
+                            self.show_message('成功', '修改成功')
+                        else:
+                            self.show_message('失败', '修改失败')
+                    else:
+                        self.show_message('错误', '不可为空')
+        except Exception as e:
+            logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
+        return
 
     def show_message(self, title: str = '', text: str = '', info: str = ''):
         try:

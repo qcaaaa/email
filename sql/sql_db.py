@@ -119,6 +119,16 @@ class MySql:
             logger.debug(f"{e.__traceback__.tb_lineno}:--{e}:{str_sql}")
         return int_ret
 
+    def update_sql(self, table: str, int_id: int, str_data: str) -> int:
+        int_ret = 0
+        str_sql = ''
+        try:
+            str_sql = f"update {table} set LANGUAGE='{str_data}' where id={int_id}"
+            int_ret = self.__exec_sql('upd', str_sql)
+        except Exception as e:
+            logger.debug(f"{e.__traceback__.tb_lineno}:--{e}:{str_sql}")
+        return int_ret
+
     def get_language(self, str_table: str, lst_id: list) -> set:
         """
         :param str_table: 表名

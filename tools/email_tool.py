@@ -95,7 +95,14 @@ class EmailTools:
         return int_ret
 
     @staticmethod
-    def __get_language():
+    def upd_info(table: str, int_id: int, str_data: str) -> int:
+        """修改数据库产品信息"""
+        with MySql() as obj_sql:
+            int_ret = obj_sql.update_sql(table, int_id, str_data)
+        return int_ret
+
+    @staticmethod
+    def get_language():
         with MySql() as obj_sql:
             lst_info = [dit_l['language'] for dit_l in obj_sql.select_sql('get_language', -1, -1).get('lst_ret', []) if 'language' in dit_l]
         return lst_info
@@ -122,9 +129,9 @@ class EmailTools:
         serve_box = BaseComboBox(dialog, file_style=QSS_STYLE, lst_data=[dit_c['name_cn'] for dit_c in self.email_list]).box
         grid.addWidget(serve_box, 3, 1, 1, 2)
 
-        lang_label = BaseLabel(dialog, str_text='邮箱语种').label
+        lang_label = BaseLabel(dialog, str_text='产品').label
         grid.addWidget(lang_label, 4, 0)
-        lst_data = self.__get_language()
+        lst_data = self.get_language()
         if lst_data:
             lang_box = ComboBox(dialog, lst_data=lst_data, file_style=QSS_STYLE).box
         else:
@@ -259,10 +266,10 @@ class EmailTools:
             body_title.textChanged.connect(__body_change)
             grid.addWidget(body_title, 2, 1, 6, 5)
 
-            box_label = BaseLabel(dialog, str_text='模板语种').label
+            box_label = BaseLabel(dialog, str_text='产品').label
             grid.addWidget(box_label, 8, 0)
 
-            lst_data = self.__get_language()
+            lst_data = self.get_language()
             if lst_data:
                 str_box = ComboBox(dialog, lst_data=lst_data, file_style=QSS_STYLE).box
             else:
@@ -335,10 +342,10 @@ class EmailTools:
             file_path = BaseLineEdit(dialog, file_style=QSS_STYLE).lineedit
             grid.addWidget(file_path, 2, 1, 1, 3)
 
-            box_label = BaseLabel(dialog, str_text='附件语种').label
+            box_label = BaseLabel(dialog, str_text='产品').label
             grid.addWidget(box_label, 3, 0)
 
-            lst_data = self.__get_language()
+            lst_data = self.get_language()
             if lst_data:
                 str_box = ComboBox(dialog, lst_data=lst_data, file_style=QSS_STYLE).box
             else:

@@ -53,9 +53,9 @@ class BaseClass:
         self.ota_tool = OtaUpgrade(GIT_URL, EXE_NAME)
 
 
-class EmailUi(QMainWindow, BaseClass):
+class MainUi(QMainWindow, BaseClass):
     def __init__(self):
-        super(EmailUi, self).__init__()
+        super(MainUi, self).__init__()
         self.setWindowIcon(QIcon(Path.joinpath(STATIC_PATH, 'images', 'logo.png').__str__()))
         self.setObjectName('Email-Tool')
         self.resize(1400, 1000)

@@ -21,7 +21,7 @@ from loguru import logger
 from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtWidgets import QApplication
 
-from ui.main_ui import EmailUi
+from ui.main_ui import MainUi
 
 
 def handleException(exc_type, exc_value, exc_traceback):
@@ -87,5 +87,5 @@ class MyTool:
 if __name__ == '__main__':
     obj_init = MyTool()
     app = QApplication([])
-    obj_a = EmailUi()
+    obj_a = MainUi()
     sys.exit(app.exec_())

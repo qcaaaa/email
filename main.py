@@ -14,6 +14,7 @@
 """
 import sys
 import os
+import psutil
 import traceback
 
 from loguru import logger
@@ -41,13 +42,15 @@ def handleException(exc_type, exc_value, exc_traceback):
     msg.exec_()
 
 
-class MyTelegram:
+class MyTool:
     def __init__(self):
-        from constant import LOG_PATH, EMAIL_CHECK_PATH, EMAIL_SEARCH_PATH
+        from constant import LOG_PATH, EMAIL_CHECK_PATH, EMAIL_SEARCH_PATH, EXE_NAME
 
         self.user_line = None
         self.pwd_line = None
         self.login_btu = None
+
+        self.close_program(EXE_NAME)
 
         for str_path in [LOG_PATH, EMAIL_CHECK_PATH, EMAIL_SEARCH_PATH]:
             try:
@@ -69,9 +72,20 @@ class MyTelegram:
         # 自定义异常
         sys.excepthook = handleException
 
+    @staticmethod
+    def close_program(exec_name: str):
+        """关闭软件"""
+        for proc in psutil.process_iter():
+            try:
+                # 检查进程名称是否匹配
+                if proc.name() == exec_name:
+                    sys.exit(0)
+            except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+                pass
+
 
 if __name__ == '__main__':
-    obj_init = MyTelegram()
+    obj_init = MyTool()
     app = QApplication([])
     obj_a = EmailUi()
     sys.exit(app.exec_())

@@ -105,13 +105,13 @@ class MySql:
         str_sql = ''
         try:
             if table == 'user':
-                str_sql = f"insert into {table} (name, pwd, str_type, language) values (%s, %s, %s, %s)"
+                str_sql = f"insert into {table} (name, pwd, str_type, product) values (%s, %s, %s, %s)"
             elif table == 'body':
-                str_sql = f"insert into {table} (str_body, language) values (%s, %s)"
+                str_sql = f"insert into {table} (str_body, product, language) values (%s, %s, %s)"
             elif table == 'title':
-                str_sql = f"insert into {table} (str_title, language) values (%s, %s)"
+                str_sql = f"insert into {table} (str_title, product, language) values (%s, %s, %s)"
             elif table == 'info':
-                str_sql = f"insert into {table} (url, language) values (%s, %s)"
+                str_sql = f"insert into {table} (url, product, language) values (%s, %s, %s)"
             elif table == 'end':
                 str_sql = f"insert into {table} (name, content, url) values (%s, %s, %s)"
             int_ret = self.__exec_sql('add', str_sql, lst_info)

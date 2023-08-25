@@ -51,7 +51,6 @@ class BaseClass:
         self.google_tool = GoogleTool(self)
         self.setting_tool = BaseSetting(self)
         self.ota_tool = OtaUpgrade(GIT_URL, EXE_NAME)
-        self.str_ver = ''
 
 
 class EmailUi(QMainWindow, BaseClass):
@@ -481,8 +480,8 @@ class EmailUi(QMainWindow, BaseClass):
     def set_ver(self):
 
         def __do():
-            self.str_ver = self.ota_tool.get_ver()
-            str_title = f'软件当前版本: {VERSION} 最新版本: {self.str_ver}'
+            str_ver = self.ota_tool.get_ver()
+            str_title = f'软件当前版本: {VERSION} 最新版本: {str_ver}'
             # 版本
             self.statusBar().showMessage(str_title)
 
@@ -496,8 +495,9 @@ class EmailUi(QMainWindow, BaseClass):
     def check_ver(self):
         is_update = False
         try:
-            if VERSION.count('.') == self.str_ver.count('.') == 3:
-                lst_new_ver = [int(i) for i in self.str_ver.lower().replace('v', '').split('.')]
+            str_ver = self.ota_tool.get_ver()
+            if VERSION.count('.') == str_ver.count('.') == 3:
+                lst_new_ver = [int(i) for i in str_ver.lower().replace('v', '').split('.')]
                 lst_old_ver = [int(i) for i in VERSION.lower().replace('v', '').split('.')]
 
                 for index_ in range(4):

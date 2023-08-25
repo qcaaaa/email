@@ -22,7 +22,7 @@ from tools.aly_s3 import AlyS3
 from sql.sql_db import MySql
 from loguru import logger
 from random import choice
-from itertools import product, groupby, chain
+from itertools import product, chain
 from email.header import Header
 from email.utils import formatdate
 from email.mime.text import MIMEText
@@ -31,7 +31,7 @@ from utils.tools import sub_html, word_2_html, load_file, str_2_int
 from constant import DIT_DATABASE, QSS_STYLE, STATIC_PATH, MAST_SELECT_TABLE, DEAR_FONT
 from PyQt5.QtWidgets import QDialog, QFormLayout, QDialogButtonBox, QTextEdit, QFileDialog, QGridLayout, \
     QRadioButton, QTableWidget, QVBoxLayout, QHBoxLayout
-from ui.base_ui import BaseButton, BaseLabel, BaseLineEdit, BaseBar, BaseComboBox
+from ui.base_element import BaseButton, BaseLabel, BaseLineEdit, BaseBar, BaseComboBox
 from ui.base_table import BaseTab
 from ui.base_combobox import BaseComboBox as ComboBox
 

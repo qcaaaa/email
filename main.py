@@ -21,7 +21,7 @@ from loguru import logger
 from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtWidgets import QApplication
 
-from ui.email_ui import EmailUi
+from ui.main_ui import EmailUi
 
 
 def handleException(exc_type, exc_value, exc_traceback):

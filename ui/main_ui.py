@@ -4,7 +4,7 @@
 
 @User : 21407
 
-@File : email_ui.py
+@File : main_ui.py
 
 @Email: yypqcaa@163.com
 
@@ -35,7 +35,7 @@ from tools.email_tool import EmailTools
 from tools.email_check import CheckTool
 from tools.email_google import GoogleTool
 from ota.otaupgrade import OtaUpgrade
-from ui.base_ui import BaseButton, BaseLabel, BaseLineEdit, BaseAction, BaseBar, BaseComboBox
+from ui.base_element import BaseButton, BaseLabel, BaseLineEdit, BaseAction, BaseBar, BaseComboBox
 from ui.setting_ui import BaseSetting
 from ui.base_table import BaseTab
 from ui.base_combobox import BaseComboBox as ComboBox

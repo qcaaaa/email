@@ -1,4 +1,4 @@
-from ui.base_ui import BaseLabel, BaseLineEdit
+from ui.base_element import BaseLabel, BaseLineEdit
 from PyQt5 import QtGui
 from PyQt5.QtWidgets import QDialog, QGridLayout, QMessageBox, QDialogButtonBox
 from utils.tools import load_file, dump_file, str_2_int

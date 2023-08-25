@@ -125,7 +125,7 @@ class EmailTools:
 
         lang_label = BaseLabel(dialog, str_text='产品').label
         grid.addWidget(lang_label, 4, 0)
-        lst_data = [product['product'] for i in self.get_info('get_product', int_start=-1) if 'product' in i]
+        lst_data = [i['product'] for i in self.get_info('get_product', int_start=-1).get('lst_ret', [])]
         if lst_data:
             lang_box = ComboBox(dialog, lst_data=lst_data, file_style=QSS_STYLE).box
         else:
@@ -188,7 +188,9 @@ class EmailTools:
             grid.addWidget(title_lst_label, 2, 0)
 
             text_title = QTextEdit(dialog)
-            text_title.setPlaceholderText('邮件标题内容...... 语种1,语种2,语种3...... 产品1,产品2,产品3......')
+            text_title.setPlaceholderText('文件内容格式(一行一个,用空格隔开,标题中间允许有空格,产品和语种中间不允许包含空格)：\n'
+                                          '邮件标题内容...... 产品1,产品2,产品3...... 语种1,语种2,语种3......\n'
+                                          'eg: Cylindry hydrauliczne o dobrej jakości 液压杆,配件 英语,俄语 ')
             text_title.textChanged.connect(__body_change)
             text_title.setVerticalScrollBar(BaseBar(QSS_STYLE).bar)
             grid.addWidget(text_title, 2, 1, 5, 3)
@@ -220,10 +222,9 @@ class EmailTools:
             def __import_file():
                 try:
                     body_title.clear()
-                    # doc文件名包含中文处理
-                    options = QFileDialog.Options()
-                    options |= QFileDialog.DontUseNativeDialog
-                    str_file, _ = QFileDialog.getOpenFileName(self.obj_ui, '选取邮件正文文件', Path.cwd().__str__(), 'Text File(*.docx)', options=options)
+                    # 文件名不能包含空格
+                    str_file, _ = QFileDialog.getOpenFileName(self.obj_ui, '选取邮件正文文件', Path.cwd().__str__(),
+                                                              'Text File(*.docx)')
                     if Path(str_file).is_file():
                         result = word_2_html(str_file)
                         if result:
@@ -262,27 +263,38 @@ class EmailTools:
             body_title.textChanged.connect(__body_change)
             grid.addWidget(body_title, 2, 1, 6, 5)
 
-            box_label = BaseLabel(dialog, str_text='产品').label
-            grid.addWidget(box_label, 8, 0)
+            product_label = BaseLabel(dialog, str_text='产品').label
+            grid.addWidget(product_label, 8, 0)
 
-            lst_data = self.get_language()
-            if lst_data:
-                str_box = ComboBox(dialog, lst_data=lst_data, file_style=QSS_STYLE).box
+            lst_product = [i['product'] for i in self.get_info('get_product', int_start=-1).get('lst_ret', [])]
+            if lst_product:
+                product_box = ComboBox(dialog, lst_data=lst_product, file_style=QSS_STYLE).box
             else:
-                str_box = BaseComboBox(dialog, QSS_STYLE, False, lst_data).box
-            grid.addWidget(str_box, 8, 1,)
+                product_box = BaseComboBox(dialog, QSS_STYLE, False, lst_product).box
+            grid.addWidget(product_box, 8, 1)
+
+            language_label = BaseLabel(dialog, str_text='语种').label
+            grid.addWidget(language_label, 9, 0)
+
+            lst_language = [i['language'] for i in self.get_info('get_language', int_start=-1).get('lst_ret', [])]
+            if lst_language:
+                language_box = ComboBox(dialog, lst_data=lst_language, file_style=QSS_STYLE).box
+            else:
+                language_box = BaseComboBox(dialog, QSS_STYLE, False, lst_language).box
+            grid.addWidget(language_box, 9, 1)
 
             button = QDialogButtonBox(QDialogButtonBox.Ok)
             button.clicked.connect(dialog.accept)
-            grid.addWidget(button, 9, 5)
+            grid.addWidget(button, 10, 5)
             button.setDisabled(True)
 
             dialog.setLayout(grid)
             dialog.show()
             if dialog.exec() == QDialog.Accepted:
-                str_2, str_3 = sub_html(body_title.toHtml()), str_box.currentText().strip()
-                if all([str_2, str_3]):
-                    int_ret = self.add_info(DIT_DATABASE[self.obj_ui.page], [str_2, str_3])
+                str_2, str_3 = sub_html(body_title.toHtml()), product_box.currentText().strip().replace('，', ',')
+                str_4 = language_box.currentText().strip().replace('，', ',')
+                if all([str_2, str_4, str_3]):
+                    int_ret = self.add_info(DIT_DATABASE[self.obj_ui.page], [str_2, str_3, str_4])
                 else:
                     int_ret = -1
             else:
@@ -341,7 +353,7 @@ class EmailTools:
             box_label = BaseLabel(dialog, str_text='产品').label
             grid.addWidget(box_label, 3, 0)
 
-            lst_data = self.get_language()
+            lst_data = [i['product'] for i in self.get_info('get_product', int_start=-1).get('lst_ret', [])]
             if lst_data:
                 str_box = ComboBox(dialog, lst_data=lst_data, file_style=QSS_STYLE).box
             else:

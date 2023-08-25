@@ -101,12 +101,6 @@ class EmailTools:
             int_ret = obj_sql.update_sql(table, int_id, str_data)
         return int_ret
 
-    @staticmethod
-    def get_language():
-        with MySql() as obj_sql:
-            lst_info = [dit_l['language'] for dit_l in obj_sql.select_sql('get_language', -1, -1).get('lst_ret', []) if 'language' in dit_l]
-        return lst_info
-
     def __add_user(self):
         dialog = QDialog(self.obj_ui)  # 自定义一个dialog
         dialog.setWindowTitle('增加邮箱账号')
@@ -131,7 +125,7 @@ class EmailTools:
 
         lang_label = BaseLabel(dialog, str_text='产品').label
         grid.addWidget(lang_label, 4, 0)
-        lst_data = self.get_language()
+        lst_data = [product['product'] for i in self.get_info('get_product', int_start=-1) if 'product' in i]
         if lst_data:
             lang_box = ComboBox(dialog, lst_data=lst_data, file_style=QSS_STYLE).box
         else:
@@ -146,7 +140,8 @@ class EmailTools:
         dialog.show()
         if dialog.exec() == QDialog.Accepted:
             lst_e = [dit_e for dit_e in self.email_list if dit_e['name_cn'] == serve_box.currentText().strip()]
-            str_1, str_2, str_3 = user_input.text().strip(), pwd_input.text().strip(), lang_box.currentText().strip()
+            str_1, str_2 = user_input.text().strip(), pwd_input.text().strip()
+            str_3 = lang_box.currentText().strip().replace('，', ',')
             if all([str_1, str_2, lst_e, str_3]):
                 return self.add_info(DIT_DATABASE[self.obj_ui.page], [str_1, str_2, int(lst_e[0]['index']), str_3])
             return -1
@@ -193,6 +188,7 @@ class EmailTools:
             grid.addWidget(title_lst_label, 2, 0)
 
             text_title = QTextEdit(dialog)
+            text_title.setPlaceholderText('邮件标题内容...... 语种1,语种2,语种3...... 产品1,产品2,产品3......')
             text_title.textChanged.connect(__body_change)
             text_title.setVerticalScrollBar(BaseBar(QSS_STYLE).bar)
             grid.addWidget(text_title, 2, 1, 5, 3)
@@ -208,7 +204,7 @@ class EmailTools:
             if dialog.exec() == QDialog.Accepted:
                 for str_t in text_title.toPlainText().split('\n'):
                     if str_t.strip() and ' ' in str_t:
-                        self.add_info(DIT_DATABASE[self.obj_ui.page], [i.strip() for i in str_t.rsplit(maxsplit=1)])
+                        self.add_info(DIT_DATABASE[self.obj_ui.page], [i.strip() for i in str_t.rsplit(maxsplit=2)])
                 int_ret = 1
             else:
                 int_ret = -2

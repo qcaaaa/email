@@ -14,16 +14,18 @@ from constant import DIT_LIST
 
 class BaseTab:
 
-    def __init__(self, table: QTableWidget, table_name: str, parent):
+    def __init__(self, table: QTableWidget, table_name: str, parent, header_click: bool = True):
         """
         :param table: 表格对象
         :param table_name: 表格对应的左侧菜单
         :param parent: 表格 的父对象
+        :param header_click: 表头是否添加点击事件
         """
         self.table = table
         self.table_name = table_name
         self.select_table = set()  # 表头单选框
         self.parent = parent
+        self.header_click = header_click
 
     def show_table(self, lst_data: list):
         """
@@ -47,8 +49,11 @@ class BaseTab:
             self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)  # 铺满
             self.table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)  # 前两列自适应
             self.table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeToContents)
+            if self.header_click:
+                self.table.horizontalHeader().sectionClicked.connect(self.parent.on_all_checkbox_changed)  # 表头点击事件
+            else:
+                table_header[0] = '#'
             self.table.setHorizontalHeaderLabels(table_header)  # 表头
-            self.table.horizontalHeader().sectionClicked.connect(self.parent.on_all_checkbox_changed)  # 表头点击事件
             self.table.setAlternatingRowColors(True)  # 交替行颜色
             self.table.setEditTriggers(QAbstractItemView.NoEditTriggers)  # 禁止修改
 

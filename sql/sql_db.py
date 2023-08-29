@@ -129,7 +129,7 @@ class MySql:
             logger.debug(f"{e.__traceback__.tb_lineno}:--{e}:{str_sql}")
         return int_ret
 
-    def get_language(self, str_table: str, lst_id: list) -> set:
+    def get_distinct(self, str_table: str, lst_id: list) -> set:
         """
         :param str_table: 表名
         :param lst_id:
@@ -138,12 +138,13 @@ class MySql:
         set_ret = set()
         str_sql = ''
         try:
+            str_key = str_table.replace('get_', '')
             if len(lst_id) == 1:
-                str_sql = f"select distinct language from {str_table} where id={lst_id[0]}"
+                str_sql = f"select distinct {str_key} from {str_table} where id={lst_id[0]}"
             else:
-                str_sql = f"select distinct language from {str_table} where id in {tuple(lst_id)}"
+                str_sql = f"select distinct {str_key} from {str_table} where id in {tuple(lst_id)}"
             self.__exec_sql('select', str_sql)
-            set_ret = set(sum([dit_info.get('language', '').split(',') for dit_info in self.curr.fetchall()], []))
+            set_ret = set(sum([dit_info.get(str_key, '').split(',') for dit_info in self.curr.fetchall()], []))
         except Exception as e:
             logger.debug(f"{e.__traceback__.tb_lineno}:--{e}:{str_sql}")
         return set_ret

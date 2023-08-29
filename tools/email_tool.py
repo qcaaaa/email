@@ -56,6 +56,8 @@ class EmailTools:
         self.send_model = False  # 发送模式(不带网页)
         self.dear_font = DEAR_FONT[0]  # Dear 行字体
         self.obj_table = QTableWidget()  # 选择的表格
+        self.product = None
+        self.language = None
 
     def __login(self, str_user: str, str_pwd: str, str_type: str):
         try:
@@ -494,7 +496,14 @@ class EmailTools:
         table_db = self.obj_table.objectName()
         try:
             int_id = str_2_int(self.obj_ui.sender().objectName())
-            lst_c = self.dit_v[table_db]
+            lst_c = self.dit_v[table_db]  # type: list
+            # 单选表格
+            if table_db in ['info', 'end']:
+                for i in range(self.obj_table.rowCount()):
+                    obj_box = self.obj_table.cellWidget(i, 0)
+                    if str_2_int(obj_box.objectName()) != int_id:
+                        obj_box.setChecked(False)
+                lst_c.clear()
             if int_id >= 0 and state and int_id not in lst_c:
                 lst_c.append(int_id)
             elif int_id >= 0 and not state and int_id in lst_c:
@@ -536,35 +545,78 @@ class EmailTools:
             if table_db in MAST_SELECT_TABLE:
                 self.button.setEnabled(bool(lst_c))
 
+    def select_product(self, item: str):
+        """更新邮箱内容
+        :param item:
+        :return:
+        """
+        try:
+            try:
+                self.obj_table.horizontalHeader().sectionClicked.disconnect()
+            except:
+                pass
+            finally:
+                # 更新数据源
+                lst_data = [i for i in self.get_info('user', int_start=-1).get('lst_ret', []) if item in i['product'].split(',')]
+                BaseTab(self.obj_table, '账号配置', self.dialog).show_table(lst_data)
+                self.select_language(item)
+        except Exception as e:
+            logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
+
+    def select_language(self, item: str):
+        try:
+            # 更新语种源
+            lst_a = self.get_info('body', int_start=-1, where=f"FIND_IN_SET('{item}',product)").get('lst_ret', [])
+            lst_b = self.get_info('title', int_start=-1, where=f"FIND_IN_SET('{item}',product)").get('lst_ret', [])
+            self.language_box.clear()
+            set_language = set()
+            for dit_a in lst_a:
+                for dit_b in lst_b:
+                    set_language |= set(dit_a['language'].split(',')) & set(dit_b['language'].split(','))
+            self.language_box.addItems(list(set_language))
+        except Exception as e:
+            pass
+
     def __show_dialog(self, table: str, func, str_title: str):
         dialog = None
         try:
             dialog = QDialog(self.obj_ui)
             dialog.setWindowTitle(f'选择{str_title}')
+            dialog.resize(800, 600)
             dialog.on_all_checkbox_changed = self.__on_all_checkbox_changed
             dialog.on_checkbox_changed = self.__on_checkbox_changed
-            dialog.resize(800, 600)
             try:
                 self.obj_table.horizontalHeader().sectionClicked.disconnect()
             except:
                 pass
             table_db = DIT_DATABASE[table]
-
-            self.obj_table.setObjectName(DIT_DATABASE[table])
             lst_data = self.get_info(table_db, int_start=-1).get('lst_ret', [])
-            if table != '账号配置':
-                with MySql() as sql:
-                    set_lang = sql.get_language('user', self.dit_v['user'])
-                if table != '邮件结尾':
-                    lst_data = [dit_v for dit_v in lst_data if 'language' in dit_v and set(dit_v['language'].split(',')) & set_lang]
-            # 邮箱类型
+
+            box_layout = None
             if table == '账号配置':
+                lst_product = [i['product'] for i in self.get_info('get_product', int_start=-1).get('lst_ret', [])]
+                self.product_box = BaseComboBox(dialog, QSS_STYLE, lst_data=lst_product, func=self.select_product).box
+                self.language_box = BaseComboBox(dialog, QSS_STYLE).box
+                # 创建下拉框布局
+                box_layout = QHBoxLayout()
+                box_layout.addWidget(self.product_box)
+                box_layout.addWidget(self.language_box)
+                # 数据源
+                lst_data = [i for i in lst_data if lst_product[0] in i['product'].split(',')]
+                # 邮箱类型
                 dit_email = {dit_e['index']: dit_e['name_cn'] for dit_e in self.email_list}
                 for dit_user in lst_data:
                     dit_user['str_type'] = dit_email.get(dit_user['str_type'], '未知')
+                # 语种
+                self.select_language(lst_product[0])
+            elif table in ['邮件标题', '邮件正文']:
+                lst_data = [dit_v for dit_v in lst_data if self.language_box.currentText() in dit_v['language'].split(',')]
+            elif table == '邮件附件':
+                lst_data = [dit_v for dit_v in lst_data if self.product_box.currentText() in dit_v['product'].split(',')]
 
-            # 渲染表格
-            BaseTab(self.obj_table, table, dialog).show_table(lst_data)
+            # 渲染表格(附件 结尾单选)
+            self.obj_table.setObjectName(DIT_DATABASE[table])
+            BaseTab(self.obj_table, table, dialog, table not in ['邮件附件', '邮件结尾']).show_table(lst_data)
 
             # 创建按钮布局
             button_layout = QHBoxLayout()
@@ -575,6 +627,10 @@ class EmailTools:
             button_layout.addWidget(self.button)
 
             main_layout = QVBoxLayout()
+
+            if box_layout:
+                main_layout.addLayout(box_layout)
+
             main_layout.addWidget(self.obj_table)
             main_layout.addLayout(button_layout)
 

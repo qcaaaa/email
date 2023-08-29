@@ -111,7 +111,7 @@ class MySql:
             elif table == 'title':
                 str_sql = f"insert into {table} (str_title, product, language) values (%s, %s, %s)"
             elif table == 'info':
-                str_sql = f"insert into {table} (url, product, language) values (%s, %s, %s)"
+                str_sql = f"insert into {table} (url, product) values (%s, %s)"
             elif table == 'end':
                 str_sql = f"insert into {table} (name, content, url) values (%s, %s, %s)"
             int_ret = self.__exec_sql('add', str_sql, lst_info)

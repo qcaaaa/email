@@ -897,54 +897,54 @@ class EmailTools:
             current_sender_index = 0
             # 循环发送邮件，直到所有收件人都收到邮件为止
             while self.to_list:
-                if emails_sent_count != 0 and emails_sent_count % 10 == 0:
+                if emails_sent_count != 0 and emails_sent_count % self.send_mun == 0:
                     # 切换到下一个发件邮箱
                     current_sender_index = (current_sender_index + 1) % int_send_user
-                    dit_send = lst_user[current_sender_index]  # type: dict
-                    # 登录
-                    obj_smtp = self.__login(dit_send['name'], dit_send['pwd'], dit_send['str_type'])
-                    # 采用副本形式
-                    for dit_recv in self.to_list[::]:
-                        try:
-                            # 收件人公司
-                            firm = dit_recv['firm']
-                            # 标题和正文
-                            tuple_comb = lst_comb[emails_sent_count]
-                            str_txt = f'<p style="font-family: {self.dear_font};"> Dear {firm}</p>' + '<br>' + \
-                                      tuple_comb[1] + '<br>' + str_html
-                            # 加结尾
-                            if end_html:
-                                str_txt += '<br><br><br>' + end_html
-                            # 加结尾图片
-                            if end_url:
-                                str_txt += f'<p><img src="{end_url}"></span></p>'
-                            # 加附件
-                            if info_html:
-                                str_txt += info_html
-                            # 转HTML
-                            obj_email = MIMEMultipart('related')
-                            # 设置标题
-                            obj_email["Subject"] = Header(tuple_comb[0], "utf-8")
-                            # 日期
-                            obj_email['Date'] = formatdate(localtime=True)
-                            # 接收人
-                            obj_email['To'] = ', '.join([dit_recv['email']])
-                            obj_email['From'] = dit_send['name']
-                            str_html_ = MIMEText(str_txt, 'html', 'utf-8')
-                            obj_email.attach(str_html_)
-                            obj_smtp.sendmail(dit_send['name'], [dit_recv['email']], obj_email.as_string())
-                        except Exception as err:
-                            logger.error(f"{err.__traceback__.tb_lineno}:--:{err}")
-                            self.obj_ui.show_message('', '', f"{dit_send['name']} --> {dit_recv['email']} 失败")
-                        else:
-                            int_num += 1
-                            self.obj_ui.show_message('', '', f"{dit_send['name']} --> {dit_recv['email']} 成功")
-                            time.sleep(self.sleep_mun)
-                        finally:
-                            emails_sent_count += 1
-                            self.to_list.remove(dit_recv)
-                            if emails_sent_count % 10 == 0:
-                                break  # 每个发件箱已发送10封，切换到下一个发件箱
+                dit_send = lst_user[current_sender_index]  # type: dict
+                # 登录
+                obj_smtp = self.__login(dit_send['name'], dit_send['pwd'], dit_send['str_type'])
+                # 采用副本形式
+                for dit_recv in self.to_list[::]:
+                    try:
+                        # 收件人公司
+                        firm = dit_recv['firm']
+                        # 标题和正文
+                        tuple_comb = lst_comb[emails_sent_count]
+                        str_txt = f'<p style="font-family: {self.dear_font};"> Dear {firm}</p>' + '<br>' + \
+                                  tuple_comb[1] + '<br>' + str_html
+                        # 加结尾
+                        if end_html:
+                            str_txt += '<br><br><br>' + end_html
+                        # 加结尾图片
+                        if end_url:
+                            str_txt += f'<p><img src="{end_url}"></span></p>'
+                        # 加附件
+                        if info_html:
+                            str_txt += info_html
+                        # 转HTML
+                        obj_email = MIMEMultipart('related')
+                        # 设置标题
+                        obj_email["Subject"] = Header(tuple_comb[0], "utf-8")
+                        # 日期
+                        obj_email['Date'] = formatdate(localtime=True)
+                        # 接收人
+                        obj_email['To'] = ', '.join([dit_recv['email']])
+                        obj_email['From'] = dit_send['name']
+                        str_html_ = MIMEText(str_txt, 'html', 'utf-8')
+                        obj_email.attach(str_html_)
+                        obj_smtp.sendmail(dit_send['name'], [dit_recv['email']], obj_email.as_string())
+                    except Exception as err:
+                        logger.error(f"{err.__traceback__.tb_lineno}:--:{err}")
+                        self.obj_ui.show_message('', '', f"{dit_send['name']} --> {dit_recv['email']} 失败")
+                    else:
+                        int_num += 1
+                        self.obj_ui.show_message('', '', f"{dit_send['name']} --> {dit_recv['email']} 成功")
+                        time.sleep(self.sleep_mun)
+                    finally:
+                        emails_sent_count += 1
+                        self.to_list.remove(dit_recv)
+                        if emails_sent_count % self.send_mun == 0:
+                            break  # 每个发件箱已发送10封，切换到下一个发件箱
         except Exception as e:
             logger.error(f"{e.__traceback__.tb_lineno}:--:{e}")
         finally:

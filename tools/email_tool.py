@@ -918,6 +918,9 @@ class EmailTools:
                             # 加结尾图片
                             if end_url:
                                 str_txt += f'<p><img src="{end_url}"></span></p>'
+                            # 加附件
+                            if info_html:
+                                str_txt += info_html
                             # 转HTML
                             obj_email = MIMEMultipart('related')
                             # 设置标题

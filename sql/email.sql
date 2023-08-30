@@ -27,7 +27,7 @@ CREATE TABLE `body`  (
   `product` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '产品',
   `language` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '语种',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for end
@@ -40,7 +40,7 @@ CREATE TABLE `end`  (
   `content` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '结尾内容',
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `name`(`name`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 2 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for info
@@ -50,9 +50,8 @@ CREATE TABLE `info`  (
   `id` int(0) NOT NULL AUTO_INCREMENT,
   `url` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '附件地址',
   `product` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '产品',
-  `language` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '语种',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 6 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for title
@@ -64,7 +63,7 @@ CREATE TABLE `title`  (
   `product` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '产品',
   `language` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '语种',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 3 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 5 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Table structure for user
@@ -78,13 +77,13 @@ CREATE TABLE `user`  (
   `product` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '产品',
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `name`(`name`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 8 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 11 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- View structure for get_language
 -- ----------------------------
 DROP VIEW IF EXISTS `get_language`;
-CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `get_language` AS select substring_index(substring_index(`info`.`language`,',',(`b`.`help_topic_id` + 1)),',',-(1)) AS `language` from (`info` join `mysql`.`help_topic` `b` on((`b`.`help_topic_id` < ((length(`info`.`language`) - length(replace(`info`.`language`,',',''))) + 1)))) union select substring_index(substring_index(`body`.`language`,',',(`b`.`help_topic_id` + 1)),',',-(1)) AS `language` from (`body` join `mysql`.`help_topic` `b` on((`b`.`help_topic_id` < ((length(`body`.`language`) - length(replace(`body`.`language`,',',''))) + 1)))) union select substring_index(substring_index(`title`.`language`,',',(`b`.`help_topic_id` + 1)),',',-(1)) AS `language` from (`title` join `mysql`.`help_topic` `b` on((`b`.`help_topic_id` < ((length(`title`.`language`) - length(replace(`title`.`language`,',',''))) + 1))));
+CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `get_language` AS select substring_index(substring_index(`body`.`language`,',',(`b`.`help_topic_id` + 1)),',',-(1)) AS `language` from (`body` join `mysql`.`help_topic` `b` on((`b`.`help_topic_id` < ((length(`body`.`language`) - length(replace(`body`.`language`,',',''))) + 1)))) union select substring_index(substring_index(`title`.`language`,',',(`b`.`help_topic_id` + 1)),',',-(1)) AS `language` from (`title` join `mysql`.`help_topic` `b` on((`b`.`help_topic_id` < ((length(`title`.`language`) - length(replace(`title`.`language`,',',''))) + 1))));
 
 -- ----------------------------
 -- View structure for get_product

@@ -832,7 +832,7 @@ class EmailTools:
                 # 组合标题和正文
                 lst_comb = product([dit_t['str_title'] for dit_t in lst_title], [dit_b['str_body'] for dit_b in lst_body])
                 self.obj_ui.show_message('提示', '正在后台发送中,请稍等......', '正在后台发送中,请稍等......')
-                threading.Thread(target=self.__send_mail, args=(lst_user, list(lst_comb), lst_info[0], lst_end[0]),
+                threading.Thread(target=self.__send_mail, args=(lst_user, list(lst_comb), lst_info[0] if lst_info else {}, lst_end[0] if lst_end else {}),
                                  daemon=True).start()
             else:
                 self.obj_ui.show_message('错误', '缺少数据,无法发送邮件.请重试')

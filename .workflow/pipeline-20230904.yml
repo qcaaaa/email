@@ -1,0 +1,61 @@
+version: '1.0'
+name: pipeline-20230904
+displayName: pipeline-20230904
+triggers:
+  trigger: manual
+  push:
+    branches:
+      precise:
+        - master
+    commitMessages:
+      include:
+        - version
+stages:
+  - name: stage-ed241895
+    displayName: 环境准备
+    strategy: naturally
+    trigger: auto
+    executor:
+      - yypqc
+    steps:
+      - step: build@python
+        name: build_python
+        displayName: Python 环境安装
+        pythonVersion: '3.9'
+        commands:
+          - pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
+          - '# 可以使用pip下载依赖'
+          - pip install --user -r requirements.txt
+          - python --version
+        artifacts:
+          - name: BUILD_ARTIFACT
+            path:
+              - ./
+        caches: []
+        notify: []
+        strategy:
+          retry: '2'
+  - name: stage-5f08a277
+    displayName: 软件打包
+    strategy: naturally
+    trigger: auto
+    executor:
+      - yypqc
+    steps:
+      - step: build@python
+        name: build_python
+        displayName: Python 构建
+        pythonVersion: '3.9'
+        commands:
+          - pyinstaller -y ./Email.spec
+          - pyinstaller -y ./upgrade.spec
+        artifacts:
+          - name: BUILD_ARTIFACT
+            path:
+              - ./
+        caches: []
+        notify: []
+        strategy:
+          retry: '0'
+strategy:
+  blocking: true

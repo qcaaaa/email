@@ -1,0 +1,28 @@
+name: Build and Package
+
+on:
+  push:
+    branches:
+      - master  # 这里可以根据你的主要分支名称进行修改
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Python 3.9
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.9
+
+    - name: Install dependencies
+      run: pip install -r ./requirements.txt  # 替换为你的依赖安装命令
+
+    - name: Build and Package
+      run: |
+        # 执行构建和打包命令，例如：
+        pyinstaller -y ./Email.spec
+        pyinstaller -y ./upgrade.spec

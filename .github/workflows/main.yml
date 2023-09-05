@@ -26,12 +26,8 @@ jobs:
         pyinstaller -y ./Email.spec
         pyinstaller -y ./upgrade.spec
     
-    - name: Create .tar File
-      run: |
-         tar.exe cvf .\dist\email.tar .\dist\Email
-    
     - name: Upload compressed file
       uses: actions/upload-artifact@v2
       with:
         name: email-archive
-        path: ./dist/email.tar
+        path: ./dist

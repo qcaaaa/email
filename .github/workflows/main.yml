@@ -14,7 +14,7 @@ jobs:
       uses: actions/qcaaaa
 
     - name: Set up Python 3.9
-      uses: actions/qcaaaa
+      uses: actions/setup-python@v2
       with:
         python-version: 3.9
 
@@ -23,6 +23,5 @@ jobs:
 
     - name: Build and Package
       run: |
-        # 执行构建和打包命令，例如：
         pyinstaller -y ./Email.spec
         pyinstaller -y ./upgrade.spec

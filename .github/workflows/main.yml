@@ -7,14 +7,14 @@ on:
 
 jobs:
   build:
-    runs-on: windows-2019
+    runs-on: windows-latest
 
     steps:
     - name: Checkout code
-      uses: qcaaaa
+      uses: actions/qcaaaa
 
     - name: Set up Python 3.9
-      uses: qcaaaa
+      uses: actions/qcaaaa
       with:
         python-version: 3.9
 

@@ -25,3 +25,10 @@ jobs:
       run: |
         pyinstaller -y ./Email.spec
         pyinstaller -y ./upgrade.spec
+        tar -cf ./dist/email.tar -C ./dist/Emai
+        
+    - name: Upload compressed file
+      uses: actions/upload-artifact@v2
+      with:
+        name: email-archive
+        path: ./dist/email.tar
